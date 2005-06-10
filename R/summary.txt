@@ -1,0 +1,86 @@
+Function                     in            calls FORTRAN                in
+
+AWS lokal constant likelihood model
+
+caws                       caws.r            cawsuni                 caws.f
+                                             cawsbi                  caws.f
+					     cawstri                 caws.f
+					     cawsmnn                 caws.f
+					     cawsmul                 caws.f
+
+AWS lokal constant heteroskedastic regression model
+
+chaws                      chaws.r           chawsuni                caws.f
+                                             chawsbi                 caws.f
+					     chawstri                caws.f
+					     chawsmnn                caws.f
+					     chawsmul                caws.f
+					     
+AWS lokal constant Gaussian model (unknown mean and Variance)
+
+cnorm                      cnorm.r           cawsnuni                cnorm.f
+                                             cawsnbi                 cnorm.f
+					     cawsntri                cnorm.f
+					     
+AWS lokal polynomial homoskedastic regression model
+
+cpaws                      cpaws.r           mpawsuni                caws.f
+                                             mpawsbi                 caws.f
+					     mpawsmul                caws.f
+                                             cpawsuni                caws.f
+					     cpawsbi                 caws.f
+					     cpawsmnn                caws.f
+					     cpawsmul                caws.f
+
+AWS lokal polynomial heteroskedastic regression model  (not yet complete)
+
+cphaws                     cphaws.r          mpawsuni                caws.f
+                                             mpawsbi                 caws.f
+					     mpawsmul                caws.f
+					     cphawsun                caws.f
+					     cphawsbi                caws.f
+					     ipawsmnn             not realized
+					     cpawsmnn             not appropriate   
+					     ipawsmul             not realized
+					     cpawsmul             not appropriate   
+
+AWS lokal polynomial Gaussian model (unknown mean and Variance)  (not yet complete)
+
+cpnorm                     cpnorm.r          mpawsuni                caws.f
+                                             mpawsbi                 caws.f
+					     mpawsmul                caws.f
+					     cpawsnun                cnorm.f
+					     cpawsnbi                cnorm.f
+					     
+AWS lokal constant multivariate Gaussian model (unknown mean and Variance)
+
+cvnorm                     cnorm.r           klmnormn                cvnorm.f
+                                             cvawsnun                cvnorm.f
+					     
+AWS lokal constant multivariate Volatility model (Gaussian model with 0 mean and unknown  Variance)
+
+cvvola                     cvvola.r          klvolan                 cvvola.f
+                                             cvawsvol                cvvola.f
+					     
+Interface for Propagation - Separation approach (AWS)
+
+psaws                      psaws.r
+
+Interface for Stagewise Aggregation (SAGG)
+
+sagg                       sagg.r
+
+AWS multivariate  lokal constant heteroskedastic regression model
+
+vaws                       vaws.r            vhawsuni                vaws.f
+                                             vhawsbi                 vaws.f
+					     vhawstri                vaws.f
+					     
+AWS multivariate  lokal polynomial heteroskedastic regression model
+
+vpaws                      vpaws.r           vmpawsun                vaws.f
+                                             vmpawsbi                vaws.f
+					     vphawsun                vaws.f
+					     vphawsbi                vaws.f
+					     
+

@@ -1,0 +1,22 @@
+AWS is a library containing functions to perform the
+Propagation-Separation approach as introduced in
+
+[1] Polzehl, J. and Spokoiny, V. (2004). Propagation-Separation Approach for Local Likelihood Estimation}, Manuskript, 2004.
+
+and
+
+[2] Polzehl, J. and Spokoiny, V. (2004). Spatially adaptive regression estimation: Propagation-separation approach, WIAS-Preprint No. 998, 2004.
+
+and the stagewise aggregation approach, see
+
+[2] Belomestny and Spokoiny, V. (2004). Local likelihood modeling via stagewise aggregation,
+WIAS-Preprint No. 1000
+
+
+
+URL: http://www.wias-berlin.de/project-areas/stat/projects/awspapers.html
+
+
+Joerg Polzehl
+email: polzehl@wias-berlin.de
+URL: http://www.wias-berlin.de/people/polzehl

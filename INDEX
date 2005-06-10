@@ -1,0 +1,12 @@
+caws         likelihood based PS
+chaws        heteroskedastic local constant PS
+cpaws        homoskedastic local polynomial PS
+cphaws       heteroskedastic local polynomial PS
+cnorm        lokal constant Gaussian model (unknown mean and Variance)
+cpnorm       lokal polynomial Gaussian model (unknown mean and Variance) (not yet complete)
+cvnorm       lokal constant multivariate Gaussian model (unknown mean and Variance)
+cvvola       lokal constant multivariate Volatility model (Gaussian model with 0 mean and unknown  Variance)
+vaws         multivariate  lokal constant heteroskedastic regression model
+vpaws        multivariate  lokal polynomial heteroskedastic regression model
+psaws        interface for general Propagation-Separation (PS) 
+sagg         interface for general Stagewise Aggregation
