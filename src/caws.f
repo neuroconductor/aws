@@ -626,6 +626,98 @@ C
 C   Perform one iteration in local constant three-variate aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      subroutine chaws(y,fix,si2,n1,n2,n3,hakt,lambda,theta,bi,bi2,
+     1                 bi0,ai,model,kern,spmax,wght)
+C   
+C   y        observed values of regression function
+C   n1,n2,n3    design dimensions
+C   hakt     actual bandwidth
+C   lambda   lambda or lambda*sigma2 for Gaussian models
+C   theta    estimates from last step   (input)
+C   bi       \sum  Wi   (output)
+C   bi2      \sum  Wi^2*sigma2   (output)
+C   ai       \sum  Wi Y     (output)
+C   model    specifies the probablilistic model for the KL-Distance
+C   kern     specifies the location kernel
+C   spmax    specifies the truncation point of the stochastic kernel
+C   wght     scaling factor for second and third dimension (larger values shrink)
+C   
+      implicit logical (a-z)
+      external kldist,lkern
+      real*8 kldist,lkern
+      integer n1,n2,n3,model,kern
+      logical aws,fix(1)
+      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,wght(2),
+     1       bi2(1),hakt,si2(1),hakt2
+      integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,ja1,je1,ja2,je2,ja3,je3,
+     1        iind,jind,jind3,jind2
+      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,wj0,bii0
+      hakt2=hakt*hakt
+      ih1=hakt
+      aws=lambda.lt.1d40
+      DO i3=1,n3
+         DO i2=1,n2
+             DO i1=1,n1
+	       iind=i1+(i2-1)*n1+(i3-1)*n1*n2
+               IF (fix(iind)) CYCLE
+C    nothing to do, final estimate is already fixed by control 
+               thetai=theta(iind)
+               bii=bi(iind)/lambda
+C   scaling of sij outside the loop
+               bii0=bi0(iind)
+	       ih3=hakt/wght(2)
+               ja3=max0(1,i3-ih3)
+               je3=min0(n3,i3+ih3)
+               swj=0.d0
+	       swj2=0.d0
+               swj0=0.d0
+               swjy=0.d0
+               DO j3=ja3,je3
+                  z3=(i3-j3)*wght(2)
+                  z3=z3*z3
+                  ih2=dsqrt(hakt2-z3)/wght(1)
+                  ja2=max0(1,i2-ih2)
+                  je2=min0(n2,i2+ih2)
+		  jind3=(j3-1)*n1*n2
+                  DO j2=ja2,je2
+                     z2=(i2-j2)*wght(1)
+                     z2=z3+z2*z2
+                     ih1=dsqrt(hakt2-z2)
+                     ja1=max0(1,i1-ih1)
+                     je1=min0(n1,i1+ih1)
+		     jind2=jind3+(j2-1)*n1
+                     DO j1=ja1,je1
+C  first stochastic term
+                        jind=j1+jind2
+                        z1=(i1-j1)
+                        wj0=lkern(kern,(z1*z1+z2)/hakt2)
+			wj=wj0*si2(jind)
+                        swj0=swj0+wj
+                        IF (aws) THEN
+                        sij=bii*kldist(model,thetai,theta(jind),bii0)
+                           IF (sij.gt.spmax) CYCLE
+                           wj=wj*exp(-sij)
+                        END IF
+                        swj=swj+wj
+                        swj2=swj2+wj*wj0
+                        swjy=swjy+wj*y(jind)
+                     END DO
+                  END DO
+               END DO
+               ai(iind)=swjy
+               bi(iind)=swj
+               bi2(iind)=swj2
+               bi0(iind)=swj0
+            END DO
+         END DO
+      END DO
+      RETURN
+      END
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C   Perform one iteration in local constant three-variate aws (gridded)
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine chawstri(y,fix,si2,n1,n2,n3,hakt,lambda,theta,bi,bi0,
      1                    ai,kern,spmax,wght)
 C   
