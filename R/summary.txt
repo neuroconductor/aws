@@ -1,3 +1,17 @@
+#
+#  revised functions
+#
+Function                     in            calls FORTRAN                in
+
+AWS lokal constant likelihood model (includes heteroskedastic case)
+
+aws                        aws.r             caws                    caws.f
+                                             chaws                   caws.f
+vaws                       vaws.r            vaws                    caws.f
+                                             vhaws                   caws.f
+#
+# old situation
+#
 Function                     in            calls FORTRAN                in
 
 AWS lokal constant likelihood model

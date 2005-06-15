@@ -43,33 +43,6 @@ C   should be slightly slower for non-Gaussian models (see function kldist)
 C    
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
-C
-C          Compute the Kullback-Leibler Distance
-C
-C          Model=1    Gaussian   
-C          Model=2    Bernoulli   
-C          Model=3    Poisson   
-C          Model=4    Exponential   
-C
-C     computing dlog(theta) and dlog(1.d0-theta) outside the AWS-loops 
-C     will reduces computational costs at the price of readability
-C
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      real*8 function vkldist(model,d,thi,thj,bi0,vw)
-      implicit logical (a-z)
-      integer model,d,i
-      real*8 thi(d),thj(d),z,z0,bi0,vw(d)
-C        Gaussian case only in the moment
-         z=0.d0
-	 DO i=1,d
-            z0=thi(i)-thj(i)
-	    z=z+z0*z0*vw(i)
-	 END DO
-         vkldist=z
-      RETURN
-      END
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-C
 C        one iteration of univariate local constant aws on a grid
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
