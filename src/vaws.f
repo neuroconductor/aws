@@ -115,7 +115,7 @@ C        one iteration of univariate local constant aws on a grid
 C        heteroskedastic case
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine vhawsuni(y,fix,si2,d,n,hakt,lambda,theta,bi,bi0,ai,
+      subroutine vhawsuni(y,fix,si2,d,n,hakt,lambda,theta,bi,bi0,ni2,ai,
      1                    kern,spmax,thetai,swjy,vw)
 C   
 C   y        observed values of regression function
@@ -136,8 +136,9 @@ C
       logical aws,fix(n)
       real*8 y(d,n),hakt,theta(d,n),bi(n),bi0(n),ai(d,n),lambda,
      1       si2(n),spmax,thetai(d),swjy(d),vw(d)
+      real*8 ni2(n)
       integer ih,i,j,ja,je,k
-      real*8 bii,bii0,sij,swj,z,wj,swj0
+      real*8 bii,bii0,sij,swj,swj2,z,wj,wj2,swj0
       model=1
       ih=hakt
       aws=lambda.lt.1d40
@@ -155,10 +156,13 @@ C   scaling of sij outside the loop
          je=min0(n,i+ih)                  
          swj=0.d0
          swj0=0.d0
+         swj2=0.d0
          DO j=ja,je
 C  first stochastic term
             z=(i-j)/hakt
-            wj=lkern(kern,z*z)*si2(j)
+            wj2=lkern(kern,z*z)
+            wj=wj2*si2(j)
+            swj2=swj2+wj2*wj
             swj0=swj0+wj
             IF (aws) THEN
                sij=bii*vkldist(model,d,thetai,theta(1,j),bii0,vw)
@@ -175,6 +179,7 @@ C  first stochastic term
 	 END DO
          bi(i)=swj
          bi0(i)=swj0
+         ni2(i)=swj2
       END DO
       RETURN
       END
@@ -263,7 +268,7 @@ C   Perform one iteration in local constant bivariate aws (gridded)
 C   Heteroscedastic Gaussian case
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine vhawsbi(y,fix,si2,d,n1,n2,hakt,lambda,theta,bi,bi0,
+      subroutine vhawsbi(y,fix,si2,d,n1,n2,hakt,lambda,theta,bi,bi0,ni2,
      1                   ai,kern,spmax,wght,thetai,swjy,vw)
 
 C   
@@ -286,8 +291,9 @@ C
       logical aws,fix(n1,n2)
       real*8 y(d,n1,n2),hakt,theta(d,n1,n2),bi(n1,n2),ai(d,n1,n2),
      1       lambda,spmax,wght,bi0(n1,n2),si2(n1,n2),vw(d)
+      real*8 ni2(n1,n2),swj2
       integer ih1,ih2,i1,i2,j1,j2,ja1,je1,ja2,je2,k,model
-      real*8 thetai(d),bii,bii0,sij,swj,swjy(d),z1,z2,wj,hakt2,swj0
+      real*8 thetai(d),bii,bii0,sij,swj,swjy(d),z1,z2,wj,wj2,hakt2,swj0
       model=1
       hakt2=hakt*hakt
       ih1=hakt
@@ -307,6 +313,7 @@ C   scaling of sij outside the loop
             je1=min0(n1,i1+ih1)
             swj=0.d0
             swj0=0.d0
+            swj2=0.d0
             DO j1=ja1,je1
                z1=(i1-j1)
                z1=z1*z1
@@ -316,7 +323,9 @@ C   scaling of sij outside the loop
                DO j2=ja2,je2
 C  first stochastic term
                   z2=(i2-j2)*wght
-                  wj=lkern(kern,(z1+z2*z2)/hakt2)*si2(j1,j2)
+                  wj2=lkern(kern,(z1+z2*z2)/hakt2)
+                  wj=wj2*si2(j1,j2)
+                  swj2=swj2+wj2*wj
                   swj0=swj0+wj  
                   IF (aws) THEN
                      sij=bii*vkldist(model,d,thetai,
@@ -335,6 +344,7 @@ C  first stochastic term
 	    END DO
             bi(i1,i2)=swj
             bi0(i1,i2)=swj0
+            ni2(i1,i2)=swj2
          END DO
       END DO
       RETURN
@@ -433,7 +443,7 @@ C   Perform one iteration in local constant three-variate aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine vhawstri(y,fix,si2,d,n1,n2,n3,hakt,lambda,theta,bi,
-     1                    bi0,ai,kern,spmax,wght,thetai,swjy,vw)
+     1                    bi0,ni2,ai,kern,spmax,wght,thetai,swjy,vw)
 C   
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -455,8 +465,9 @@ C
       real*8 y(d,n1,n2,n3),theta(d,n1,n2,n3),bi(n1,n2,n3),
      1       bi0(n1,n2,n3),ai(d,n1,n2,n3),lambda,spmax,si2(n1,n2,n3),
      2       wght(2),hakt,thetai(d),swjy(d),vw(d)
+      real*8 ni2(n1,n2,n3)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,ja1,je1,ja2,je2,ja3,je3,k
-      real*8 bii,bii0,sij,swj,swj0,z1,z2,z3,wj,hakt2
+      real*8 bii,bii0,sij,swj,swj0,swj2,z1,z2,z3,wj,wj2,hakt2
       model=1
       hakt2=hakt*hakt
       ih1=hakt
@@ -477,6 +488,7 @@ C   scaling of sij outside the loop
                je1=min0(n1,i1+ih1)
                swj=0.d0
                swj0=0.d0
+               swj2=0.d0
                DO j1=ja1,je1
                   z1=(i1-j1)
                   z1=z1*z1
@@ -491,7 +503,9 @@ C   scaling of sij outside the loop
                      je3=min0(n3,i3+ih3)
                      DO j3=ja3,je3
                         z3=(i3-j3)*wght(2)
-                   wj=lkern(kern,(z1+z2+z3*z3)/hakt2)*si2(j1,j2,j3)
+                        wj2=lkern(kern,(z1+z2+z3*z3)/hakt2)
+                        wj=wj2*si2(j1,j2,j3)
+                        swj2=swj2+wj2*wj
                         swj0=swj0+wj
                         IF (aws) THEN
                            sij=bii*vkldist(model,d,thetai,
@@ -511,6 +525,7 @@ C   scaling of sij outside the loop
 	       END DO
                bi(i1,i2,i3)=swj
                bi0(i1,i2,i3)=swj0
+               ni2(i1,i2,i3)=swj2
             END DO
          END DO
       END DO
