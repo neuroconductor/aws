@@ -28,8 +28,8 @@
 #                        heta=2   qtau=.95   qlambda=.96
 #
 #
-vaws <- function(y,qlambda=NULL,lkern="Triangle",aggkern="Uniform",sigma2=NULL,
-                 hinit=NULL,hincr=NULL,hmax=NULL,heta=NULL,qtau=NULL,
+vaws <- function(y,qlambda=NULL,qtau=NULL,lkern="Triangle",aggkern="Uniform",sigma2=NULL,
+                 hinit=NULL,hincr=NULL,hmax=NULL,heta=NULL,
                  eta0=0,u=NULL,graph=FALSE,wghts=NULL,vwghts=NULL)
 {
 #
