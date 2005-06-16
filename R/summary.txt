@@ -16,17 +16,17 @@ Function                     in            calls FORTRAN                in
 
 AWS lokal constant likelihood model
 
-caws                       caws.r            cawsuni                 caws.f
-                                             cawsbi                  caws.f
-					     cawstri                 caws.f
+caws                       caws.r            cawsuni                 cawsold.f
+                                             cawsbi                  cawsold.f
+					     cawstri                 cawsold.f
 					     cawsmnn                 caws.f
 					     cawsmul                 caws.f
 
 AWS lokal constant heteroskedastic regression model
 
-chaws                      chaws.r           chawsuni                caws.f
-                                             chawsbi                 caws.f
-					     chawstri                caws.f
+chaws                      chaws.r           chawsuni                cawsold.f
+                                             chawsbi                 cawsold.f
+					     chawstri                cawsold.f
 					     chawsmnn                caws.f
 					     chawsmul                caws.f
 					     

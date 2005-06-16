@@ -27,7 +27,7 @@ vaws(y, qlambda = NULL, qtau = NULL, lkern = "Triangle", aggkern = "Uniform", si
   \code{qlambda} lead to less sensitivity to structural differences, smaller values may lead to a random structure (segmentation) of the resulting estimate. }
   \item{qtau}{Stagewise Aggregation, see Belomestny and Spokoiny (2004) is used as an adaptive control step if \code{qtau<1}. 
    \code{qtau} determines the scaling parameter \code{\tau} in the Stagewise Aggregation algorithm in the same way as \code{qlambda} does
-   for AWS. Default values are again selected, for the probability distribution specified with the \code{family} argument, by a propagation condition.}
+   for AWS. Default values are again selected by a propagation condition.}
   \item{lkern}{\code{lkern} specifies the location kernel. Defaults to "Triangle", other choices are "Quadratic", "Cubic" and "Uniform".
     Note that the location kernel is applied to \code{(x-x_j)^2/h^2}, i.e. the use of "Triangle" corresponds to the Epanechnicov kernel 
     nonparametric kernel regression.}
@@ -67,7 +67,7 @@ A typical application of this function occurs in case of registered 2D or 3D ima
 
 The essential parameter in the procedure is \code{qlambda}. This parameter has an 
    interpretation as a significance level of a test for equivalence of two local
-   parameter estimates. Optimal values mainly depend on the choosen \code{family}. 
+   parameter estimates. Optimal values mainly depend on the number of observed components. 
    Default values provided are choosen to fulfil the propagation, i.e. in case of a 
    constant (global) parameter value and large \code{hmax} the procedure should 
    provide, with a high probability, the global (parametric) estimate.

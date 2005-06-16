@@ -1,6 +1,6 @@
 #
 #    R - function  vaws  for likelihood  based  Adaptive Weights Smoothing (AWS)
-#    for vector valued local constant Gaussian models                              #
+#    for vector valued local constant Gaussian models                    #
 # 
 #
 #    Copyright (C) 2002 Weierstrass-Institut fuer
@@ -116,7 +116,7 @@ lkern<-switch(lkern,Triangle=2,Quadratic=3,Cubic=4,Uniform=1,2)
 #      get lambda as quantile of appropriate chisq,
 #                rescale to be consistent with the paper in  lambda
 #
-if(is.null(vwghts)) vwghts<-rep(1,dd) 
+if(is.null(vwghts)) cpar$vw<-vwghts<-rep(1,dd) 
 if(qlambda<1) lambda <- 2*qchisq(qlambda,dd)*sum(vwghts)/dd else lambda <- 1e50
 #
 #   the factor sum(vwghts)/dd  is just a guess how to correct lambda if vwghts are not equal 
@@ -278,7 +278,7 @@ title("Observed Image")
 image(tobj$theta[1,,],col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Reconstruction  h=",signif(hakt,3)))
 image(tobj$bi,col=gray((0:255)/255),xaxt="n",yaxt="n")
-title(paste("Sum of weights: min=",signif(min(tobj$bi),3)," max=",signif(max(tobj$bi),3)))
+title(paste("Sum of weights: min=",signif(min(tobj$bi),3)," mean=",signif(mean(tobj$bi),3)," max=",signif(max(tobj$bi),3)))
 image(tobj$eta,col=gray((0:255)/255),xaxt="n",yaxt="n",zlim=c(0,1))
 title("eta")
 }
@@ -289,13 +289,13 @@ title("Observed Image")
 image(tobj$theta[1,,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Reconstruction  h=",signif(hakt,3)))
 image(tobj$bi[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n")
-title("Sum of weights")
+title(paste("Sum of weights: min=",signif(min(tobj$bi),3)," mean=",signif(mean(tobj$bi),3)," max=",signif(max(tobj$bi),3)))
 image(tobj$eta[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n",zlim=c(0,1))
 title("eta")
 } 
 }
 if(!is.null(u)) cat("bandwidth: ",signif(hakt,3),"eta==1",sum(tobj$eta==1),"   MSE: ",
-                    mean((tobj$theta-u)^2),"   MAE: ",mean(abs(tobj$theta-u)),"\n")
+                    signif(mean((tobj$theta-u)^2),3),"   MAE: ",signif(mean(abs(tobj$theta-u)),3)," mean(bi)=",signif(mean(tobj$bi),3), "\n")
 hakt <- hakt*hincr
 lambda0<-lambda
 gc()
