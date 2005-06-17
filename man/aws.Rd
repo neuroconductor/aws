@@ -83,6 +83,7 @@ The essential parameter in the procedure is \code{qlambda}. This parameter has a
   \item{var }{Contains an estimate of \code{var(thetahat)}, in all grid points \code{i}, conditional on the weights in the last
   iteration step being independent form \code{y}. In this sense it only is an approximation of the true variance.}
   \item{y }{The observed data.}
+  \item{hmax }{Bandwidth used in the last iteration.}
   \item{call }{The arguments of the function call.}
 }
 \references{ 

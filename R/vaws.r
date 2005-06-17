@@ -295,7 +295,7 @@ title("eta")
 } 
 }
 if(!is.null(u)) cat("bandwidth: ",signif(hakt,3),"eta==1",sum(tobj$eta==1),"   MSE: ",
-                    signif(mean((tobj$theta-u)^2),3),"   MAE: ",signif(mean(abs(tobj$theta-u)),3)," mean(bi)=",signif(mean(tobj$bi),3), "\n")
+                    signif(mean((tobj$theta-u)^2),3),"   MAE: ",signif(mean(abs(tobj$theta-u)),3)," mean(var)*hakt^d=",signif(mean(tobj$bi2/tobj$bi^2)*hakt^ddim,3), "\n")
 hakt <- hakt*hincr
 lambda0<-lambda
 gc()
@@ -308,7 +308,7 @@ vartheta <- tobj$bi2/tobj$bi^2
 } else {
 vartheta <- sigma2*tobj$bi2/tobj$bi^2
 }
-z<-list(theta=tobj$theta,ni=tobj$bi,var=vartheta,y=y,call=args)
+z<-list(theta=tobj$theta,ni=tobj$bi,var=vartheta,y=y,hmax=hakt/hincr,call=args)
 class(z)<-"vaws.gaussian"
 z
 }

@@ -363,7 +363,7 @@ vartheta <- switch(family,Gaussian=sigma2,
 			  Weibull=tobj$theta^2*(gamma(2/shape+1)/gamma(1/shape+1)^2-1),
 			  Volatility=2*tobj$theta,0)*tobj$bi2/tobj$bi^2
 }
-z<-list(theta=tobj$theta,ni=tobj$bi,var=vartheta,y=y,call=args)
+z<-list(theta=tobj$theta,ni=tobj$bi,var=vartheta,y=y,hmax=hakt/hincr,call=args)
 class(z)<-switch(family,Gaussian="aws.gaussian",Bernoulli="aws.bernoulli",Exponential="aws.exponential",
                  Poisson="aws.poisson",Weibull="aws.weibull",Volatility="aws.vola")
 z
