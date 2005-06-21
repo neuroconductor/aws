@@ -1,10 +1,11 @@
 #
 #
-#       Multivariate Volatility estimation
+#       Multivariate Mean and Volatility estimation
 #
 #
-cvnorm<-function(y,hmax=100,model="full",qlambda=.966,qtau1=.92,lkern="Triangle",
-             heta=NULL,eta0=0,hinit=dim(y)[1],hincr=NULL,graph=FALSE){
+vawsnorm<-function(y,qlambda=NULL,qtau=NULL,model="full",lkern="Triangle",
+        aggkern="Uniform",hinit=NULL,hincr=NULL,hmax=NULL,heta=NULL,
+	eta0=NULL,graph=FALSE){
 KLnorm <- function(mu1,mu2,sig1,sig2){
     ds<-dim(sig1)[1]
     n<-dim(sig1)[2]
@@ -23,7 +24,7 @@ KLnorm <- function(mu1,mu2,sig1,sig2){
              kld=double(n),
              PACKAGE="aws")$kld
 }
-updtheta<-function(zobj,tobj,cpar){
+updtheta<-function(zobj,tobj,cpar,aggkern){
 heta<-cpar$heta
 eta0<-cpar$eta0
 tau1<-cpar$tau1
@@ -54,6 +55,9 @@ sigmanew[m,bi<(d+1)]<-sigma[m,bi<(d+1)]
 m<-m+1
 }
 if(cpar$model!="full"){
+# just to avoid zero variances
+for(i in (1:d)*((1:d)+1)/2) sigmanew[i,sigmanew[i,]<1.e-10]<-1.e-10
+## estimate and use global correlation
 sn<-sqrt(sigmanew[(1:d)*((1:d)+1)/2,])
 m<-1
 for(i in 1:d) for(j in 1:i){
@@ -64,9 +68,12 @@ m<-m+1
 sigmanew[,tobj$fix]<-sigma[,tobj$fix]
 munew[,tobj$fix]<-mu[,tobj$fix]
 if(hakt>heta) {
-eta<-(1-eta0)*pmin(1,bi0/tau*
+eta<-switch(aggkern,"Uniform"=,(1-eta0)*as.numeric(bi0/tau*
+             KLnorm((1-eta0)*munew+eta0*mu,mu,
+             (1-eta0)*sigmanew+eta0*sigma,sigma)>1)+eta0,
+            "Triangle"=(1-eta0)*pmin(1,bi0/tau*
    KLnorm((1-eta0)*munew+eta0*mu,mu,
-          (1-eta0)*sigmanew+eta0*sigma,sigma))+eta0
+          (1-eta0)*sigmanew+eta0*sigma,sigma))+eta0)
 } else {
 eta <- rep(eta0,n)
 }
@@ -97,18 +104,18 @@ m<-m+1
 #
 #   Initialize parameters
 #
-if(is.null(qtau1)) qtau1<-.92
-if(qtau1<1) tau1<-qchisq(qtau1,d+1) else tau1<-1e50
+if(is.null(qlambda)) qlambda<-.98
+if(is.null(qtau)) if(qlambda==1) qtau<-.6 else qtau<-.92
+if(model=="full") d1<-(d+1)/2+1 else d1<-2
+if(qtau<1) tau1<-qchisq(qtau,d+1) else tau1<-1e50
+if(aggkern=="Triangle") tau1<-2.5*tau1
 if(is.null(eta0)) eta0<-.25
 lkern<-switch(lkern,Triangle=2,Quadratic=3,Cubic=4,Uniform=1,2)
-if(model=="full") {
-if(qlambda<1) lambda <- 2*qchisq(qlambda,ds+d) else lambda <- 1e50
-} else {
-if(qlambda<1) lambda <- 2*qchisq(qlambda,2*d) else lambda <- 1e50
-}
-if(is.null(hinit)||hinit<d+1.5) hinit <- d+1.5
+if(qlambda<1) lambda <- 2*qchisq(qlambda,d1*d) else lambda <- 1e50
+if(is.null(hinit)||hinit<5*d) hinit <- 5*d
 if(is.null(hincr)||hincr<=1) hincr <-1.25
-if(is.null(heta)) heta<-max(2*(ds+d),hinit+1)
+if(is.null(hmax)) hmax <- 100*d
+if(is.null(heta)) heta<-max(2*(d1+d),hinit+1)
 cpar<-list(heta=heta,tau1=tau1,eta0=eta0,model=model,kstar=log(d*100),d=d)
 #
 #   now run aws
@@ -151,7 +158,7 @@ dim(zobj$ami)<-c(d,n)
 dim(zobj$asi)<-c(ds,n)
 biold <- zobj$bi0
 cat("Now update for h=",hakt,"\n")
-tobj<-updtheta(zobj,tobj,cpar)
+tobj<-updtheta(zobj,tobj,cpar,aggkern)
 if(graph){
 par(mfrow=c(1,3),mar=c(3,3,3,.2),mgp=c(2,1,0))
 plot(y[1,],ylim=range(y[1,],tobj$mu[1,]),col=3)

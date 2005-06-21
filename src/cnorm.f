@@ -261,6 +261,97 @@ C  first stochastic term
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
+C        one iteration of univariate local constant aws for general Gaussian case
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      subroutine cawsnorm(y,ys,fix,n1,n2,n3,hakt,lambda,mu,sigma,bi,
+     1                    bi0,ami,asi,kern,spmax,wght)
+C   
+C   y        observed values of regression function
+C   n        number of observations
+C   hakt     actual bandwidth
+C   lambda   lambda or lambda*sigma2 for Gaussian models
+C   theta    estimates from last step   (input)
+C   bi       \sum  Wi   (output)
+C   ai       \sum  Wi Y     (output)
+C   model    specifies the probablilistic model for the KL-Distance
+C   kern     specifies the location kernel
+C   spmax    specifies the truncation point of the stochastic kernel
+C
+      implicit logical (a-z)
+      external klnorm,lkern
+      real*8 klnorm,lkern
+      integer n1,n2,n3,kern
+      logical aws,fix(1)
+      real*8 y(1),ys(1),hakt,sigma(1),mu(1),bi(1),bi0(1),ami(1),
+     1       lambda,spmax,swjs,swjm,asi(1)
+      integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,ja1,je1,ja2,je2,ja3,je3,
+     1       iind,jind,jind3,jind2 
+      real*8 bii,sij,swj,z1,z2,z3,wj,swj0,bii0,mui,s1,wght(2),hakt2
+      hakt2=hakt*hakt
+      ih1=hakt
+      aws=lambda.lt.1d40
+      DO i3=1,n3
+         DO i2=1,n2
+             DO i1=1,n1
+	       iind=i1+(i2-1)*n1+(i3-1)*n1*n2
+               IF (fix(iind)) CYCLE
+C    nothing to do, final estimate is already fixed by control 
+               bii=bi(iind)/lambda
+C   scaling of sij outside the loop
+               bii0=bi0(iind)
+	       ih3=hakt/wght(2)
+               ja3=max0(1,i3-ih3)
+               je3=min0(n3,i3+ih3)
+               swj=0.d0
+               swj0=0.d0
+               swjs=0.d0
+               swjm=0.d0
+	       s1=sigma(iind)
+	       mui=mu(iind)
+               DO j3=ja3,je3
+                  z3=(i3-j3)*wght(2)
+                  z3=z3*z3
+                  ih2=dsqrt(hakt2-z3)/wght(1)
+                  ja2=max0(1,i2-ih2)
+                  je2=min0(n2,i2+ih2)
+		  jind3=(j3-1)*n1*n2
+                  DO j2=ja2,je2
+                     z2=(i2-j2)*wght(1)
+                     z2=z3+z2*z2
+                     ih1=dsqrt(hakt2-z2)
+                     ja1=max0(1,i1-ih1)
+                     je1=min0(n1,i1+ih1)
+		     jind2=jind3+(j2-1)*n1
+                     DO j1=ja1,je1
+C  first stochastic term
+                        jind=j1+jind2
+                        z1=(i1-j1)
+                        wj=lkern(kern,(z1*z1+z2)/hakt2)
+                        swj0=swj0+wj
+                        IF (aws) THEN
+                           sij=bii*klnorm(mui,mu(jind),s1,
+     1                                        sigma(jind))
+                           IF (sij.gt.spmax) CYCLE
+                           wj=wj*dexp(-sij)
+                        ENDIF
+                        swj=swj+wj
+                        swjs = swjs+wj*ys(jind)
+                        swjm = swjm+wj*y(jind)
+                     END DO
+                  END DO
+               END DO
+               asi(iind)=swjs
+               ami(iind)=swjm
+               bi(iind)=swj
+               bi0(iind)=swj0
+            END DO
+         END DO
+      END DO
+      RETURN
+      END
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
 C   Perform one iteration in univariate local polynomial aws
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

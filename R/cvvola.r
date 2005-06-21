@@ -3,8 +3,9 @@
 #       Multivariate Volatility estimation
 #
 #
-cvvola<-function(y,hmax=100,model="full",qlambda=.966,qtau1=.92,lkern="Triangle",
-             heta=NULL,eta0=0,hinit=dim(y)[1],hincr=NULL,graph=FALSE){
+vawsvola<-function(y,qlambda=NULL,qtau=NULL,model="full",lkern="Triangle",
+             aggkern="Uniform",hinit=dim(y)[1],hincr=NULL,hmax=NULL,heta=NULL,
+	     eta0=NULL,graph=FALSE){
 KLvola <- function(th1,th2){
     ds<-dim(th1)[1]
     n<-dim(th1)[2]
@@ -21,7 +22,7 @@ KLvola <- function(th1,th2){
 	     kld=double(n),
 	     PACKAGE="aws")$kld
 }
-updtheta<-function(zobj,tobj,cpar){
+updtheta<-function(zobj,tobj,cpar,aggkern){
 heta<-cpar$heta
 eta0<-cpar$eta0
 tau1<-cpar$tau1
@@ -38,18 +39,24 @@ thetanew<-t(t(zobj$ai)/bi)
 } else {
 thetanew<-t(t(zobj$ai)/bi)
 ind<-(1:d)*((1:d)+1)/2
+sn<-thetanew[ind,]
 m<-1
+## estimate and use global correlation
 for(i in (1:d)) for(j in 1:i){
 if(i!=j) {
-thetanew<-mean(yyt[m]/sqrt(thetanew[i,]*thetanew[j,]))*sqrt(thetanew[i,]*thetanew[j,])
+thetanew[m,]<-mean(yyt[m,]/sqrt(sn[i,]*sn[j,]))*sqrt(sn[i,]*sn[j,])
 }
+m<-m+1
 }
 }
 theta<-tobj$theta
 n<-dim(theta)[2]
 thetanew[,tobj$fix]<-theta[,tobj$fix]
 if(hakt>heta) {
-eta<-(1-eta0)*pmin(1,bi0/tau*KLvola((1-eta0)*thetanew+eta0*theta,theta))+eta0
+eta<-switch(aggkern,"Uniform"=(1-eta0)*as.numeric(bi0/tau*
+             KLvola((1-eta0)*thetanew+eta0*theta,theta)>1)+eta0,
+            "Triangle"=(1-eta0)*pmin(1,bi0/tau*
+	     KLvola((1-eta0)*thetanew+eta0*theta,theta))+eta0)
 } else {
 eta <- rep(eta0,n)
 }
@@ -77,14 +84,18 @@ m<-m+1
 #
 #   Initialize parameters
 #
-if(is.null(qtau1)) qtau1<-.92
-if(qtau1<1) tau1<-qchisq(qtau1,ds) else tau1<-1e50
+if(is.null(qlambda)) qlambda<-.98
+if(is.null(qtau)) if(qlambda==1) qtau<-.6 else qtau<-.92
+if(model=="full") d1<-(d+1)/2 else d1<-1
+if(qtau<1) tau1<-qchisq(qtau,d) else tau1<-1e50
+if(aggkern=="Triangle") tau1<-2.5*tau1
 if(is.null(eta0)) eta0<-.25
 lkern<-switch(lkern,Triangle=2,Quadratic=3,Cubic=4,Uniform=1,2)
-if(qlambda<1) lambda <- 2*qchisq(qlambda,ds) else lambda <- 1e50
-if(is.null(hinit)||hinit<d) hinit <- d
+if(qlambda<1) lambda <- 2*qchisq(qlambda,d1*d) else lambda <- 1e50
+if(is.null(hinit)||hinit<5*d) hinit <- 5*d
 if(is.null(hincr)||hincr<=1) hincr <-1.25
-if(is.null(heta)) heta<-max(2*ds,hinit+1)
+if(is.null(hmax)) hmax <- 100*d
+if(is.null(heta)) heta<-max(2*(d+d1),hinit+1)
 cpar<-list(heta=heta,tau1=tau1,eta0=eta0,model=model,kstar=log(d*100),d=d)
 #
 #   now run aws
@@ -121,7 +132,7 @@ if(hakt>n/2) zobj$bi0 <- hincr*biold
 dim(zobj$ai)<-c(ds,n)
 biold <- zobj$bi0
 cat("Now update for h=",hakt,"\n")
-tobj<-updtheta(zobj,tobj,cpar)
+tobj<-updtheta(zobj,tobj,cpar,aggkern)
 if(graph){
 par(mfrow=c(1,2),mar=c(3,3,3,.2),mgp=c(2,1,0))
 plot(yyt[1,],ylim=range(yyt[1,],tobj$theta[1,]),col=3)
