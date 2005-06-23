@@ -509,7 +509,7 @@ C
      1       wght(2),bi2(1),hakt,si2(1),hakt2,thetai(d),swjy(d),vw(d)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,ja1,je1,ja2,je2,ja3,je3,
      1        iind,jind,jind3,jind2,k
-      real*8 bii,sij,swj,swj2,swj0,z1,z2,z3,wj,wj0,bii0
+      real*8 bii,sij,swj,swj2,swj0,z1,z2,z3,wj,wj0,bii0,esij
       model=1
       hakt2=hakt*hakt
       ih1=hakt
@@ -558,7 +558,9 @@ C  first stochastic term
                         sij=bii*vkldist(model,d,thetai,theta(1,jind),
      1                                  bii0,vw)
                            IF (sij.gt.spmax) CYCLE
-                           wj=wj*exp(-sij)
+			   esij=exp(-sij)
+                           wj=wj*esij
+                           wj0=wj0*esij
                         END IF
                         swj=swj+wj
                         swj2=swj2+wj*wj0
