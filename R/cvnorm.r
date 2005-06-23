@@ -54,11 +54,15 @@ for(i in 1:d) for(j in 1:i){
 sigmanew[m,bi<(d+1)]<-sigma[m,bi<(d+1)]
 m<-m+1
 }
-if(cpar$model!="full"){
+ind<-(1:d)*((1:d)+1)/2
 # just to avoid zero variances
-for(i in (1:d)*((1:d)+1)/2) sigmanew[i,sigmanew[i,]<1.e-10]<-1.e-10
+for(i in ind) {
+msi<-mean(sigmanew[i,])
+sigmanew[i,sigmanew[i,]<1.e-5*msi]<-1.e-5*msi
+}
+if(cpar$model!="full"){
 ## estimate and use global correlation
-sn<-sqrt(sigmanew[(1:d)*((1:d)+1)/2,])
+sn<-sqrt(sigmanew[ind,])
 m<-1
 for(i in 1:d) for(j in 1:i){
 if(i!=j) sigmanew[m,]<-mean((yyt[m,]-mumut[m,])/(sn[i,]*sn[j,]))*sn[i,]*sn[j,]
@@ -75,7 +79,7 @@ eta<-switch(aggkern,"Uniform"=,(1-eta0)*as.numeric(bi0/tau*
    KLnorm((1-eta0)*munew+eta0*mu,mu,
           (1-eta0)*sigmanew+eta0*sigma,sigma))+eta0)
 } else {
-eta <- rep(eta0,n)
+eta <- rep(0,n)
 }
 eta[tobj$fix]<-1
 bi <- (1-eta)*bi + eta * tobj$bi
@@ -105,14 +109,14 @@ m<-m+1
 #   Initialize parameters
 #
 if(is.null(qlambda)) qlambda<-.98
-if(is.null(qtau)) if(qlambda==1) qtau<-.6 else qtau<-.92
+if(is.null(qtau)) if(qlambda==1) qtau<-.85 else qtau<-.96
 if(model=="full") d1<-(d+1)/2+1 else d1<-2
-if(qtau<1) tau1<-qchisq(qtau,d+1) else tau1<-1e50
+if(qtau<1) tau1<-qchisq(qtau,2) else tau1<-1e50
 if(aggkern=="Triangle") tau1<-2.5*tau1
-if(is.null(eta0)) eta0<-.25
+if(is.null(eta0)) eta0<-.0
 lkern<-switch(lkern,Triangle=2,Quadratic=3,Cubic=4,Uniform=1,2)
 if(qlambda<1) lambda <- 2*qchisq(qlambda,d1*d) else lambda <- 1e50
-if(is.null(hinit)||hinit<5*d) hinit <- 5*d
+if(is.null(hinit)||hinit<max(10,2*d)) hinit <- max(10,2*d)
 if(is.null(hincr)||hincr<=1) hincr <-1.25
 if(is.null(hmax)) hmax <- 100*d
 if(is.null(heta)) heta<-max(2*(d1+d),hinit+1)

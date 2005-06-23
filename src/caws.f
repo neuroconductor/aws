@@ -381,11 +381,12 @@ C
 C   Perform one iteration in local constant three-variate aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine vaws(y,fix,d,n1,n2,n3,hakt,lambda,theta,bi,bi2,
+      subroutine vaws(y,fix,d,n1,n2,n3,ns,hakt,lambda,theta,bi,bi2,
      1                 bi0,ai,kern,spmax,wght,thetai,swjy,vw)
 C   
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
+C   ns       length of sigma
 C   hakt     actual bandwidth
 C   lambda   lambda or lambda*sigma2 for Gaussian models
 C   theta    estimates from last step   (input)
@@ -400,24 +401,27 @@ C
       implicit logical (a-z)
       external vkldist,lkern
       real*8 vkldist,lkern
-      integer d,n1,n2,n3,model,kern
-      logical aws,fix(1)
-      real*8 y(d,1),theta(d,1),bi(1),bi0(1),ai(d,1),lambda,spmax,
+      integer d,n1,n2,n3,model,kern,ns
+      logical aws,fix(1),hetero
+      real*8 y(d,1),theta(d,1),bi(1),bi0(1),ai(d,1),lambda(1),spmax,
      1       wght(2),bi2(1),hakt,hakt2,thetai(d),swjy(d),vw(d)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,ja1,je1,ja2,je2,ja3,je3,
-     1        iind,jind,jind3,jind2,k
+     1        iind,jind,jind3,jind2,k,indis
       real*8 bii,sij,swj,swj2,swj0,z1,z2,z3,wj,wj0,bii0
       model=1
       hakt2=hakt*hakt
       ih1=hakt
-      aws=lambda.lt.1d40
+      aws=lambda(1).lt.1d40
+      hetero=ns.gt.1
+      indis=1
       DO i3=1,n3
          DO i2=1,n2
              DO i1=1,n1
 	       iind=i1+(i2-1)*n1+(i3-1)*n1*n2
+	       if(hetero) indis=iind
                IF (fix(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
-               bii=bi(iind)/lambda
+               bii=bi(iind)/lambda(indis)
 C   scaling of sij outside the loop
                bii0=bi0(iind)
 	       ih3=hakt/wght(2)

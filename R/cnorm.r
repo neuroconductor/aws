@@ -5,7 +5,7 @@
 #
 awsnorm<-function(y,qlambda=NULL,qtau=NULL,lkern="Triangle",
         aggkern="Uniform",hinit=NULL,hincr=NULL,hmax=NULL,heta=NULL,
-	eta0=NULL,graph=FALSE,u=NULL,wghts=NULL,eps=5.1e-6){
+	eta0=NULL,u=NULL,graph=FALSE,wghts=NULL){
 #KLnorm <- function(mu1,mu2,sig1,sig2){
 #    log(sig2/sig1)-1+(sig1+(mu1-mu2)^2)/sig2
 KLnorm <- function(mu1,mu2,sig1,sig2){
@@ -57,22 +57,15 @@ yyt<-y*y
 #   Initialize parameters
 #
 if(is.null(qlambda)) qlambda<-.96
-if(is.null(qtau)) if(qlambda==1) qtau<-.25 else qtau<-.92
+if(is.null(qtau)) if(qlambda==1) {
+if(is.null(dy)) qtau<-.8 else qtau<-.25 
+} else qtau<-.92
 d1<-2
 if(qtau<1) tau1<-qchisq(qtau,d1) else tau1<-1e50
 if(aggkern=="Triangle") tau1<-2.5*tau1
-if(is.null(eta0)) eta0<-.25
+if(is.null(eta0)) eta0<-.0
 lkern<-switch(lkern,Triangle=2,Quadratic=3,Cubic=4,Uniform=1,2)
 if(qlambda<1) lambda <- 2*qchisq(qlambda,2) else lambda <- 1e50
-if(is.null(hinit)||hinit<2.) hinit <- 2.
-if(is.null(hincr)||hincr<=1) hincr <-1.25
-if(is.null(heta)) heta<-max(4,hinit+1)
-if(is.null(hmax)){
-if(is.null(dim(y))) hmax<-250    # uses a maximum of about 500 points
-if(length(dim(y))==2) hmax<-12   # uses a maximum of about 450 points
-if(length(dim(y))==3) hmax<-5    # uses a maximum of about 520 points
-}
-cpar<-list(heta=heta,tau1=tau1,eta0=eta0,eps=eps)
 #
 #   now run aws
 #
@@ -81,7 +74,7 @@ form="uni"
 n1<-n<-length(y)
 n2<-n3<-1
 ddim<-1
-cpar$kstar<-log(100)
+kstar<-log(100)
 }
 if(length(dy)==2) {
 form="bi"
@@ -90,7 +83,7 @@ n2<-dy[2]
 n3<-1
 n<-n1*n2
 ddim<-2
-cpar$kstar<-log(15)
+kstar<-log(15)
 hincr <- sqrt(hincr)
 }
 if(length(dy)==3) {
@@ -104,11 +97,20 @@ n2 <- dy[2]
 n3 <- dy[3]
 n <- n1*n2*n3
 ddim<-3
-cpar$kstar<-log(5)
+kstar<-log(5)
 hincr <- hincr^(1/3)
 }
 if(length(dy)>3) return("AWS for more than 3 dimensional grids is not implemented")
 if(is.null(wghts)) wghts<-c(1,1,1)
+if(is.null(hinit)||hinit<10^(1/ddim)) hinit <- 10^(1/ddim)
+if(is.null(hincr)||hincr<=1) hincr <-1.25
+if(is.null(heta)) heta<-max(4,hinit+1)
+if(is.null(hmax)){
+if(is.null(dim(y))) hmax<-250    # uses a maximum of about 500 points
+if(length(dim(y))==2) hmax<-12   # uses a maximum of about 450 points
+if(length(dim(y))==3) hmax<-5    # uses a maximum of about 520 points
+}
+cpar<-list(heta=heta,tau1=tau1,eta0=eta0,eps=1.e-6,kstar=kstar)
 hinit<-hinit/wghts[1]
 hmax<-hmax/wghts[1]
 wghts<-(wghts[2:3]/wghts[1])
@@ -158,10 +160,10 @@ if(ddim==1){
 par(mfrow=c(1,3),mar=c(1,1,3,.25),mgp=c(2,1,0))
 plot(y)
 lines(tobj$mu,col=2)
-title("Observed data and estimated mean")
-plot(sqrt(tobj$sigma2),col=2,type="l")
-title("Estimated standard deviation")
-plot(sqrt(tobj$bi),type="l")
+title(paste("Observed data and estimated mean (h=",signif(hakt,3),")"))
+plot(sqrt(tobj$sigma),col=2,type="l")
+title(paste("Estimated standard deviation(h=",signif(hakt,3),")"))
+plot(tobj$bi,type="l")
 title(paste("Sum of weights  min=",signif(min(tobj$bi),3)," max=",signif(max(tobj$bi),3)))
 }
 if(ddim==2){

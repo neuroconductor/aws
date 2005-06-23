@@ -13,7 +13,7 @@ or heteroskedastic model is used depending on the content of \code{sigma2}. In t
 all components are assumed to have the same structure in the variance.
 }
 \usage{
-vaws(y, qlambda = NULL, qtau = NULL, lkern = "Triangle", aggkern = "Uniform", sigma2 = NULL, hinit = NULL, hincr = NULL, hmax = NULL, heta = NULL, eta0 = 0, u = NULL, graph = FALSE, wghts = NULL, vwghts = NULL)
+vaws(y, qlambda = NULL, qtau = NULL, lkern = "Triangle", aggkern = "Uniform", sigma2 = NULL, wsi=FALSE, hinit = NULL, hincr = NULL, hmax = NULL, heta = NULL, eta0 = 0, u = NULL, graph = FALSE, wghts = NULL, vwghts = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -37,6 +37,8 @@ vaws(y, qlambda = NULL, qtau = NULL, lkern = "Triangle", aggkern = "Uniform", si
       component. This factor is provided with \code{vwghts}.
    Defaults to \code{NULL}. In this case a homoskedastic variance estimate is generated. If \code{length(sigma2)==prod(dim(y)[-1])} then \code{sigma2}
    is assumed to contain the pointwise variance of \code{y} and a heteroscedastic variance model is used.}
+  \item{wsi}{\code{wsi} specifies whether a factor \code{1/sigma2(j)} should be used in weights \code{w_{ij}}
+   or not.  }
   \item{hinit}{\code{hinit} specifies the initial bandwidth. Defaults to \code{hinit=1} }
   \item{hincr}{\code{hincr} specifies the factor used to increase the size of local neigborhoods after each iteration. The bandwidth is increased by
    a factor \code{hincr^(1/dd)} with \code{dd} specifying the dimensionality of the grid. Defaults to \code{hincr=1.25} }

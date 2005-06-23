@@ -28,9 +28,7 @@
 #                        heta=2   qtau=.95   qlambda=.96
 #
 #
-vaws <- function(y,qlambda=NULL,qtau=NULL,lkern="Triangle",aggkern="Uniform",sigma2=NULL,
-                 hinit=NULL,hincr=NULL,hmax=NULL,heta=NULL,
-                 eta0=0,u=NULL,graph=FALSE,wghts=NULL,vwghts=NULL)
+vaws <- function(y,qlambda=NULL,qtau=NULL,lkern="Triangle",aggkern="Uniform",sigma2=NULL,wsi=FALSE,hinit=NULL,hincr=NULL,hmax=NULL,heta=NULL,eta0=0,u=NULL,graph=FALSE,wghts=NULL,vwghts=NULL)
 {
 #
 #
@@ -46,7 +44,7 @@ kstar<-cpar$kstar
 vw<-cpar$vw
 dd<-cpar$dd
 hakt<-zobj$hakt
-tau<-2*(tau1+tau2*max(kstar-log(hakt),0))
+tau<-as.vector(2*(tau1+tau2*max(kstar-log(hakt),0)))
 bi0<-zobj$bi0
 bi<-zobj$bi
 bi2<-zobj$bi2
@@ -136,7 +134,7 @@ if(is.null(hincr)||hincr<=1) hincr <-1.25
         sigma2 <- mean(apply(y,1,IQRdiff)^2*vwghts)
 	cat("Estimated variance: ", signif(sigma2,4),"\n")
 	}
-    if(length(sigma2)==1){
+    if(!wsi){
 #   homoskedastic Gaussian case
     lambda <- lambda*sigma2 
     cpar$tau1 <- cpar$tau1*sigma2 
@@ -144,7 +142,7 @@ if(is.null(hincr)||hincr<=1) hincr <-1.25
     } else {
 #   heteroskedastic Gaussian case
     if((dd*length(sigma2))!=length(y)) {
-        cat("sigma2 does not have length 1 or same length as y")
+        cat("sigma2 does not have the same length as y")
 	return("sigma2 does not have length 1 or same length as y")
 	}
     sigma2<-1/sigma2 #  taking the invers yields simpler formulaes 
@@ -203,7 +201,7 @@ if(hinit>1) lambda0<-1e10 # that removes the stochstic term for the first step
 #   run single steps to display intermediate results
 #
 while(hakt<=hmax){
-if(length(sigma2)==n){
+if(length(sigma2)==n&wsi){
 # heteroskedastic
 zobj <- .Fortran("vhaws",as.double(y),
                        as.logical(tobj$fix),
@@ -227,13 +225,16 @@ zobj <- .Fortran("vhaws",as.double(y),
 		       as.double(vwghts),
 		       PACKAGE="aws")[c("bi","bi2","bi0","ai","hakt")]
 } else {
-# homoskedastic
+# if length(sigma)==1 homoskedastic situation
+# if length(sigma)==n homoskedastic kernel weights, 
+#                      heteroskedastic variance in sij 
 zobj <- .Fortran("vaws",as.double(y),
                        as.logical(tobj$fix),
                        as.integer(dd),
                        as.integer(n1),
                        as.integer(n2),
                        as.integer(n3),
+		       as.integer(length(sigma)),
                        hakt=as.double(hakt),
                        as.double(lambda0),
                        as.double(tobj$theta),
@@ -302,7 +303,7 @@ gc()
 }
 ###                                                                                                            
 ###                                                                       
-if(length(sigma2)==n){
+if(wsi){
 # heteroskedastic Gaussian case 
 vartheta <- tobj$bi2/tobj$bi^2
 } else {

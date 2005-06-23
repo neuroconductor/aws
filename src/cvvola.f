@@ -15,8 +15,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       END DO
       call dpofa(ainv,n,n,info)
       if(info.gt.0) THEN
-C          call intpr("info2",5,info,1)
-C	  call dblepr("a",1,a,n*n)
       END IF
       call dpodi(ainv,n,n,det0,job)
       det=det0(1)*10.0**det0(2)
@@ -45,8 +43,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       END DO
       call dpofa(ainv,n,n,info)
       if(info.gt.0) THEN
-C          call intpr("info1",5,info,1)
-C	  call dblepr("a",1,a,n*n)
       END IF
       call dpodi(ainv,n,n,det0,job)
       det=det0(1)*10.0**det0(2)
@@ -108,13 +104,11 @@ C      subroutine klvolan(th1,th2,d,ds,n,s1,s2,s2inv,kld)
          call deta(s1,d,s2inv,det1,info)
 	 IF(info.gt.0) THEN
 	    kld(l)=0
-	    call intpr("l1",2,l,1)
 	    CYCLE
 	 END IF
          call invdeta(s2,d,s2inv,det2,info)
 	 IF(info.gt.0) THEN
 	    kld(l)=0
-	    call intpr("l2",2,l,1)
 	    CYCLE
 	 END IF
          z=dlog(det2/det1)-d
