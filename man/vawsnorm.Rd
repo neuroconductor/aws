@@ -1,45 +1,88 @@
 \name{vawsnorm}
 \alias{vawsnorm}
 %- Also NEED an '\alias' for EACH other topic documented here.
-\title{ ~~function to do ... ~~ }
-\description{
-  ~~ A concise (1-5 lines) description of what the function does. ~~
+\title{ AWS for local constant multivariate heteroskedastic regression }
+\description{The function implements the propagation separation approach to 
+nonparametric smoothing (formerly introduced as Adaptive weights smoothing) 
+for multivariate varying coefficient Gaussian models with unknown mean and variance on a 1D grid.
 }
 \usage{
 vawsnorm(y, qlambda = NULL, qtau = NULL, model = "full", lkern = "Triangle", aggkern = "Uniform", hinit = NULL, hincr = NULL, hmax = NULL, heta = NULL, eta0 = NULL, graph = FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{y}{ ~~Describe \code{y} here~~ }
-  \item{qlambda}{ ~~Describe \code{qlambda} here~~ }
-  \item{qtau}{ ~~Describe \code{qtau} here~~ }
-  \item{model}{ ~~Describe \code{model} here~~ }
-  \item{lkern}{ ~~Describe \code{lkern} here~~ }
-  \item{aggkern}{ ~~Describe \code{aggkern} here~~ }
-  \item{hinit}{ ~~Describe \code{hinit} here~~ }
-  \item{hincr}{ ~~Describe \code{hincr} here~~ }
-  \item{hmax}{ ~~Describe \code{hmax} here~~ }
-  \item{heta}{ ~~Describe \code{heta} here~~ }
-  \item{eta0}{ ~~Describe \code{eta0} here~~ }
-  \item{graph}{ ~~Describe \code{graph} here~~ }
+  \item{y}{\code{y} contains the observed response data. \code{dim(y)[1]} 
+  is the number of components of the response, \code{dim(y)[2]} 
+  the number of observations.}
+  \item{qlambda}{ \code{qlambda} is the main smoothing parameter. It determines the scaling parameter \code{\lambda} in the statistical penalty
+  (see description of the algorithm in the references) as \code{qchisq(qlambda,1)}. \code{qlambda=1} disables adaptation, i.e. the 
+  resulting estimate is (for \code{qtau=1} a kernel estimate using the largest inspected bandwidth less or equal to \code{hmax}.
+  \code{qlambda} can be selected  as the smallest value that fulfils a propagation condition. 
+  This means that in a parametric, in this case constant in mean and variance, model the resulting estimate is, for a large \code{hmax} almost parametric. 
+  The default values of \code{qlambda}  are selected to fulfil this condition. Larger values of 
+  \code{qlambda} lead to less sensitivity to structural differences, smaller values may lead to a random structure (segmentation) of the resulting estimate.}
+  \item{qtau}{Stagewise Aggregation, see Belomestny and Spokoiny (2004) is used as an adaptive control step if \code{qtau<1}. 
+   \code{qtau} determines the scaling parameter \code{\tau} in the Stagewise Aggregation algorithm in the same way as \code{qlambda} does
+   for AWS. Default values are again selected by a propagation condition.}
+  \item{model}{ \code{model} specifies the model for the variance. 
+  Alternatives are \code{model="full"} for a general varying coefficient covariance structure 
+  and \code{model="corr"} for varying coefficient variances and a 
+  common (global) correlation structure.}
+  \item{lkern}{ \code{lkern} specifies the location kernel. Defaults to "Triangle", other choices are "Quadratic", "Cubic" and "Uniform".
+    Note that the location kernel is applied to \code{(x-x_j)^2/h^2}, i.e. the use of "Triangle" corresponds to the Epanechnicov kernel 
+    nonparametric kernel regression.}
+   \item{aggkern}{\code{aggkern} specifies the kernel for the statistical panalty in stagewise aggregation. Defaults to "Uniform", the alternative choice is
+   "Triangle"}
+  \item{hinit}{\code{hinit} specifies the initial bandwidth. Defaults to \code{hinit=1} }
+  \item{hincr}{\code{hincr} specifies the factor used to increase the size of local neigborhoods after each iteration. The bandwidth is increased by
+   a factor \code{hincr}. Defaults to \code{hincr=1.25}  }
+  \item{hmax}{\code{hmax} specifies the maximal bandwidth. Defaults to \code{hmax=100 \code{dim(y)[1]}}
+  \item{heta}{ \code{heta} specifies the minimal bandwidth to use with stagewise aggregation.  }
+  \item{eta0}{ \code{eta0} minimal mixing coefficient in stagewise aggregation, defaults to 0 in case of \code{family="Gaussian"} and values
+   larger than 0 otherwise to avoid problems at the boundary of the parameter space.}
+  \item{graph}{If  \code{graph=TRUE} intermediate results are illustrated after each iteration step. Defaults to \code{graph=FALSE}. }
 }
 \details{
-  ~~ If necessary, more details than the __description__  above ~~
+The function implements the propagation separation approach to 
+nonparametric smoothing (formerly introduced as Adaptive weights smoothing) 
+for multivariate varying coefficient Gaussian models with unknown mean and variance on a 1D grid. 
+\code{qtau>=1} provides Adaptive weights smoothing without control by stagewise aggregation.  
+
+The essential parameter in the procedure is \code{qlambda}. This parameter has an 
+   interpretation as a significance level of a test for equivalence of two local
+   parameter estimates. 
+   Default values provided are choosen to fulfil the propagation, i.e. in case of a 
+   constant (global) parameter value and large \code{hmax} the procedure should 
+   provide, with a high probability, the global (parametric) estimate.
+   The optimal values only slightly depend on the model parameters, i.e. the
+   default parameters should work in most situations. Larger values of \code{qlambda}
+   may lead to oversmoothing, small values of \code{qlambda} lead to a random segmentation
+   of homogeneous regions. 
+
 }
 \value{
-  ~Describe the value returned
-  If it is a LIST, use
-  \item{comp1 }{Description of 'comp1'}
-  \item{comp2 }{Description of 'comp2'}
-  ...
+  \item{mu }{Contains the estimated mean}
+  \item{sigma }{Contains the estimated variance}
+  \item{bi }{Contains the sum of weights, i.e. \code{trace(W_i)}, in all grid points \code{i}.}
+  \item{args}{Contains the call of the function}
 }
-\references{ ~put references to the literature/web site here ~ }
-\author{ ~~who you are~~ }
-\note{ ~~further notes~~ }
-
- ~Make other sections like Warning with \section{Warning }{....} ~
-
-\seealso{ ~~objects to See Also as \code{\link{~~fun~~}}, ~~~ }
+\references{ }
+\item{ }{Polzehl, J. and Spokoiny, V. (2004a). \emph{Propagation-Separation Approach for Local Likelihood Estimation}, 
+WIAS-Preprint 1000.}
+\item{ }{Belomestny, D. and Spokoiny, V. (2004a). \emph{Local likelihood modeling via stagewise aggregation}, 
+Manuscript, see webside.}
+\item{ }{Polzehl, J. and Spokoiny, V. (2004b). \emph{Spatially adaptive regression estimation: Propagation-separation approach}, WIAS-Preprint 998.}
+\item{ }{Polzehl, J. and Spokoiny, V. (2003). \emph{Varying coefficient 
+regression modeling by adaptive weights smoothing}, WIAS-Preprint 818.}
+\item{ }{Polzehl, J. and Spokoiny, V. (2002). \emph{Local likelihood 
+modelling by adaptive weights smoothing}, WIAS-Preprint 787.}
+\item{ }{ Polzehl, J. and Spokoiny, V. (2000). \emph{Adaptive Weights Smoothing
+     with applications to image restoration}, J.R.Statist.Soc. B, 62,
+     Part 2, pp. 335-354}}
+\author{ Joerg Polzehl, \email{polzehl@wias-berlin.de}, 
+\url{http://www.wias-berlin.de/project-areas/stat/projects/adaptive-image-processing.html}}
+##\note{}
+\seealso{See Also  \code{\link{aws}}, \code{\link{awsnorm}}, \code{\link{vawsvola}}}
 \examples{
 ##---- Should be DIRECTLY executable !! ----
 ##-- ==>  Define data, use random,

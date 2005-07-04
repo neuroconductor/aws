@@ -9,7 +9,8 @@ models, i.e. regression with additive "Gaussian" errors, a homoskedastic
 or heteroskedastic model is used depending on the content of \code{sigma2}
 }
 \usage{
-aws(y, qlambda = NULL, qtau = NULL, family = "Gaussian", lkern = "Triangle", aggkern = "Uniform", sigma2 = NULL, shape = NULL, hinit = NULL, hincr = NULL, hmax = NULL, heta = NULL, eta0 = NULL, u = NULL, graph = FALSE, demo = FALSE, wghts = NULL)
+aws(y, qlambda = NULL, qtau = NULL, family = "Gaussian", lkern = "Triangle", aggkern = "Uniform", sigma2 = NULL, shape = NULL, hinit = NULL, hincr = NULL, hmax = NULL, 
+lseq = NULL, heta = NULL, eta0 = NULL, u = NULL, graph = FALSE, demo = FALSE, wghts = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -25,8 +26,9 @@ aws(y, qlambda = NULL, qtau = NULL, family = "Gaussian", lkern = "Triangle", agg
    \code{qtau} determines the scaling parameter \code{\tau} in the Stagewise Aggregation algorithm in the same way as \code{qlambda} does
    for AWS. Default values are again selected, for the probability distribution specified with the \code{family} argument, by a propagation condition.}
   \item{family}{\code{family} specifies the probability distribution. Default is \code{family="Gaussian"}, also implemented
-   are "Bernoulli", "Poisson", "Exponential", "Weibull" and "Volatility". \code{family="Volatility"} specifies a Gaussian distribution with
-   expectation 0 and unknown variance}
+   are "Bernoulli", "Poisson", "Exponential", "Volatility" and "Variance". \code{family="Volatility"} specifies a Gaussian distribution with
+   expectation 0 and unknown variance. \code{family="Volatility"} specifies that \code{y/theta} is distributed as \code{\Chi^2} with \code{p=shape}
+   degrees of freedom.}
   \item{lkern}{ \code{lkern} specifies the location kernel. Defaults to "Triangle", other choices are "Quadratic", "Cubic" and "Uniform".
     Note that the location kernel is applied to \code{(x-x_j)^2/h^2}, i.e. the use of "Triangle" corresponds to the Epanechnicov kernel 
     nonparametric kernel regression.}
@@ -35,11 +37,13 @@ aws(y, qlambda = NULL, qtau = NULL, family = "Gaussian", lkern = "Triangle", agg
   \item{sigma2}{\code{sigma2} allows to specify the variance in case of \code{family="Gaussian"}. Not used if \code{family!="Gaussian"}.
    Defaults to \code{NULL}. In this case a homoskedastic variance estimate is generated. If \code{length(sigma2)==length(y)} then \code{sigma2}
    is assumed to contain the pointwise variance of \code{y} and a heteroscedastic variance model is used.}
-  \item{shape}{\code{shape} allows to specify additional parameters if \code{family!="Gaussian"}, e.g. for \code{family="Weibull"} }
+  \item{shape}{\code{shape} allows to specify additional parameters if \code{family!="Gaussian"}, e.g. for degrees of freedom in \code{family="Variance"} }
   \item{hinit}{\code{hinit} specifies the initial bandwidth. Defaults to \code{hinit=1} }
   \item{hincr}{\code{hincr} specifies the factor used to increase the size of local neigborhoods after each iteration. The bandwidth is increased by
    a factor \code{hincr^(1/dd)} with \code{dd} specifying the dimensionality of the grid. Defaults to \code{hincr=1.25}  }
   \item{hmax}{ \code{hmax} specifies the maximal bandwidth. Defaults to \code{hmax=250, 12, 5} for \code{dd=1, 2, 3}, respectively.}
+  \item{lseq}{ \code{lseq} allows to increase the value of the scaling parameter \code{\lambda} for the first \code{length(lseq)} iteration steps by
+  the factor specified in \code{lseq}. Defaults to NULL. In this case a default sequence is used that fulfils the propagation condition. }
   \item{heta}{ \code{heta} specifies the minimal bandwidth to use with stagewise aggregation.  }
   \item{eta0}{ \code{eta0} minimal mixing coefficient in stagewise aggregation, defaults to 0 in case of \code{family="Gaussian"} and values
    larger than 0 otherwise to avoid problems at the boundary of the parameter space.}
@@ -65,6 +69,13 @@ The essential parameter in the procedure is \code{qlambda}. This parameter has a
    Default values provided are choosen to fulfil the propagation, i.e. in case of a 
    constant (global) parameter value and large \code{hmax} the procedure should 
    provide, with a high probability, the global (parametric) estimate.
+   More formally we require the parameter \code{qlambda} and eventually \code{lseq}
+   to be specified such that
+   \code{\bf{E} |\hat{\theta}^k - \theta| \le (1+\alpha) \bf{E} |\tilde{\theta}^k - \theta|}
+   where \code{\hat{\theta}^k} is the aws-estimate in step \code{k} and \code{\tilde{\theta}^k}
+   is corresponding nonadaptive estimate using the same bandwidth (\code{qlambda=1}).
+   Default values are selected to fulfil this condition for \code{\alpha=0.1}.
+   
    The optimal values only slightly depend on the model parameters, i.e. the
    default parameters should work in most situations. Larger values of \code{qlambda}
    may lead to oversmoothing, small values of \code{qlambda} lead to a random segmentation
@@ -84,6 +95,9 @@ The essential parameter in the procedure is \code{qlambda}. This parameter has a
   iteration step being independent form \code{y}. In this sense it only is an approximation of the true variance.}
   \item{y }{The observed data.}
   \item{hmax }{Bandwidth used in the last iteration.}
+  \item{mae }{If \code{u} is specified this parameter contains the MAE observed for all iteration steps. This information
+  is useful to see if a parameter specification fulfils the propagation condition, see example.}
+  \item{lseq }{Faktor used to scale \code{\lambda} for each iteration step.}
   \item{call }{The arguments of the function call.}
 }
 \references{ 
@@ -105,6 +119,14 @@ modelling by adaptive weights smoothing}, WIAS-Preprint 787.}
 \seealso{See Also  \code{\link{paws}}, \code{\link{vaws}}}
 \examples{
 require(aws)
+#
+#    test of propagation condition for "Gaussian" case
+#
+    set.seed(1); y<-rnorm(10000)
+    ttt<-aws(y,hmax=100,u=0,qlambda=1,qtau=1) # non-adaptive estimates
+    ttt.975 <- aws(y,hmax=100,u=0,qlambda=.975,qtau=1) # aws
+    ttt.975$mae/ttt$mae-1
+#   shows that our propagation condition is fulfilled with alpha=.1
 #  
 #  Local constant image from Polzehl and Spokoiny (2000)
 #

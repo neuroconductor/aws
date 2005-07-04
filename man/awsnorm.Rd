@@ -16,7 +16,7 @@ awsnorm(y, qlambda = NULL, qtau = NULL, lkern = "Triangle", aggkern = "Uniform",
   resulting estimate is a kernel estimate using the largest inspected bandwidth less or equal to \code{hmax}.
   \code{qlambda} can be selected  as the smallest value that fulfils a propagation condition.
   This means that in a parametric, in this case constant in mean and variance, model the resulting estimate is, for a large \code{hmax} almost parametric. 
-  The default values of \code{qlambda} for the different specifications of \code{family} are selected to fulfil this condition. Larger values of 
+  The default value of \code{qlambda} is selected to fulfil this condition. Larger values of 
   \code{qlambda} lead to less sensitivity to structural differences, smaller values may lead to a random structure (segmentation) of the resulting estimate.}
   \item{qtau}{Stagewise Aggregation, see Belomestny and Spokoiny (2004) is used as an adaptive control step if \code{qtau<1}. 
    \code{qtau} determines the scaling parameter \code{\tau} in the Stagewise Aggregation algorithm in the same way as \code{qlambda} does
@@ -42,18 +42,52 @@ awsnorm(y, qlambda = NULL, qtau = NULL, lkern = "Triangle", aggkern = "Uniform",
   in different coordinate directions, i.e. allows to define a more appropriate metric in the design space. }
 }
 \details{
-  ~~ If necessary, more details than the __description__  above ~~
+The function implements the propagation separation approach to 
+nonparametric smoothing (formerly introduced as Adaptive weights smoothing) 
+for varying coefficient Gaussian models with unknown mean and variance on a 1D, 2D or 3D grid. 
+\code{qtau>=1} provides Adaptive weights smoothing without control by stagewise aggregation.  
+
+The essential parameter in the procedure is \code{qlambda}. This parameter has an 
+   interpretation as a significance level of a test for equivalence of two local
+   parameter estimates. 
+   Default values provided are choosen to fulfil the propagation, i.e. in case of a 
+   constant (global) parameter value and large \code{hmax} the procedure should 
+   provide, with a high probability, the global (parametric) estimate.
+   The optimal values only slightly depend on the model parameters, i.e. the
+   default parameters should work in most situations. Larger values of \code{qlambda}
+   may lead to oversmoothing, small values of \code{qlambda} lead to a random segmentation
+   of homogeneous regions. 
+   
+   The numerical complexity of the procedure is mainly determined by \code{hmax}. The number
+   of iterations is \code{d*log(hmax/hinit)/log(hincr)} with \code{d} being the dimension 
+   of \code{y}. Comlexity in each iteration step is \code{Const*hakt*n} with \code{hakt}
+   being the actual bandwith in the iteration step and \code{n} the number of design points.
+   \code{hmax} determines the maximal possible variance reduction.
+
 }
 \value{
-  ~Describe the value returned
-  If it is a LIST, use
-  \item{comp1 }{Description of 'comp1'}
-  \item{comp2 }{Description of 'comp2'}
-  ...
+  \item{mu }{Contains the estimated mean}
+  \item{sigma }{Contains the estimated variance}
+  \item{bi }{Contains the sum of weights, i.e. \code{trace(W_i)}, in all grid points \code{i}.}
+  \item{args}{Contains the call of the function}
 }
-\references{ ~put references to the literature/web site here ~ }
-\author{ ~~who you are~~ }
-\note{ ~~further notes~~ }
+\references{ }
+\item{ }{Polzehl, J. and Spokoiny, V. (2004a). \emph{Propagation-Separation Approach for Local Likelihood Estimation}, 
+WIAS-Preprint 1000.}
+\item{ }{Belomestny, D. and Spokoiny, V. (2004a). \emph{Local likelihood modeling via stagewise aggregation}, 
+Manuscript, see webside.}
+\item{ }{Polzehl, J. and Spokoiny, V. (2004b). \emph{Spatially adaptive regression estimation: Propagation-separation approach}, WIAS-Preprint 998.}
+\item{ }{Polzehl, J. and Spokoiny, V. (2003). \emph{Varying coefficient 
+regression modeling by adaptive weights smoothing}, WIAS-Preprint 818.}
+\item{ }{Polzehl, J. and Spokoiny, V. (2002). \emph{Local likelihood 
+modelling by adaptive weights smoothing}, WIAS-Preprint 787.}
+\item{ }{ Polzehl, J. and Spokoiny, V. (2000). \emph{Adaptive Weights Smoothing
+     with applications to image restoration}, J.R.Statist.Soc. B, 62,
+     Part 2, pp. 335-354}}
+\author{ Joerg Polzehl, \email{polzehl@wias-berlin.de}, 
+\url{http://www.wias-berlin.de/project-areas/stat/projects/adaptive-image-processing.html}}
+##\note{}
+\seealso{See Also  \code{\link{aws}}, \code{\link{vawsnorm}}}
 
  ~Make other sections like Warning with \section{Warning }{....} ~
 
@@ -287,5 +321,6 @@ function (y, qlambda = NULL, qtau = NULL, lkern = "Triangle",
     list(mu = tobj$mu, sigma = tobj$sigma, bi = tobj$bi, args = args)
   }
 }
-\keyword{ ~kwd1 }% at least one, from doc/KEYWORDS
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+\keyword{ smooth }% at least one, from doc/KEYWORDS
+\keyword{ nonparametric }% __ONLY ONE__ keyword per line
+\keyword{ regression }% __ONLY ONE__ keyword per line
