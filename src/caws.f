@@ -92,6 +92,9 @@ C        Poisson
       ELSE IF (model.eq.4) THEN
 C        Exponential
          kldist=thi/thj-1.d0-dlog(thi/thj)
+      ELSE IF (model.eq.5) THEN
+C        Exponential
+         kldist=thi/thj-1.d0-dlog(thi/thj)
       ELSE
 C        use Gaussian
          z=thi-thj
@@ -178,8 +181,8 @@ C
 C   Perform one iteration in local constant three-variate aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine caws(y,fix,n1,n2,n3,hakt,lambda,theta,bi,bi2,bi0,ai,
-     1                   model,kern,spmax,wght)
+      subroutine caws(y,fix,n1,n2,n3,hakt,lambda,theta,bi,bi2,
+     1                   bi0,ai,model,kern,spmax,wght)
 C   
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -244,7 +247,7 @@ C  first stochastic term
                         wj=lkern(kern,(z1*z1+z2)/hakt2)
                         swj0=swj0+wj
                         IF (aws) THEN
-                        sij=bii*kldist(model,thetai,theta(jind),bii0)
+                  sij=bii*kldist(model,thetai,theta(jind),bii0)
                            IF (sij.gt.spmax) CYCLE
                            wj=wj*exp(-sij)
                         END IF
@@ -336,7 +339,7 @@ C  first stochastic term
 			wj=wj0*si2(jind)
                         swj0=swj0+wj
                         IF (aws) THEN
-                        sij=bii*kldist(model,thetai,theta(jind),bii0)
+                   sij=bii*kldist(model,thetai,theta(jind),bii0)
                            IF (sij.gt.spmax) CYCLE
                            wj=wj*exp(-sij)
                         END IF
