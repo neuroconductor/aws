@@ -71,7 +71,7 @@ hakt<-zobj$hakt
 bi<-zobj$bi
 bi2<-zobj$bi2
 thetanew<-zobj$ai/bi
-if(mcode==5) thetanew<-thetanew/shape 
+#if(mcode==5) thetanew<-thetanew/shape 
 theta<-tobj$theta
 thetanew[tobj$fix]<-theta[tobj$fix]
 if(hakt>heta) {
@@ -103,22 +103,22 @@ if(is.null(heta)) heta<-max(2,hinit+.5)
 if(is.null(dim(y))){ heta<-max(heta,switch(family,Gaussian=2,Bernoulli=2,Exponential=8,Poisson=4/min(1,mean(y)),
                                                      Volatility=8,Variance=8))
 if(is.null(qlambda)) qlambda <- switch(family,Gaussian=.975,Bernoulli=.98,Exponential=.98,Poisson=.98,
-                                                     Volatility=.98,Variance=.98)
-if(is.null(lseq)) lseq<-switch(family,Gaussian=1.3,1.3)
+                                                     Volatility=.98,Variance=.96)
+if(is.null(lseq)) lseq<-switch(family,Gaussian=1.3,Variance=1.8,1.3)
 						     }
 if(length(dim(y))==2) {
 heta<-max(heta,switch(family,Gaussian=2,Bernoulli=2,Exponential=2,Poisson=2/min(1,sqrt(mean(y))),
                                                      Volatility=2,Variance=2))
 if(is.null(qlambda)) qlambda <- switch(family,   Gaussian=.975,Bernoulli=.98,Exponential=.98,Poisson=.98,
-                                                     Volatility=.98,Variance=.98)
-if(is.null(lseq)) lseq<-switch(family,Gaussian=c(1.85,1.3,1.1,1.1),c(1.85,1.3,1.1,1.1))
+                                                     Volatility=.98,Variance=.975)
+if(is.null(lseq)) lseq<-switch(family,Gaussian=c(1.85,1.3,1.1,1.1),Variance=c(2.5,rep(1.4,3),rep(1.2,3),rep(1.1,3)),c(1.85,1.3,1.1,1.1))
 						     }
 if(length(dim(y))==3){
  heta<-max(heta,switch(family,Gaussian=2,Bernoulli=2,Exponential=2,Poisson=2/min(1,mean(y)^(1/3)),
                                                      Volatility=2,Variance=2))
 if(is.null(qlambda)) qlambda <- switch(family,   Gaussian=.985,Bernoulli=.98,Exponential=.98,Poisson=.98,
                                                      Volatility=.98,Variance=.98)
-if(is.null(lseq)) lseq<-switch(family,Gaussian=c(1.75,1.35,1.2,1.2,1.2,1.2),c(1.75,1.35,1.2,1.2,1.2,1.2))
+if(is.null(lseq)) lseq<-switch(family,Gaussian=c(1.75,1.35,1.2,1.2,1.2,1.2),Variance=c(2.4,1.4,1.2,1.2,1.1,1.1),c(1.75,1.35,1.2,1.2,1.2,1.2))
 }						     
 if(qlambda<.9) warning("Inappropriate value of qlambda")
 if(qlambda>=1){
@@ -151,7 +151,7 @@ n<-length(y)
 if(is.null(shape)) shape<-1
 cpar$mcode<-switch(family,Gaussian=1,Bernoulli=2,Poisson=3,Exponential=4,Volatility=4,Variance=5,-1)
 if(cpar$mcode < 0) stop(paste("specified family ",family," not yet implemented"))
-if(is.null(cpar$eta0)) cpar$eta0<-switch(family,Gaussian=0,Bernoulli=.25,Poisson=.5,Exponential=.25,Volatility=.25,Variance=.25,.25)
+if(is.null(cpar$eta0)) cpar$eta0<-switch(family,Gaussian=0,Bernoulli=.25,Poisson=.5,Exponential=.25,Volatility=.25,Variance=.25/shape,.25)
 #
 #    set the code for the kernel (used in lkern) and set lambda
 #
@@ -195,10 +195,10 @@ lambda <- 2*lambda
 }
 if(family=="Variance"){
 if(is.null(shape)) shape<-1
-lambda <- 2*lambda*shape 
+lambda <- 2*lambda/shape 
 # this accounts for the additional 1/2 in Q(\hat{theta},theta) and the degrees of freedom in chisq
-cpar$tau1 <- cpar$tau1*shape
-cpar$tau2 <- cpar$tau2*shape 
+cpar$tau1 <- cpar$tau1/shape
+cpar$tau2 <- cpar$tau2/shape 
 }
 cpar$shape<-shape
 #
