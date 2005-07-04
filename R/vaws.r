@@ -101,7 +101,8 @@ cpar<-list(heta=heta,tau1=tau1,tau2=tau2,eta0=eta0,vw=vwghts,dd=dd)
 #
 #          if not provided set default value for qlambda 
 #
-if(is.null(qlambda)) qlambda <- .98
+if(is.null(qlambda)) qlambda <- switch(length(dy)-1,.975,.975,.985)
+lseq<-switch(length(dy)-1,1.3,c(1.85,1.3,1.1,1.1),c(1.75,1.35,1.2,1.2,1.2,1.2),c(1.75,1.35,1.2,1.2,1.2,1.2))
 # qlambda>=1  eliminates the use of the stochastic penalty
 #
 #  check if family is implemented and set the code for the family (used in kldist) 
@@ -199,6 +200,10 @@ if(hinit>1) lambda0<-1e50 # that removes the stochstic term for the first step
 #
 #   run single steps to display intermediate results
 #
+steps<-as.integer(log(hmax/hinit)/log(hincr)+1)
+if(length(lseq)<steps) lseq<-c(lseq,rep(1,steps-length(lseq)))
+lseq<-lseq[1:steps]
+k<-1
 while(hakt<=hmax){
 if(length(sigma2)==n&wsi){
 # heteroskedastic
@@ -297,7 +302,7 @@ title("eta")
 if(!is.null(u)) cat("bandwidth: ",signif(hakt,3),"eta==1",sum(tobj$eta==1),"   MSE: ",
                     signif(mean((tobj$theta-u)^2),3),"   MAE: ",signif(mean(abs(tobj$theta-u)),3)," mean(var)*hakt^d=",signif(mean(tobj$bi2/tobj$bi^2)*hakt^ddim,3), "\n")
 hakt <- hakt*hincr
-lambda0<-lambda
+lambda0<-lambda*lseq[k]
 gc()
 }
 ###                                                                                                            
