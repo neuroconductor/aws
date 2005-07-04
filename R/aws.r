@@ -36,10 +36,11 @@
 #             Volatility:    qlambda=.98       
 #
 aws <- function(y,qlambda=NULL,qtau=NULL,family="Gaussian",lkern="Triangle",aggkern="Uniform",
-                 sigma2=NULL,shape=NULL,hinit=NULL,hincr=NULL,hmax=NULL,
+                 sigma2=NULL,shape=NULL,hinit=NULL,hincr=NULL,hmax=NULL,lseq=NULL,
 		 heta=NULL,eta0=NULL,u=NULL,graph=FALSE,demo=FALSE,wghts=NULL)
 {
 #
+#          Auxilary functions
 #
 IQRdiff <- function(y) IQR(diff(y))/1.908
 #
@@ -49,6 +50,7 @@ KLdist <- function(mcode,th1,th2,bi0){
    z<-switch(mcode,(th1-th2)^2,
                 th1*log(th1/th12)+(1.-th1)*log((1.-th1)/(1.-th12)),
 		th1*log(th1/th12)-th1+th12,
+		th1/th2-1.-log(th1/th2),
 		th1/th2-1.-log(th1/th2))
    z[is.na(z)]<-0
    z
@@ -60,6 +62,7 @@ heta<-cpar$heta
 eta0<-cpar$eta0
 tau1<-cpar$tau1
 tau2<-cpar$tau2
+shape<-cpar$shape
 kstar<-cpar$kstar
 hakt<-zobj$hakt
 tau<-2*(tau1+tau2*max(kstar-log(hakt),0))
@@ -68,6 +71,7 @@ hakt<-zobj$hakt
 bi<-zobj$bi
 bi2<-zobj$bi2
 thetanew<-zobj$ai/bi
+if(mcode==5) thetanew<-thetanew/shape 
 theta<-tobj$theta
 thetanew[tobj$fix]<-theta[tobj$fix]
 if(hakt>heta) {
@@ -92,33 +96,38 @@ args <- match.call()
 #
 spmax <- 5
 #
-#          if not provided set default value for qlambda (qlambda>=1 disables the stochastic penalty)
-#
-if(is.null(qlambda)) qlambda <- switch(family,   Gaussian=.96,
-                                                     Bernoulli=.98,
-                                                     Exponential=.98,
-                                                     Poisson=.98,
-                                                     Weibull=.98,
-                                                     Volatility=.98)
-if(qlambda<.9) return("Inappropriate value of qlambda")
-#
 #     set approriate defaults
 #
+mae<-NULL
 if(is.null(heta)) heta<-max(2,hinit+.5)
-if(is.null(dim(y))) heta<-max(heta,switch(family,Gaussian=2,Bernoulli=2,Exponential=8,Poisson=4/min(1,mean(y)),Weibull=8,
-                                                     Volatility=8))
-if(length(dim(y))==2) heta<-max(heta,switch(family,Gaussian=2,Bernoulli=2,Exponential=2,Poisson=2/min(1,sqrt(mean(y))),Weibull=2,
-                                                     Volatility=2))
-if(length(dim(y))==3) heta<-max(heta,switch(family,Gaussian=2,Bernoulli=2,Exponential=2,Poisson=2/min(1,mean(y)^(1/3)),Weibull=2,
-                                                     Volatility=2))
+if(is.null(dim(y))){ heta<-max(heta,switch(family,Gaussian=2,Bernoulli=2,Exponential=8,Poisson=4/min(1,mean(y)),
+                                                     Volatility=8,Variance=8))
+if(is.null(qlambda)) qlambda <- switch(family,Gaussian=.975,Bernoulli=.98,Exponential=.98,Poisson=.98,
+                                                     Volatility=.98,Variance=.98)
+if(is.null(lseq)) lseq<-switch(family,Gaussian=1.3,1.3)
+						     }
+if(length(dim(y))==2) {
+heta<-max(heta,switch(family,Gaussian=2,Bernoulli=2,Exponential=2,Poisson=2/min(1,sqrt(mean(y))),
+                                                     Volatility=2,Variance=2))
+if(is.null(qlambda)) qlambda <- switch(family,   Gaussian=.975,Bernoulli=.98,Exponential=.98,Poisson=.98,
+                                                     Volatility=.98,Variance=.98)
+if(is.null(lseq)) lseq<-switch(family,Gaussian=c(1.85,1.3,1.1,1.1),c(1.85,1.3,1.1,1.1))
+						     }
+if(length(dim(y))==3){
+ heta<-max(heta,switch(family,Gaussian=2,Bernoulli=2,Exponential=2,Poisson=2/min(1,mean(y)^(1/3)),
+                                                     Volatility=2,Variance=2))
+if(is.null(qlambda)) qlambda <- switch(family,   Gaussian=.985,Bernoulli=.98,Exponential=.98,Poisson=.98,
+                                                     Volatility=.98,Variance=.98)
+if(is.null(lseq)) lseq<-switch(family,Gaussian=c(1.75,1.35,1.2,1.2,1.2,1.2),c(1.75,1.35,1.2,1.2,1.2,1.2))
+}						     
+if(qlambda<.9) warning("Inappropriate value of qlambda")
 if(qlambda>=1){
 # thats stagewise aggregation with kernel specified by aggkern
-if(is.null(qtau)) qtau<-switch(family,Gaussian=.4,Bernoulli=.75,Exponential=.75,Poisson=.75,Weibull=.75,
-                                                     Volatility=.75)
+if(is.null(qtau)) qtau<-switch(family,Gaussian=.4,Bernoulli=.75,Exponential=.75,Poisson=.75,
+                                                     Volatility=.75,Variance=.75)
 if(qtau==1) tau1 <- 1e50 else tau1<-qchisq(qtau,1)
 if(aggkern=="Triangle") tau1<-2.5*tau1
 tau2<-tau1/2
-hinit<-heta
 } else {
 if(is.null(qtau)) qtau<-.95
 if(qtau>=1) {
@@ -139,11 +148,10 @@ cpar<-list(heta=heta,tau1=tau1,tau2=tau2,eta0=eta0)
 #          check if model is implemented and set the code for the model (used in kldist) 
 #
 n<-length(y)
-if(family=="Weibull" && (is.null(shape) || shape<=0))
-   return("Shape parameter for Weibull has to be positive")
-cpar$mcode<-switch(family,Gaussian=1,Bernoulli=2,Poisson=3,Exponential=4,Weibull=4,Volatility=4,-1)
-if(cpar$mcode < 0) return(paste("specified family ",family," not yet implemented"))
-if(is.null(cpar$eta0)) cpar$eta0<-switch(family,Gaussian=0,Bernoulli=.25,Poisson=.5,Exponential=.25,Weibull=.25,Volatility=.25,.25)
+if(is.null(shape)) shape<-1
+cpar$mcode<-switch(family,Gaussian=1,Bernoulli=2,Poisson=3,Exponential=4,Volatility=4,Variance=5,-1)
+if(cpar$mcode < 0) stop(paste("specified family ",family," not yet implemented"))
+if(is.null(cpar$eta0)) cpar$eta0<-switch(family,Gaussian=0,Bernoulli=.25,Poisson=.5,Exponential=.25,Volatility=.25,Variance=.25,.25)
 #
 #    set the code for the kernel (used in lkern) and set lambda
 #
@@ -168,10 +176,8 @@ if(family=="Gaussian") {
     cpar$tau2 <- cpar$tau2*sigma2*2 
     } else {
 #   heteroskedastic Gaussian case
-    if(length(sigma2)!=n) {
-        cat("sigma2 does not have length 1 or same length as y")
-	return("sigma2 does not have length 1 or same length as y")
-	}
+    if(length(sigma2)!=n) 
+	stop("sigma2 does not have length 1 or same length as y")
     lambda <- lambda*2 
     cpar$tau1 <- cpar$tau1*2 
     cpar$tau2 <- cpar$tau2*2 
@@ -181,22 +187,20 @@ if(family=="Gaussian") {
 #
 #   specify which statistics are needed and transform data if necessary
 #
-weibull <- FALSE
-if(family=="Weibull") {
-family <- "Exponential"
-y <- y^shape
-weibull <- TRUE
-} else {
-shape <- 1
-}
 if(family=="Volatility"){
 family <- "Exponential"
 y <- y^2
 lambda <- 2*lambda 
 # this accounts for the additional 1/2 in Q(\hat{theta},theta)
-weibull <- TRUE
-shape <- 2
 }
+if(family=="Variance"){
+if(is.null(shape)) shape<-1
+lambda <- 2*lambda*shape 
+# this accounts for the additional 1/2 in Q(\hat{theta},theta) and the degrees of freedom in chisq
+cpar$tau1 <- cpar$tau1*shape
+cpar$tau2 <- cpar$tau2*shape 
+}
+cpar$shape<-shape
 #
 #     now set hinit and hincr if not provided
 #
@@ -235,7 +239,7 @@ cpar$kstar<-log(5)
 hincr <- hincr^(1/3)
 }
 if(length(dy)>3)
-   return("AWS for more than 3 dimensional grids is not implemented")
+   stop("AWS for more than 3 dimensional grids is not implemented")
 #
 #    Initialize  list for theta
 #
@@ -243,12 +247,17 @@ if(is.null(wghts)) wghts<-c(1,1,1)
 hinit<-hinit/wghts[1]
 hmax<-hmax/wghts[1]
 wghts<-(wghts[2:3]/wghts[1])
-     tobj<-list(bi= rep(1,n), bi2= rep(1,n), theta= y, fix=rep(FALSE,n))
+     tobj<-list(bi= rep(1,n), bi2= rep(1,n), theta= y/shape, fix=rep(FALSE,n))
      zobj<-list(ai=y, bi0= rep(1,n))
      bi0old<-rep(1,n)
 ###
 ###              gridded   ( 1D -- 3D )
 ###
+steps<-as.integer(log(hmax/hinit)/log(hincr)+1)
+if(is.null(lseq)) lseq<-1
+if(length(lseq)<steps) lseq<-c(lseq,rep(1,steps-length(lseq)))
+lseq<-lseq[1:steps]
+k<-1
 hakt <- hinit
 lambda0<-lambda
 if(hinit>1) lambda0<-1e10 # that removes the stochstic term for the first step
@@ -339,14 +348,17 @@ image(tobj$eta[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n",zlim=c(0,1))
 title("eta")
 } 
 }
-if(!is.null(u)) cat("bandwidth: ",signif(hakt,3),"eta==1",sum(tobj$eta==1),"   MSE: ",
+if(!is.null(u)) {
+cat("bandwidth: ",signif(hakt,3),"eta==1",sum(tobj$eta==1),"   MSE: ",
                     signif(mean((tobj$theta-u)^2),3),"   MAE: ",signif(mean(abs(tobj$theta-u)),3)," mean(bi)=",signif(mean(tobj$bi),3),"\n")
+mae<-c(mae,signif(mean(abs(tobj$theta-u)),3))
+		    }
 if(demo) readline("Press return")
 hakt <- hakt*hincr
-lambda0<-lambda
+lambda0<-lambda*lseq[k]
+k<-k+1
 gc()
 }
-if(weibull) tobj$theta <- tobj$theta^(1/shape)
 ###                                                                       
 ###            end cases                                                  
 ###                                 
@@ -360,12 +372,12 @@ vartheta <- switch(family,Gaussian=sigma2,
                           Bernoulli=tobj$theta*(1-tobj$theta),
 			  Poisson=tobj$theta,
 			  Exponential=tobj$theta^2,
-			  Weibull=tobj$theta^2*(gamma(2/shape+1)/gamma(1/shape+1)^2-1),
-			  Volatility=2*tobj$theta,0)*tobj$bi2/tobj$bi^2
+			  Volatility=2*tobj$theta,
+			  Variance=2*tobj$theta,0)*tobj$bi2/tobj$bi^2
 }
-z<-list(theta=tobj$theta,ni=tobj$bi,var=vartheta,y=y,hmax=hakt/hincr,call=args)
+z<-list(theta=tobj$theta,ni=tobj$bi,var=vartheta,y=y,hmax=hakt/hincr,mae=mae,lseq=c(0,lseq[-steps]),call=args)
 class(z)<-switch(family,Gaussian="aws.gaussian",Bernoulli="aws.bernoulli",Exponential="aws.exponential",
-                 Poisson="aws.poisson",Weibull="aws.weibull",Volatility="aws.vola")
+                 Poisson="aws.poisson",Volatility="aws.vola",Variance="aws.var")
 z
 }
 

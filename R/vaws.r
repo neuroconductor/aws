@@ -28,7 +28,8 @@
 #                        heta=2   qtau=.95   qlambda=.96
 #
 #
-vaws <- function(y,qlambda=NULL,qtau=NULL,lkern="Triangle",aggkern="Uniform",sigma2=NULL,wsi=FALSE,hinit=NULL,hincr=NULL,hmax=NULL,heta=NULL,eta0=0,u=NULL,graph=FALSE,wghts=NULL,vwghts=NULL)
+vaws <- function(y,qlambda=NULL,qtau=NULL,lkern="Triangle",aggkern="Uniform",sigma2=NULL,wsi=FALSE,
+hinit=NULL,hincr=NULL,hmax=NULL,heta=NULL,eta0=0,u=NULL,graph=FALSE,wghts=NULL,vwghts=NULL)
 {
 #
 #
@@ -73,7 +74,7 @@ list(theta=theta,bi=bi,bi2=bi2,eta=eta,fix=(eta==1))
 args <- match.call()
 spmax <- 5
 dy<-dim(y)
-if(is.null(dy)) return("dim(y) should exist for multivariate data")
+if(is.null(dy)) stop("dim(y) should exist")
 dd<-dy[1]
 if(is.null(heta)) {
 if(length(dy)==2) heta<-2
@@ -141,10 +142,8 @@ if(is.null(hincr)||hincr<=1) hincr <-1.25
     cpar$tau2 <- cpar$tau2*sigma2
     } else {
 #   heteroskedastic Gaussian case
-    if((dd*length(sigma2))!=length(y)) {
-        cat("sigma2 does not have the same length as y")
-	return("sigma2 does not have length 1 or same length as y")
-	}
+    if((dd*length(sigma2))!=length(y)) 
+	stop("sigma2 does not have length 1 or same length as y")
     sigma2<-1/sigma2 #  taking the invers yields simpler formulaes 
     }
 dy <- dim(y)
@@ -178,7 +177,7 @@ if(length(dy)==4){
 hincr <- hincr^(1/3)
 }
 if(length(dy)>4)
-   return("AWS for more than 3 dimensional grids is not implemented")
+   stop("AWS for more than 3 dimensional grids is not implemented")
 #
 #    Initialize  list for theta
 #
@@ -196,7 +195,7 @@ hmax<-hmax/wghts[1]
 wghts<-(wghts[2:3]/wghts[1])
 hakt <- hinit
 lambda0<-lambda
-if(hinit>1) lambda0<-1e10 # that removes the stochstic term for the first step
+if(hinit>1) lambda0<-1e50 # that removes the stochstic term for the first step
 #
 #   run single steps to display intermediate results
 #
@@ -363,7 +362,7 @@ vawsold <- function(y,qlambda=NULL,lkern="Triangle",sigma2=NULL,
   args <- match.call()
   spmax <- 5
   dy<-dim(y)
-  if(is.null(dy)) return("dim(y) should exist for multivariate data")
+  if(is.null(dy)) stop("dim(y) should exist")
   dd<-dy[1]
   if(is.null(vwghts)) vwghts<-rep(1,dd)
   if(sum(vwghts^2)!=dd) vwghts<-vwghts/sqrt(sum(vwghts^2))*dd

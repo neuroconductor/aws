@@ -158,13 +158,13 @@ list(theta=theta,bi=bi,eta=eta,fix=(eta==1))
 #
 #    first check arguments and initialize                                 
 #
-if(p==0) return("use caws for local constant models")
-if(p>3)  return("no defaults for parameters available")
+if(p==0) stop("use caws for local constant models")
+if(p>3)  stop("no defaults for parameters available")
 args <- match.call()
 if(is.null(qlambda)) {
 qlambda <- switch(p,.65,.92,.92)
 }
-if(qlambda<.6) return("Inappropriate value of qlambda")
+if(qlambda<.6) warning("Inappropriate value of qlambda")
 if(demo&& !graph) graph <- TRUE
 # now check which procedure is appropriate
 gridded <- is.null(x)
@@ -189,11 +189,11 @@ wghts<-(wghts[2]/wghts[1])
 n1 <- dy[1]
 n2 <- dy[2]
 n <- n1*n2
-if(p>2) return("bivariate aws on a grid is not implemented for p>2")
+if(p>2) stop("bivariate aws on a grid is not implemented for p>2")
 dp1 <- switch(p+1,1,3,6)
 }
 if(length(dy)>2)
-   return("polynomial AWS for more than 2 dimensional grids is not implemented")
+   stop("polynomial AWS for more than 2 dimensional grids is not implemented")
 } else {
 # not gridded
 dx <- dim(x)
@@ -204,7 +204,7 @@ if(is.null(dx)) {
 #
     form <- "uni"
     n <- length(x)
-    if(n!=length(y)) return("incompatible lengths of x and y")
+    if(n!=length(y)) stop("incompatible lengths of x and y")
     ox <- order(x)
     x <- x[ox]
     y <- y[ox]
@@ -217,7 +217,7 @@ if(is.null(dx)) {
       cat("p is set to 1, the maximal polynomial degree implemented")
       }
    form <- "multi"
-   if(n!=length(y)) return("incompatible dimensions of x and y")
+   if(n!=length(y)) stop("incompatible dimensions of x and y")
    if(is.null(wghts)||length(wghts)!=px) wghts <- rep(1,px)
    dp1 <- 1+p*px
 #
@@ -253,14 +253,14 @@ if(is.null(dx)) {
    gc()
    }
    }
-   if(length(y)!=n) return("incompatible dimensions of x and y")
+   if(length(y)!=n) stop("incompatible dimensions of x and y")
    }
 #
 #   estimate variance in the gaussian case if necessary
 #
     if(is.null(sigma2)) sigma2 <- IQRdiff(y)^2
     if(length(sigma2)==1) sigma2<-rep(sigma2,length(y))
-    if(length(sigma2)!=length(y)) return("incompatible length of sigma2")
+    if(length(sigma2)!=length(y)) stop("incompatible length of sigma2")
     sigma2<-1/sigma2 #  taking the invers yields simpler formulaes 
 #
 #     now set hincr if not provided                               
