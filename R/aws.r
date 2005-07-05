@@ -102,24 +102,24 @@ mae<-NULL
 if(is.null(heta)) heta<-max(2,hinit+.5)
 if(is.null(dim(y))){ heta<-max(heta,switch(family,Gaussian=2,Bernoulli=2,Exponential=8,Poisson=4/min(1,mean(y)),
                                                      Volatility=8,Variance=8))
-if(is.null(qlambda)) qlambda <- switch(family,Gaussian=.975,Bernoulli=.98,Exponential=.98,Poisson=.98,
-                                                     Volatility=.98,Variance=.96)
-if(is.null(lseq)) lseq<-switch(family,Gaussian=1.3,Variance=1.8,1.3)
+if(is.null(qlambda)) qlambda <- switch(family,Gaussian=.975,Bernoulli=.975,Exponential=.965,Poisson=.97,
+                                                     Volatility=.96,Variance=.96)
+if(is.null(lseq)) lseq<-switch(family,Gaussian=1.3,Bernoulli=1,Exponential=1.7,Poisson=1,Volatility=1.8,Variance=1.8,1.3)
 						     }
 if(length(dim(y))==2) {
 heta<-max(heta,switch(family,Gaussian=2,Bernoulli=2,Exponential=2,Poisson=2/min(1,sqrt(mean(y))),
                                                      Volatility=2,Variance=2))
-if(is.null(qlambda)) qlambda <- switch(family,   Gaussian=.975,Bernoulli=.98,Exponential=.98,Poisson=.98,
-                                                     Volatility=.98,Variance=.975)
-if(is.null(lseq)) lseq<-switch(family,Gaussian=c(1.85,1.3,1.1,1.1),Variance=c(2.5,rep(1.4,3),rep(1.2,3),rep(1.1,3)),c(1.85,1.3,1.1,1.1))
+if(is.null(qlambda)) qlambda <- switch(family,   Gaussian=.975,Bernoulli=.985,Exponential=.985,Poisson=.98,
+                                                     Volatility=.975,Variance=.975)
+if(is.null(lseq)) lseq<-switch(family,Gaussian=c(1.85,1.3,1.1,1.1),Bernoulli=1,Exponential=c(1.6,1.2),Poisson=1,Volatility=c(2.4,1.4,1.2,1.1),Variance=c(2.4,1.4,1.2,1.1),c(1.85,1.3,1.1,1.1))
 						     }
 if(length(dim(y))==3){
  heta<-max(heta,switch(family,Gaussian=2,Bernoulli=2,Exponential=2,Poisson=2/min(1,mean(y)^(1/3)),
                                                      Volatility=2,Variance=2))
-if(is.null(qlambda)) qlambda <- switch(family,   Gaussian=.985,Bernoulli=.98,Exponential=.98,Poisson=.98,
-                                                     Volatility=.98,Variance=.98)
-if(is.null(lseq)) lseq<-switch(family,Gaussian=c(1.75,1.35,1.2,1.2,1.2,1.2),Variance=c(2.4,1.4,1.2,1.2,1.1,1.1),c(1.75,1.35,1.2,1.2,1.2,1.2))
-}						     
+if(is.null(qlambda)) qlambda <- switch(family,   Gaussian=.985,Bernoulli=.99,Exponential=.985,Poisson=.985,
+                                                     Volatility=.985,Variance=.985)
+if(is.null(lseq)) lseq<-switch(family,Gaussian=c(1.75,1.35,1.2,1.2,1.2,1.2),Bernoulli=1,Exponential=c(1.7,1.5),Poisson=1,Volatility=c(2.4,1.4,1.2,1.2,1.1,1.1),Variance=c(2.4,1.4,1.2,1.2,1.1,1.1),c(1.75,1.35,1.2,1.2,1.2,1.2))
+}
 if(qlambda<.9) warning("Inappropriate value of qlambda")
 if(qlambda>=1){
 # thats stagewise aggregation with kernel specified by aggkern
@@ -151,7 +151,7 @@ n<-length(y)
 if(is.null(shape)) shape<-1
 cpar$mcode<-switch(family,Gaussian=1,Bernoulli=2,Poisson=3,Exponential=4,Volatility=4,Variance=5,-1)
 if(cpar$mcode < 0) stop(paste("specified family ",family," not yet implemented"))
-if(is.null(cpar$eta0)) cpar$eta0<-switch(family,Gaussian=0,Bernoulli=.25,Poisson=.5,Exponential=.25,Volatility=.25,Variance=.25/shape,.25)
+if(is.null(cpar$eta0)) cpar$eta0<-switch(family,Gaussian=0,Bernoulli=.25,Poisson=.25,Exponential=.25,Volatility=.25,Variance=.25/shape,.25)
 #
 #    set the code for the kernel (used in lkern) and set lambda
 #
@@ -328,9 +328,9 @@ title("Sum of weights and eta")
 if(ddim==2){ 
 par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
 image(y,col=gray((0:255)/255),xaxt="n",yaxt="n")
-title("Observed Image")
+title(Paste("Observed Image  min=",signif(min(y),3)," max=",signif(max(y),3)))
 image(tobj$theta,col=gray((0:255)/255),xaxt="n",yaxt="n")
-title(paste("Reconstruction  h=",signif(hakt,3)))
+title(paste("Reconstruction  h=",signif(hakt,3))," min=",signif(min(tobj$theta),3)," max=",signif(max(tobj$theta),3))
 image(tobj$bi,col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Sum of weights: min=",signif(min(tobj$bi),3)," mean=",signif(mean(tobj$bi),3)," max=",signif(max(tobj$bi),3)))
 image(tobj$eta,col=gray((0:255)/255),xaxt="n",yaxt="n",zlim=c(0,1))
@@ -339,9 +339,9 @@ title("eta")
 if(ddim==3){ 
 par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
 image(y[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n")
-title("Observed Image")
+title(Paste("Observed Image  min=",signif(min(y),3)," max=",signif(max(y),3)))
 image(tobj$theta[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n")
-title(paste("Reconstruction  h=",signif(hakt,3)))
+title(paste("Reconstruction  h=",signif(hakt,3))," min=",signif(min(tobj$theta),3)," max=",signif(max(tobj$theta),3))
 image(tobj$bi[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Sum of weights: min=",signif(min(tobj$bi),3)," mean=",signif(mean(tobj$bi),3)," max=",signif(max(tobj$bi),3)))
 image(tobj$eta[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n",zlim=c(0,1))
