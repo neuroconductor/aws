@@ -27,7 +27,7 @@ lseq = NULL, heta = NULL, eta0 = NULL, u = NULL, graph = FALSE, demo = FALSE, wg
    for AWS. Default values are again selected, for the probability distribution specified with the \code{family} argument, by a propagation condition.}
   \item{family}{\code{family} specifies the probability distribution. Default is \code{family="Gaussian"}, also implemented
    are "Bernoulli", "Poisson", "Exponential", "Volatility" and "Variance". \code{family="Volatility"} specifies a Gaussian distribution with
-   expectation 0 and unknown variance. \code{family="Volatility"} specifies that \code{y/theta} is distributed as \code{\Chi^2} with \code{p=shape}
+   expectation 0 and unknown variance. \code{family="Volatility"} specifies that \code{p*y/theta} is distributed as \code{\Chi^2} with \code{p=shape}
    degrees of freedom.}
   \item{lkern}{ \code{lkern} specifies the location kernel. Defaults to "Triangle", other choices are "Quadratic", "Cubic" and "Uniform".
     Note that the location kernel is applied to \code{(x-x_j)^2/h^2}, i.e. the use of "Triangle" corresponds to the Epanechnicov kernel 
