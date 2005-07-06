@@ -229,8 +229,8 @@ zobj <- .Fortran("vhaws",as.double(y),
 		       as.double(vwghts),
 		       PACKAGE="aws")[c("bi","bi2","bi0","ai","hakt")]
 } else {
-# if length(sigma)==1 homoskedastic situation
-# if length(sigma)==n homoskedastic kernel weights, 
+# if length(sigma2)==1 homoskedastic situation
+# if length(sigma2)==n homoskedastic kernel weights, 
 #                      heteroskedastic variance in sij 
 zobj <- .Fortran("vaws",as.double(y),
                        as.logical(tobj$fix),
@@ -238,7 +238,7 @@ zobj <- .Fortran("vaws",as.double(y),
                        as.integer(n1),
                        as.integer(n2),
                        as.integer(n3),
-		       as.integer(length(sigma)),
+		       as.integer(length(sigma2)),
                        hakt=as.double(hakt),
                        as.double(lambda0),
                        as.double(tobj$theta),
