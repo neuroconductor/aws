@@ -102,7 +102,7 @@ hincr <- hincr^(1/3)
 }
 if(length(dy)>3) stop("AWS for more than 3 dimensional grids is not implemented")
 if(is.null(wghts)) wghts<-c(1,1,1)
-if(is.null(hinit)||hinit<10^(1/ddim)) hinit <- 10^(1/ddim)
+if(is.null(hinit)||hinit<1.2^(1/ddim)) hinit <- 2^(1/ddim)
 if(is.null(hincr)||hincr<=1) hincr <-1.25
 if(is.null(heta)) heta<-max(4,hinit+1)
 if(is.null(hmax)){

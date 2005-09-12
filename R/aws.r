@@ -37,7 +37,7 @@
 #
 aws <- function(y,qlambda=NULL,qtau=NULL,family="Gaussian",lkern="Triangle",aggkern="Uniform",
                  sigma2=NULL,shape=NULL,hinit=NULL,hincr=NULL,hmax=NULL,lseq=NULL,
-		 heta=NULL,eta0=NULL,u=NULL,graph=FALSE,demo=FALSE,wghts=NULL)
+		 heta=NULL,eta0=NULL,u=NULL,graph=FALSE,demo=FALSE,wghts=NULL,spmax=5)
 {
 #
 #          Auxilary functions
@@ -94,7 +94,7 @@ args <- match.call()
 #
 #   set cut off point in K_{st}(x) = exp(-x) I_{x<spmax}
 #
-spmax <- 5
+#spmax <- 5
 #
 #     set approriate defaults
 #

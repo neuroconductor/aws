@@ -82,7 +82,7 @@ C  first stochastic term
             wj=lkern(kern,z*z)
             swj0=swj0+wj
             IF (aws) THEN
-               sij=bii*klnorm(mui,mu(j),s1,sigma(j))
+               sij=(bii-1.d0)*klnorm(mui,mu(j),s1,sigma(j))
                IF (sij.gt.spmax) CYCLE
                wj=wj*dexp(-sij)
             ENDIF
@@ -155,7 +155,7 @@ C  first stochastic term
                   wj=lkern(kern,(z1+z2*z2)/hakt2)
                   swj0=swj0+wj
                   IF (aws) THEN
-                     sij=bii*klnorm(mui,mu(j1,j2),s1,sigma(j1,j2))
+                  sij=(bii-1.d0)*klnorm(mui,mu(j1,j2),s1,sigma(j1,j2))
                      IF (sij.gt.spmax) CYCLE
                      wj=wj*dexp(-sij)
                   ENDIF
@@ -239,7 +239,7 @@ C  first stochastic term
                         wj=lkern(kern,(z1+z2+z3*z3)/hakt2)
                         swj0=swj0+wj
                         IF (aws) THEN
-                           sij=bii*klnorm(mui,mu(j1,j2,j3),s1,
+                           sij=(bii-1.d0)*klnorm(mui,mu(j1,j2,j3),s1,
      1                                        sigma(j1,j2,j3))
                            IF (sij.gt.spmax) CYCLE
                            wj=wj*dexp(-sij)
@@ -332,6 +332,7 @@ C  first stochastic term
                         IF (aws) THEN
                            sij=bii*klnorm(mui,mu(jind),s1,
      1                                        sigma(jind))
+                           if(bi(iind).le.2d0) sij=0.d0 
                            IF (sij.gt.spmax) CYCLE
                            wj=wj*dexp(-sij)
                         ENDIF
