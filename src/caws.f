@@ -155,6 +155,12 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       ELSE IF (kern.eq.4) THEN
          z=1.d0-xsq
          lkern=z*z*z
+      ELSE IF (kern.eq.5) THEN
+         lkern=dexp(-xsq/4.d0)
+      ELSE IF (kern.eq.6) THEN
+         lkern=dexp(-xsq/16.d0)
+      ELSE IF (kern.eq.7) THEN
+         lkern=dexp(-xsq/64.d0)
       ELSE
 C        use Epanechnikov
          lkern=1.d0-xsq

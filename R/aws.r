@@ -155,7 +155,7 @@ if(is.null(cpar$eta0)) cpar$eta0<-switch(family,Gaussian=0,Bernoulli=.25,Poisson
 #
 #    set the code for the kernel (used in lkern) and set lambda
 #
-lkern<-switch(lkern,Triangle=2,Quadratic=3,Cubic=4,Uniform=1,2)
+lkern<-switch(lkern,Triangle=2,Quadratic=3,Cubic=4,Uniform=1,Gaussian=5,2)
 #
 #      get lambda as quantile of appropriate chisq,
 #           rescale to be consistent with the paper in  lambda
@@ -205,6 +205,12 @@ cpar$shape<-shape
 #     now set hinit and hincr if not provided
 #
 if(is.null(hinit)||hinit<1) hinit <- 1
+if(lkern==5) {
+    hinit <- hinit
+#  assume  hmax was given in  FWHM  units (Gaussian kernel will be truncated at 4)
+    hmax <- hmax*0.42445*4
+    lkern <- switch(as.character(length(dim(y))),"0"=5,"2"=6,"3"=7,5)
+    }
 if(is.null(hincr)||hincr<=1) hincr <-1.25
 if(demo&& !graph) graph <- TRUE
 # now check which procedure is appropriate
