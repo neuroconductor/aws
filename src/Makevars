@@ -1,0 +1,1 @@
+PKG_FFLAGS=-o3 -march=prescott
