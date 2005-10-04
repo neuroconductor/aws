@@ -8,7 +8,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 s1,s2,mu1,mu2,mud
       mud=mu1-mu2
 C      klnorm=dlog(s2/s1)-1+(s1+mud*mud)/s2
-      klnorm=dlog(s1/s2)-1+(s2+mud*mud)/s1
+      klnorm=dlog(s2/s1)-1+(s1+mud*mud)/s2
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC      
@@ -23,7 +23,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       DO l=1,n
          mud=mu1(l)-mu2(l)
 C         kld(l)=dlog(s2(l)/s1(l))-1+(s1(l)+mud*mud)/s2(l)
-         kld(l)=dlog(s1(l)/s2(l))-1+(s2(l)+mud*mud)/s1(l)
+         kld(l)=dlog(s2(l)/s1(l))-1+(s1(l)+mud*mud)/s2(l)
       END DO
       RETURN
       END

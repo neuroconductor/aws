@@ -9,7 +9,7 @@ awsnorm<-function(y,qlambda=NULL,qtau=NULL,lkern="Triangle",
 #KLnorm <- function(mu1,mu2,sig1,sig2){
 #    log(sig2/sig1)-1+(sig1+(mu1-mu2)^2)/sig2
 KLnorm <- function(mu1,mu2,sig1,sig2){
-       log(sig1/sig2)-1+(sig2+(mu1-mu2)^2)/sig1
+       log(sig2/sig1)-1+(sig1+(mu1-mu2)^2)/sig2
 }
 updtheta<-function(zobj,tobj,cpar,aggkern){
 heta<-cpar$heta

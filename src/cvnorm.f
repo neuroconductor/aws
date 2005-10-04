@@ -4,7 +4,7 @@ C   Kullback-Leibler Distance of two general Gaussian distributions
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC      
 C      real*8 function klmnorm(mu1,mu2,s1,s2,d,s2inv)
-      real*8 function klmnorm(mu1,mu2,s2,s1,d,s2inv)
+      real*8 function klmnorm(mu1,mu2,s1,s2,d,s2inv)
       implicit logical (a-z)
       integer d,i,j,info
       real*8 s1(d,d),s2(d,d),s2inv(d,d),mu1(d),mu2(d)
@@ -43,7 +43,7 @@ C   Kullback-Leibler Distance of two general Gaussian distributions
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC      
 C      subroutine klmnormn(mu1,mu2,th1,th2,d,ds,n,s1,s2,s2inv,kld)
-      subroutine klmnormn(mu1,mu2,th1,th2,d,ds,n,s2,s1,s2inv,kld)
+      subroutine klmnormn(mu1,mu2,th1,th2,d,ds,n,s1,s2,s2inv,kld)
       implicit logical (a-z)
       integer d,ds,n,i,j,l,m,info
       real*8 th1(ds,n),th2(ds,n),s1(d,d),s2(d,d),s2inv(d,d),z,
