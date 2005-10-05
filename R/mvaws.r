@@ -110,8 +110,8 @@ if(is.null(lseq)) lseq<-c(1.85,1.3,1.1,1.1)
 }
 if(length(dim(y))==3){
  heta<-max(heta,2)
-if(is.null(qlambda)) qlambda <- .975
-if(is.null(lseq)) lseq<-c(1.75,1.35,1.2,1.2,1.2,1.2)
+if(is.null(qlambda)) qlambda <- .95
+if(is.null(lseq)) lseq<-c(3,2,1.5,1.2,1.2,1.2)
 }
 if(qlambda<.9) warning("Inappropriate value of qlambda")
 if(qlambda>=1){
