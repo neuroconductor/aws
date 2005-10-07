@@ -156,7 +156,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          z=1.d0-xsq
          lkern=z*z*z
       ELSE IF (kern.eq.5) THEN
-         lkern=dexp(-xsq/1.6d1)
+         lkern=dexp(-xsq*8.d0)
       ELSE
 C        use Epanechnikov
          lkern=1.d0-xsq

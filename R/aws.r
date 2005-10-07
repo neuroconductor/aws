@@ -206,9 +206,9 @@ cpar$shape<-shape
 #
 if(is.null(hinit)||hinit<1) hinit <- 1
 if(lkern==5) {
-    hinit <- hinit
 #  assume  hmax was given in  FWHM  units (Gaussian kernel will be truncated at 4)
     hmax <- hmax*0.42445*4
+    hinit <- min(hinit,hmax)
     }
 if(is.null(hincr)||hincr<=1) hincr <-1.25
 if(demo&& !graph) graph <- TRUE
