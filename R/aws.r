@@ -37,7 +37,7 @@
 #
 aws <- function(y,qlambda=NULL,qtau=NULL,family="Gaussian",lkern="Triangle",aggkern="Uniform",
                  sigma2=NULL,shape=NULL,hinit=NULL,hincr=NULL,hmax=NULL,lseq=NULL,
-		 heta=NULL,eta0=NULL,u=NULL,graph=FALSE,demo=FALSE,wghts=NULL,spmax=5)
+		 heta=NULL,eta0=NULL,u=NULL,graph=FALSE,demo=FALSE,wghts=NULL,spmax=5,scorr=0)
 {
 #
 #          Auxilary functions
@@ -98,22 +98,27 @@ args <- match.call()
 #
 #     set approriate defaults
 #
+dy<-dim(y)
 mae<-NULL
 if(is.null(heta)) heta<-max(2,hinit+.5)
-if(is.null(dim(y))){ heta<-max(heta,switch(family,Gaussian=2,Bernoulli=2,Exponential=8,Poisson=4/min(1,mean(y)),
+if(is.null(dy)){ 
+      d<-1
+      heta<-max(heta,switch(family,Gaussian=2,Bernoulli=2,Exponential=8,Poisson=4/min(1,mean(y)),
                                                      Volatility=8,Variance=8))
 if(is.null(qlambda)) qlambda <- switch(family,Gaussian=.975,Bernoulli=.975,Exponential=.965,Poisson=.97,
                                                      Volatility=.96,Variance=.96)
 if(is.null(lseq)) lseq<-switch(family,Gaussian=1.3,Bernoulli=1,Exponential=1.7,Poisson=1,Volatility=1.8,Variance=1.8,1.3)
 						     }
-if(length(dim(y))==2) {
+if(length(dy)==2) {
+d<-2
 heta<-max(heta,switch(family,Gaussian=2,Bernoulli=2,Exponential=2,Poisson=2/min(1,sqrt(mean(y))),
                                                      Volatility=2,Variance=2))
 if(is.null(qlambda)) qlambda <- switch(family,   Gaussian=.975,Bernoulli=.985,Exponential=.985,Poisson=.98,
                                                      Volatility=.975,Variance=.975)
 if(is.null(lseq)) lseq<-switch(family,Gaussian=c(1.85,1.3,1.1,1.1),Bernoulli=1,Exponential=c(1.6,1.2),Poisson=1,Volatility=c(2.4,1.4,1.2,1.1),Variance=c(2.4,1.4,1.2,1.1),c(1.85,1.3,1.1,1.1))
 						     }
-if(length(dim(y))==3){
+if(length(dy)==3){
+d<-3
  heta<-max(heta,switch(family,Gaussian=2,Bernoulli=2,Exponential=2,Poisson=2/min(1,mean(y)^(1/3)),
                                                      Volatility=2,Variance=2))
 if(is.null(qlambda)) qlambda <- switch(family,   Gaussian=.985,Bernoulli=.99,Exponential=.985,Poisson=.985,
@@ -139,9 +144,9 @@ if(aggkern=="Triangle") tau1<-2.5*tau1
 tau2<-tau1/2
 }
 if(is.null(hmax)){
-if(is.null(dim(y))) hmax<-250    # uses a maximum of about 500 points
-if(length(dim(y))==2) hmax<-12   # uses a maximum of about 450 points
-if(length(dim(y))==3) hmax<-5    # uses a maximum of about 520 points
+if(d==1) hmax<-250    # uses a maximum of about 500 points
+if(d==2) hmax<-12   # uses a maximum of about 450 points
+if(d==3) hmax<-5    # uses a maximum of about 520 points
 }
 cpar<-list(heta=heta,tau1=tau1,tau2=tau2,eta0=eta0)
 #
@@ -165,8 +170,16 @@ if(qlambda<1) lambda <- qchisq(qlambda,1) else lambda <- 1e50
 #   estimate variance in the gaussian case if necessary
 #
 if(family=="Gaussian") {
+  if(scorr[1]>0) {
+         h0<-numeric(length(scorr))
+         for(i in 1:length(h0))
+         h0[i]<-geth.gauss(scorr[i])
+         if(length(h0)<d) h0<-rep(h0[1],d)
+         cat("Corresponding bandwiths for specified correlation:",h0,"\n")
+}
     if(is.null(sigma2)) {
-        sigma2 <- IQRdiff(y)^2
+        sigma2 <- IQRdiff(as.vector(y))^2
+        if(scorr[1]>0) sigma2<-sigma2*Varcor.gauss(h0)
 	cat("Estimated variance: ", signif(sigma2,4),"\n")
 	}
     if(length(sigma2)==1){
@@ -270,6 +283,7 @@ if(hinit>1) lambda0<-1e10 # that removes the stochstic term for the first step
 #   run single steps to display intermediate results
 #
 while(hakt<=hmax){
+if(family=="Gaussian"&scorr[1]>0) lambda0<-lambda0*Spatialvar.gauss(hakt,h0,d)/Spatialvar.gauss(hakt,1e-5,d)
 if(family=="Gaussian"&length(sigma2)==n){
 # heteroskedastic Gaussian case
 zobj <- .Fortran("chaws",as.double(y),

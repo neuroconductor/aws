@@ -1,1 +1,1 @@
-PKG_FFLAGS=-o3 -march=prescott
+PKG_FFLAGS=-O3 -march=pentium-m
