@@ -5,7 +5,7 @@ Varcor<-function(lkern,h,d=1){
 #   in case of colored noise that was produced by smoothing with lkern and bandwidth h
 #
 if(lkern=="Gaussian") h<-h/2.3548
-ih<-switch(lkern,Gaussian=trunc(5*h)+1,trunc(h)+1)
+ih<-switch(lkern,Gaussian=trunc(4*h)+1,trunc(h)+1)
 dx<-2*ih+1
 x<- ((-ih):ih)/h
 if(d==2) x<-sqrt(outer(x^2,x^2,"+"))
@@ -24,7 +24,7 @@ Varcor.gauss<-function(h){
 #   in case of colored noise that was produced by smoothing with lkern and bandwidth h
 #
 h<-h/2.3548
-ih<-trunc(5*h)+1
+ih<-trunc(4*h)+1
 dx<-2*ih+1
 d<-length(h)
 penl <- dnorm(((-ih[1]):ih[1])/h[1])
@@ -42,7 +42,7 @@ SpatialCorr<-function(lkern,h,d=1){
 #  !!! the result is not monotone in h for   lkern="Triangle" (all d) and lkern="Uniform" (d>1)
 #
 if(lkern=="Gaussian") h<-h/2.3548
-ih<-switch(lkern,Gaussian=trunc(5*h+1),trunc(h)+1)
+ih<-switch(lkern,Gaussian=trunc(4*h+1),trunc(h)+1)
 dx<-2*ih+1
 x<- ((-ih):ih)/h
 if(d==2) x<-sqrt(outer(x^2,x^2,"+"))
@@ -68,7 +68,7 @@ SpatialCorr.gauss<-function(h){
 #   Result does not depend on d for "Gaussian" kernel !!
 #
 h<-h/2.3548
-ih<-trunc(5*h+1)
+ih<-trunc(4*h+1)
 dx<-2*ih+1
 penl<-dnorm(((-ih):ih)/h)
 sum(penl[-1]*penl[-dx])/sum(penl^2)
@@ -84,7 +84,7 @@ Spatialvar<-function(lkern,lkern0,h,h0,d){
 #   a factor for lambda to be used with bandwidth h 
 #
 if(lkern=="Gaussian") h<-h/2.3548
-ih<-switch(lkern,Gaussian=trunc(5*h),trunc(h))
+ih<-switch(lkern,Gaussian=trunc(4*h),trunc(h))
 ih<-max(1,ih)
 dx<-2*ih+1
 x<- ((-ih):ih)/h
@@ -97,7 +97,7 @@ penl<-switch(lkern,Triangle=pmax(0,1-x^2),
                    Gaussian=dnorm(x))
 dim(penl)<-rep(dx,d)
 if(lkern0=="Gaussian") h0<-h0/2.3548
-ih<-switch(lkern0,Gaussian=trunc(5*h0),trunc(h0))
+ih<-switch(lkern0,Gaussian=trunc(4*h0),trunc(h0))
 ih<-max(1,ih)
 dx0<-2*ih+1
 x<- ((-ih):ih)/h0
@@ -150,7 +150,7 @@ Spatialvar.gauss<-function(h,h0,d){
 #   a factor for lambda to be used with bandwidth h 
 #
 h<-h/2.3548
-ih<-trunc(5*h)
+ih<-trunc(4*h)
 ih<-max(1,ih)
 dx<-2*ih+1
 x<- ((-ih):ih)/h
@@ -160,7 +160,7 @@ if(d==3) penl<-outer(penl,outer(penl,penl,"*"),"*")
 dim(penl)<-rep(dx,d)
 h0<-h0/2.3548
 if(length(h0)==1) h0<-rep(h0,d)
-ih<-trunc(5*h0)
+ih<-trunc(4*h0)
 ih<-pmax(1,ih)
 dx0<-2*ih+1
 x<- ((-ih[1]):ih[1])/h0[1]
