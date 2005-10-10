@@ -15,7 +15,7 @@ penl<-switch(lkern,Triangle=pmax(0,1-x^2),
                    Quadratic=pmax(0,1-x^2)^2,
                    Cubic=pmax(0,1-x^2)^3,
                    Gaussian=dnorm(x))
-.5/sum(diff(penl)^2)*sum(abs(diff(penl)))^2
+2*sum(penl)^2/sum(diff(penl)^2)
 }
 Varcor.gauss<-function(h){
 #
@@ -30,7 +30,7 @@ d<-length(h)
 penl <- dnorm(((-ih[1]):ih[1])/h[1])
 if(d==2) penl <- outer(penl,dnorm(((-ih[2]):ih[2])/h[2]),"*")
 if(d==3) penl <- outer(penl,outer(dnorm(((-ih[2]):ih[2])/h[2]),dnorm(((-ih[3]):ih[3])/h[3]),"*"),"*")
-.5/sum(diff(penl)^2)*sum(abs(diff(penl)))^2
+2*sum(penl)^2/sum(diff(penl)^2)
 }
 
 SpatialCorr<-function(lkern,h,d=1){
@@ -186,7 +186,7 @@ ind2<-ind2[ind2<=dz[2]][-1]
 z[-ind1,-ind2]<-z[-ind1,-ind2]+penl*penl0[i1,i2]
 }
 } else if(d==3){
-for(i1 in 1:dx0[1]) for(i2 in 1:dx0[1]) for(i3 in 1:dx0[1]){
+for(i1 in 1:dx0[1]) for(i2 in 1:dx0[2]) for(i3 in 1:dx0[3]){
 ind1<-c(0:(i1-1),(dz[1]-dx0[1]+i1):dz[1]+1)
 ind1<-ind1[ind1<=dz[1]][-1]
 ind2<-c(0:(i2-1),(dz[2]-dx0[2]+i2):dz[2]+1)
