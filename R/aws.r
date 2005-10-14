@@ -267,7 +267,7 @@ hmax<-hmax/wghts[1]
 wghts<-(wghts[2:3]/wghts[1])
      tobj<-list(bi= rep(1,n), bi2= rep(1,n), theta= y/shape, fix=rep(FALSE,n))
      zobj<-list(ai=y, bi0= rep(1,n))
-     bi0old<-rep(1,n)
+     biold<-rep(1,n)
 ###
 ###              gridded   ( 1D -- 3D )
 ###

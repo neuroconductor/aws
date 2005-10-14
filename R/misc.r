@@ -108,10 +108,7 @@ penl0<-switch(lkern0,Triangle=pmax(0,1-x^2),
                    Quadratic=pmax(0,1-x^2)^2,
                    Cubic=pmax(0,1-x^2)^3,
                    Gaussian=dnorm(x))
-dim(penl0)<-rep(dx0,d)y<-rnorm(100000)
-h<-100;yc<-aws(y,hinit=500,hmax=h,qlambda=1,lkern="Gaussian")$theta
-Varcor("Gaussian",h,1)*IQRdiff(yc)^2;Varcor("Gaussian",h,1);IQRdiff(yc)^2
-
+dim(penl0)<-rep(dx0,d)
 penl0<-penl0/sum(penl0)
 dz<-dx+dx0-1
 z<-array(0,rep(dz,d))
@@ -130,10 +127,7 @@ ind2<-ind2[ind2<=dz][-1]
 z[-ind1,-ind2]<-z[-ind1,-ind2]+penl*penl0[i1,i2]
 }
 } else if(d==3){
-for(i1 in 1:dx0) for(i2 in 1:dx0) for(i3 in 1:dx0){y<-rnorm(100000)
-h<-100;yc<-aws(y,hinit=500,hmax=h,qlambda=1,lkern="Gaussian")$theta
-Varcor("Gaussian",h,1)*IQRdiff(yc)^2;Varcor("Gaussian",h,1);IQRdiff(yc)^2
-
+for(i1 in 1:dx0) for(i2 in 1:dx0) for(i3 in 1:dx0){
 ind1<-c(0:(i1-1),(dz-dx0+i1):dz+1)
 ind1<-ind1[ind1<=dz][-1]
 ind2<-c(0:(i2-1),(dz-dx0+i2):dz+1)
@@ -205,10 +199,7 @@ z[-ind1,-ind2,-ind3]<-z[-ind1,-ind2,-ind3]+penl*penl0[i1,i2,i3]
 sum(z^2)/sum(z)^2
 }
 
-geth.gauss<-function(corr,step=1.01){y<-rnorm(100000)
-h<-100;yc<-aws(y,hinit=500,hmax=h,qlambda=1,lkern="Gaussian")$theta
-Varcor("Gaussian",h,1)*IQRdiff(yc)^2;Varcor("Gaussian",h,1);IQRdiff(yc)^2
-
+geth.gauss<-function(corr,step=1.01){
 #   get the   bandwidth for lkern corresponding to a given correlation
 h<-.1
 z<-0
