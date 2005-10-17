@@ -396,7 +396,7 @@ C   Perform one iteration in local constant three-variate aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine chaws(y,fix,si2,n1,n2,n3,hakt,lambda,theta,bi,bi2,
-     1                   bi0,ai,model,kern,spmax,lwght,wght)
+     1                   bi0,vred,ai,model,kern,spmax,lwght,wght)
 C   
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -416,10 +416,11 @@ C
       integer n1,n2,n3,model,kern
       logical aws,fix(1)
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,wght(2),
-     1       bi2(1),hakt,lwght(1),si2(1)
+     1       bi2(1),hakt,lwght(1),si2(1),vred(1)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3
-      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0
+      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0,
+     1        sv1,sv2
       hakt2=hakt*hakt
       ih1=hakt
       aws=lambda.lt.1d40
@@ -470,6 +471,8 @@ C   scaling of sij outside the loop
 	       swj2=0.d0
                swj0=0.d0
                swjy=0.d0
+	       sv1=0.d0
+	       sv2=0.d0
                DO jw3=1,dlw3
 	          j3=jw3-clw3+i3
 	          if(j3.lt.1.or.j3.gt.n3) CYCLE
@@ -491,13 +494,16 @@ C  first stochastic term
 	                j1=jw1-clw1+i1
 	                if(j1.lt.1.or.j1.gt.n1) CYCLE
                         jind=j1+jind2
-                        wj=lwght(jw1+jwind2)*si2(jind)
-                        swj0=swj0+wj
+                        wj=lwght(jw1+jwind2)
+                        swj0=swj0+wj*si2(jind)
                         IF (aws) THEN
                   sij=bii*kldist(model,thetai,theta(jind),bii0)
                            IF (sij.gt.spmax) CYCLE
                            wj=wj*exp(-sij)
                         END IF
+			sv1=sv1+wj
+			sv2=sv2+wj*wj
+			wj=wj*si2(jind)
                         swj=swj+wj
                         swj2=swj2+wj*wj
                         swjy=swjy+wj*y(jind)
@@ -508,6 +514,7 @@ C  first stochastic term
                bi(iind)=swj
                bi2(iind)=swj2
                bi0(iind)=swj0
+	       vred(iind)=sv2/sv1/sv1
             END DO
          END DO
       END DO

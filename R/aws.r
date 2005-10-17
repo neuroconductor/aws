@@ -265,9 +265,10 @@ if(is.null(wghts)) wghts<-c(1,1,1)
 hinit<-hinit/wghts[1]
 hmax<-hmax/wghts[1]
 wghts<-(wghts[2:3]/wghts[1])
-     tobj<-list(bi= rep(1,n), bi2= rep(1,n), theta= y/shape, fix=rep(FALSE,n))
-     zobj<-list(ai=y, bi0= rep(1,n))
-     biold<-rep(1,n)
+tobj<-list(bi= rep(1,n), bi2= rep(1,n), theta= y/shape, fix=rep(FALSE,n))
+zobj<-list(ai=y, bi0= rep(1,n))
+biold<-rep(1,n)
+if(family=="Gaussian"&length(sigma2)==n) vred<-rep(1,n)
 ###
 ###              gridded   ( 1D -- 3D )
 ###
@@ -300,13 +301,15 @@ zobj <- .Fortran("chaws",as.double(y),
                        bi=as.double(tobj$bi),
 		       bi2=double(n),
                        bi0=as.double(zobj$bi0),
+		       vred=double(n),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
 		       as.double(spmax),
 		       double(prod(dlw)),
 		       as.double(wghts),
-		       PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt")]
+		       PACKAGE="aws")[c("bi","bi0","bi2","vred","ai","hakt")]
+vred[!tobj$fix]<-zobj$vred[!tobj$fix]
 } else {
 # all other cases
 zobj <- .Fortran("caws",as.double(y),
@@ -397,8 +400,10 @@ vartheta <- switch(family,Gaussian=sigma2,
 			  Exponential=tobj$theta^2,
 			  Volatility=2*tobj$theta,
 			  Variance=2*tobj$theta,0)*tobj$bi2/tobj$bi^2
+vred<-tobj$bi2/tobj$bi^2
 }
-z<-list(theta=tobj$theta,ni=tobj$bi,var=vartheta,y=y,hmax=hakt/hincr,mae=mae,lseq=c(0,lseq[-steps]),call=args)
+z<-list(theta=tobj$theta,ni=tobj$bi,var=vartheta,vred=vred,y=y,
+hmax=hakt/hincr,mae=mae,lseq=c(0,lseq[-steps]),call=args)
 class(z)<-switch(family,Gaussian="aws.gaussian",Bernoulli="aws.bernoulli",Exponential="aws.exponential",
                  Poisson="aws.poisson",Volatility="aws.vola",Variance="aws.var")
 z

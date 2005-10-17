@@ -150,14 +150,14 @@ Spatialvar.gauss<-function(h,h0,d){
 #   a factor for lambda to be used with bandwidth h 
 #
 h<-h/2.3548
+if(length(h)==1) h<-rep(h,d)
 ih<-trunc(4*h)
-ih<-max(1,ih)
+ih<-pmax(1,ih)
 dx<-2*ih+1
-x<- ((-ih):ih)/h
-penl<-dnorm(x)
-if(d==2) penl<-outer(penl,penl,"*")
-if(d==3) penl<-outer(penl,outer(penl,penl,"*"),"*")
-dim(penl)<-rep(dx,d)
+penl<-dnorm(((-ih[1]):ih[1])/h[1])
+if(d==2) penl<-outer(dnorm(((-ih[1]):ih[1])/h[1]),dnorm(((-ih[2]):ih[2])/h[2]),"*")
+if(d==3) penl<-outer(dnorm(((-ih[1]):ih[1])/h[1]),outer(dnorm(((-ih[2]):ih[2])/h[2]),dnorm(((-ih[3]):ih[3])/h[3]),"*"),"*")
+dim(penl)<-dx
 h0<-h0/2.3548
 if(length(h0)==1) h0<-rep(h0,d)
 ih<-trunc(4*h0)
@@ -212,3 +212,28 @@ z<-SpatialCorr.gauss(h)
 }
 h
 }
+
+
+get3Dh.gauss<-function(vred,h0,vwghts,step=1.01){
+n<-length(vred)
+vred1<-vred
+h<-.5/vwghts
+fixed<-rep(FALSE,length(vred))
+while(any(!fixed)){
+ind<-(1:n)[!fixed][vred[!fixed]>Spatialvar.gauss(h,1e-5,3)]
+vred1[ind]<-Spatialvar.gauss(h,h0,3)
+fixed[ind]<-TRUE
+h<-h*step
+}
+hvred<-matrix(0,3,n)
+h<-.5/vwghts
+fixed<-rep(FALSE,length(vred))
+while(any(!fixed)){
+ind<-(1:n)[!fixed][vred1[!fixed]>Spatialvar.gauss(h,1e-5,3)]
+hvred[,ind]<-h
+fixed[ind]<-TRUE
+h<-h*step
+}
+t(hvred)
+}
+
