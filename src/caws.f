@@ -505,7 +505,7 @@ C  first stochastic term
 			sv2=sv2+wj*wj
                         swj=swj+wj*si2(jind)
                         swj2=swj2+wj*wj*si2(jind)
-                        swjy=swjy+wj*y(jind)
+                        swjy=swjy+wj*si2(jind)*y(jind)
                      END DO
                   END DO
                END DO
