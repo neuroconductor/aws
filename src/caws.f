@@ -503,9 +503,8 @@ C  first stochastic term
                         END IF
 			sv1=sv1+wj
 			sv2=sv2+wj*wj
-			wj=wj*si2(jind)
-                        swj=swj+wj
-                        swj2=swj2+wj*wj
+                        swj=swj+wj*si2(jind)
+                        swj2=swj2+wj*wj*si2(jind)
                         swjy=swjy+wj*y(jind)
                      END DO
                   END DO
