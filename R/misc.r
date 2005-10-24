@@ -213,7 +213,6 @@ z<-SpatialCorr.gauss(h)
 h
 }
 
-
 get3Dh.gauss<-function(vred,h0,vwghts,step=1.01){
 n<-length(vred)
 vred1<-vred
@@ -234,7 +233,7 @@ ind<-(1:n)[!fixed][vred1[!fixed]>=Spatialvar.gauss(h,1e-5,3)]
 hvred[,ind]<-h
 fixed[ind]<-TRUE
 hh<-hh*step
-h<-h0+hh
+h<-sqrt(h0^2+hh^2)
 }
 t(hvred)
 }
