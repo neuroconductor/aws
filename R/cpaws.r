@@ -36,7 +36,7 @@
 #
 cpaws <- function(y,x=NULL,p=1,sigma2=NULL,qlambda=NULL,heta=NULL,tau1=NULL,tau2=NULL,eta0=0,
                 lkern="Triangle",hinit=NULL,hincr=NULL,hmax=NULL,NN=FALSE,
-                u=NULL,graph=FALSE,demo=FALSE,wghts=NULL,spmax=5)
+                u=NULL,graph=FALSE,demo=FALSE,wghts=NULL,spmin=0,spmax=5)
 { 
 #
 #          Auxilary functions
@@ -337,6 +337,7 @@ zobj <- .Fortran("cpawsuni",
               double(dp2),
               double(dp1),
 	      double(dp2),
+	      as.double(spmin),
 	      as.double(spmax),PACKAGE="aws")[c("ai","bi","bi0","hakt")]
 gc()
 dim(zobj$ai) <- c(dp1,n)
@@ -410,6 +411,7 @@ zobj <- .Fortran("cpawsbi",
               double(dp1),
               as.integer(ind),
               as.double(wghts),
+	      as.double(spmin),
 	      as.double(spmax),PACKAGE="aws")[c("ai","bi","bi0","hakt")]
 gc()
 dim(zobj$ai) <- c(dp1,n1,n2)

@@ -37,7 +37,8 @@
 #
 aws <- function(y,qlambda=NULL,qtau=NULL,family="Gaussian",lkern="Triangle",aggkern="Uniform",
                  sigma2=NULL,shape=NULL,hinit=NULL,hincr=NULL,hmax=NULL,lseq=NULL,
-		 heta=NULL,eta0=NULL,u=NULL,graph=FALSE,demo=FALSE,wghts=NULL,spmax=5,scorr=0)
+		 heta=NULL,eta0=NULL,u=NULL,graph=FALSE,demo=FALSE,wghts=NULL,
+		 spmin=0,spmax=5,scorr=0)
 {
 #
 #          Auxilary functions
@@ -305,6 +306,7 @@ zobj <- .Fortran("chaws",as.double(y),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
+	               as.double(spmin),
 		       as.double(spmax),
 		       double(prod(dlw)),
 		       as.double(wghts),
@@ -326,6 +328,7 @@ zobj <- .Fortran("caws",as.double(y),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
+                       as.double(spmin),
 		       as.double(spmax),
 		       double(prod(dlw)),
 		       as.double(wghts),

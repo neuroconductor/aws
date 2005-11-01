@@ -168,13 +168,15 @@ C
 C        Compute truncated Exponential Kernel 
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      real*8 function skern(x,xmax)
+      real*8 function skern(x,xmin,xmax)
       implicit logical (a-z)
-      real*8 x,xmax
-      IF (x.gt.xmax) THEN
+      real*8 x,xmin,xmax
+      IF (x.le.xmin) THEN
+         skern=1.d0
+      ELSE IF (x.gt.xmax) THEN
          skern=0.d0
       ELSE
-         skern=dexp(-x)
+         skern=dexp(-(x-xmin))
       ENDIF
       RETURN
       END
@@ -274,7 +276,7 @@ C   Perform one iteration in local constant three-variate aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine caws(y,fix,n1,n2,n3,hakt,lambda,theta,bi,bi2,
-     1                   bi0,ai,model,kern,spmax,lwght,wght)
+     1                bi0,ai,model,kern,spmin,spmax,lwght,wght)
 C   
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -294,7 +296,7 @@ C
       integer n1,n2,n3,model,kern
       logical aws,fix(1)
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,wght(2),
-     1       bi2(1),hakt,lwght(1)
+     1       bi2(1),hakt,lwght(1),spmin
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3
       real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0
@@ -316,15 +318,23 @@ C
       dlw2=ih2+clw2
       dlw3=ih3+clw3
       DO j3=1,dlw3
-         z3=(clw3-j3)*wght(2)
-         z3=z3*z3
-         ih2=dsqrt(hakt2-z3)/wght(1)
-         jind3=(j3-1)*dlw1*dlw2
+         if(n3.gt.1) THEN
+            z3=(clw3-j3)*wght(2)
+            z3=z3*z3
+            ih2=dsqrt(hakt2-z3)/wght(1)
+            jind3=(j3-1)*dlw1*dlw2
+	 ELSE
+	    jind3=0
+	 END IF
          DO j2=clw2-ih2,clw2+ih2
-            z2=(clw2-j2)*wght(1)
-            z2=z3+z2*z2
-            ih1=dsqrt(hakt2-z2)
-            jind2=jind3+(j2-1)*dlw1
+            if(n2.gt.1) THEN
+               z2=(clw2-j2)*wght(1)
+               z2=z3+z2*z2
+               ih1=dsqrt(hakt2-z2)
+               jind2=jind3+(j2-1)*dlw1
+	    ELSE
+	       jind2=0
+	    END IF
             DO j1=clw1-ih1,clw1+ih1
 C  first stochastic term
                jind=j1+jind2
@@ -373,7 +383,10 @@ C  first stochastic term
                         IF (aws) THEN
                   sij=bii*kldist(model,thetai,theta(jind),bii0)
                            IF (sij.gt.spmax) CYCLE
-                           wj=wj*exp(-sij)
+			   IF (sij.gt.spmin) wj=wj*exp(-sij+spmin)
+C   if sij <= spmin  this just keeps the location penalty
+C    spmin = 0 corresponds to old choice of K_s 
+C   new kernel is flat in [0,spmin] and then decays exponentially
                         END IF
                         swj=swj+wj
                         swj2=swj2+wj*wj
@@ -396,7 +409,7 @@ C   Perform one iteration in local constant three-variate aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine chaws(y,fix,si2,n1,n2,n3,hakt,lambda,theta,bi,bi2,
-     1                   bi0,vred,ai,model,kern,spmax,lwght,wght)
+     1                 bi0,vred,ai,model,kern,spmin,spmax,lwght,wght)
 C   
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -416,7 +429,7 @@ C
       integer n1,n2,n3,model,kern
       logical aws,fix(1)
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,wght(2),
-     1       bi2(1),hakt,lwght(1),si2(1),vred(1)
+     1       bi2(1),hakt,lwght(1),si2(1),vred(1),spmin
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3
       real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0,
@@ -439,15 +452,23 @@ C
       dlw2=ih2+clw2
       dlw3=ih3+clw3
       DO j3=1,dlw3
-         z3=(clw3-j3)*wght(2)
-         z3=z3*z3
-         if(n2.gt.1) ih2=dsqrt(hakt2-z3)/wght(1)
-         jind3=(j3-1)*dlw1*dlw2
+         if(n3.gt.1) THEN
+            z3=(clw3-j3)*wght(2)
+            z3=z3*z3
+            ih2=dsqrt(hakt2-z3)/wght(1)
+            jind3=(j3-1)*dlw1*dlw2
+	 ELSE
+	    jind3=0
+	 END IF
          DO j2=clw2-ih2,clw2+ih2
-            z2=(clw2-j2)*wght(1)
-            z2=z3+z2*z2
-            ih1=dsqrt(hakt2-z2)
-            jind2=jind3+(j2-1)*dlw1
+            if(n2.gt.1) THEN
+               z2=(clw2-j2)*wght(1)
+               z2=z3+z2*z2
+               ih1=dsqrt(hakt2-z2)
+               jind2=jind3+(j2-1)*dlw1
+	    ELSE
+	       jind2=0
+	    END IF
             DO j1=clw1-ih1,clw1+ih1
 C  first stochastic term
                jind=j1+jind2
@@ -499,7 +520,10 @@ C  first stochastic term
                         IF (aws) THEN
                   sij=bii*kldist(model,thetai,theta(jind),bii0)
                            IF (sij.gt.spmax) CYCLE
-                           wj=wj*exp(-sij)
+                           IF (sij.gt.spmin) wj=wj*exp(-sij)
+C   if sij <= spmin  this just keeps the location penalty
+C    spmin = 0 corresponds to old choice of K_s 
+C   new kernel is flat in [0,spmin] and then decays exponentially
                         END IF
 			sv1=sv1+wj
 			sv2=sv2+wj*wj
@@ -843,7 +867,7 @@ C   Perform one iteration in univariate local polynomial aws
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine cpawsuni(n,dp1,dp2,x,y,fix,theta,bi,bi0,
-     1        ai,lam,h,kern,cb,dmat,thij,psix,psiy,bii,spmax)
+     1        ai,lam,h,kern,cb,dmat,thij,psix,psiy,bii,spmin,spmax)
 C    
 C     n          number of design points
 C     dp1        number of parameters  (p+1)
@@ -869,8 +893,8 @@ C
       real*8 lkern,x(n),y(n),psix(dp2),psiy(dp1),theta(dp1,n),
      1 bi(dp2,n),ai(dp1,n),lam,spmax,dmat(dp1,dp1),bii(dp2),
      2 thij(dp1),cb(dp1,dp1),bi0(dp2,n),lambda,h,
-     3 sij,wij,z,xij,ha,ha2,eps,xi,thijl
-      external lkern,skern
+     3 sij,wij,z,xij,ha,ha2,eps,xi,thijl,spmin
+      external lkern
 C     
 C     in case of dp1==1  lawsuni should be preferred  (p=0)
 C
@@ -978,7 +1002,7 @@ C
 C     now we have everything to compute  w_{ij}
 C       
                IF (sij.gt.spmax) CYCLE
-               wij=wij*dexp(-sij)
+               IF(sij.gt.spmin) wij=wij*dexp(-sij+spmin)
             END IF
             IF (wij.gt.eps) nwij=nwij+1
 C        now compute contributions to bi(i),bi0(i),ai(i)  
@@ -1068,7 +1092,7 @@ C
      1     ai(dp1),lam,spmax,dmat(dp1,dp1),lkern,thij(dp1),cb(dp1,dp1),
      2     bi0(dp2,n),lambda,h,ni(n),ha,ha2,bi02(dp2,n),wghts(n),
      3     wghts0(n),theta0(dp1,n),bii(dp3,n),d,work(n)
-      external lkern,skern
+      external lkern
 C     
 C     in case of dp1==1  lawsuni should be preferred  (p=0)
 C
@@ -1162,7 +1186,7 @@ C
      1     ai(dp1),lam,spmax,dmat(dp1,dp1),lkern,thij(dp1),cb(dp1,dp1),
      2     bi0(dp2,n),lambda,h,ni(n),ha,ha2,bi02(dp2,n),wghts(n,n),
      3     wghts0(n),theta0(dp1,n),bii(dp3,n),d,work(n)
-      external lkern,skern
+      external lkern
 C     
 C     in case of dp1==1  lawsuni should be preferred  (p=0)
 C
@@ -1517,7 +1541,7 @@ C   Perform one iteration in univariate local polynomial aws
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine cphawsun(n,dp1,dp2,x,y,fix,si2,theta,bi,si0,bi0,
-     1   ai,lam,h,kern,cb,dmat,thij,psix,psiy,bii,spmax)
+     1   ai,lam,h,kern,cb,dmat,thij,psix,psiy,bii,spmin,spmax)
 C    
 C     n          number of design points
 C     dp1        number of parameters  (p+1)
@@ -1544,7 +1568,7 @@ C      implicit logical (a-z)
       real*8 lkern,skern,x(n),y(n),psix(dp2),psiy(dp1),theta(dp1,n),
      1 bi(dp2,n),bii(dp2),ai(dp1,n),lam,spmax,si2(n),dmat(dp1,dp1),
      2 thij(dp1),cb(dp1,dp1),bi0(dp2,n),lambda,h,si0(n),
-     4 sij,wij,z,xij,ha,ha2,eps,xi,wijs,thijl
+     4 sij,wij,z,xij,ha,ha2,eps,xi,wijs,thijl,spmin
       external lkern,skern
       eps=1.e-10
       aws=lam.lt.1.d20
@@ -1651,7 +1675,7 @@ C
 C     now we have everything to compute  w_{ij}
 C       
                IF (sij.gt.spmax) CYCLE
-               wij=wij*skern(sij,spmax)
+               wij=wij*skern(sij,spmin,spmax)
             END IF
             IF (wij.gt.eps) nwij=nwij+1
 C        now compute contributions to bi(i),bi0(i),ai(i)  
@@ -1680,7 +1704,7 @@ C   p > 0   only  !!!!
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine cpawsbi(n1,n2,dp1,dp2,y,fix,theta,bi,bi0,ai,
-     1    lam,h,kern,dmat,thij,psix,si,si0,siy,ind,wght,spmax)
+     1    lam,h,kern,dmat,thij,psix,si,si0,siy,ind,wght,spmin,spmax)
 C
 C     n1         number of points in first dimension
 C     n2         number of points in second dimension
@@ -1709,7 +1733,7 @@ C
      1       ai(dp1,n1,n2),wght,theta(dp1,n1,n2),siy(dp1),
      2       dmat(dp1,dp1),thij(dp1),spmax,y(n1,n2),h,lam,
      3       psix(dp2),si(dp2),si0(dp2),sii,wijy,d,z11,z12,z22,ha2,
-     4       lambda,wij,s0i,z1,z2,thijl
+     4       lambda,wij,s0i,z1,z2,thijl,spmin
       external lkern
 C     
 C     in case of dp1==1  lawsbi should be called  (p=0)
@@ -1814,7 +1838,7 @@ C           now compute weights
 C           stochastic and extension penalty can be added because kernel is exp
 C
                      IF (d.gt.spmax) CYCLE
-                     wij=wij*dexp(-d)
+                     IF(d.gt.spmin) wij=wij*dexp(-d+spmin)
 	          END IF
 C           now compute contributions to bi(i),ai(i)  
                   wijy=y(j1,j2)*wij
@@ -1886,7 +1910,7 @@ C   p > 0   only  !!!!
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine cphawsbi(n1,n2,dp1,dp2,y,fix,si2,theta,bi,bi0,ai,
-     1    lam,h,kern,dmat,thij,psix,si,si0,siy,ind,wght,spmax)
+     1    lam,h,kern,dmat,thij,psix,si,si0,siy,ind,wght,spmin,spmax)
 C
 C
 C     n1         number of points in first dimension
@@ -1914,7 +1938,8 @@ C
       real*8 bi(dp2,n1,n2),bi0(dp2,n1,n2),lkern,skern,ai(dp1,n1,n2),
      1       wght,si2(n1,n2),theta(dp1,n1,n2),dmat(dp1,dp1),siy(dp1),
      2       thij(dp1),spmax,y(n1,n2),lam,psix(dp2),si(dp2),si0(dp2),
-     3       sii,wijy,d,z11,z12,z22,ha2,h,lambda,wij,s0i,z1,z2,thijl
+     3       sii,wijy,d,z11,z12,z22,ha2,h,lambda,wij,s0i,z1,z2,thijl,
+     4       spmin
       external lkern,skern
 C     
 C     in case of dp1==1  lawsbi should be called  (p=0)
@@ -2018,32 +2043,32 @@ C
 C           now compute weights 
 C           stochastic and extension penalty can be added because kernel is exp
 C
-                     wij=wij*skern(d/lambda,spmax)
+                     wij=wij*skern(d/lambda,spmin,spmax)
 C           now compute contributions to bi(i),ai(i)  
-                     wijy=y(j1,j2)*wij
-                     si(1)=si(1)+wij
-                     si(2)=si(2)-z1*wij
-                     si(3)=si(3)-z2*wij
-                     si(4)=si(4)+z11*wij
-                     si(5)=si(5)+z12*wij
-                     si(6)=si(6)+z22*wij
-                     siy(1)=siy(1)+wijy
-                     siy(2)=siy(2)-z1*wijy
-                     siy(3)=siy(3)-z2*wijy
-                     IF (dp1.le.3) CYCLE
-                     si(7)=si(7)-z11*z1*wij
-                     si(8)=si(8)-z11*z2*wij
-                     si(9)=si(9)-z1*z22*wij
-                     si(10)=si(10)-z2*z22*wij
-                     si(11)=si(11)+z11*z11*wij
-                     si(12)=si(12)+z11*z12*wij
-                     si(13)=si(13)+z11*z22*wij
-                     si(14)=si(14)+z12*z22*wij
-                     si(15)=si(15)+z22*z22*wij
-                     siy(4)=siy(4)+z11*wijy
-                     siy(5)=siy(5)+z12*wijy
-		     siy(6)=siy(6)+z22*wijy
 	          END IF
+                  wijy=y(j1,j2)*wij
+                  si(1)=si(1)+wij
+                  si(2)=si(2)-z1*wij
+                  si(3)=si(3)-z2*wij
+                  si(4)=si(4)+z11*wij
+                  si(5)=si(5)+z12*wij
+                  si(6)=si(6)+z22*wij
+                  siy(1)=siy(1)+wijy
+                  siy(2)=siy(2)-z1*wijy
+                  siy(3)=siy(3)-z2*wijy
+                  IF (dp1.le.3) CYCLE
+                  si(7)=si(7)-z11*z1*wij
+                  si(8)=si(8)-z11*z2*wij
+                  si(9)=si(9)-z1*z22*wij
+                  si(10)=si(10)-z2*z22*wij
+                  si(11)=si(11)+z11*z11*wij
+                  si(12)=si(12)+z11*z12*wij
+                  si(13)=si(13)+z11*z22*wij
+                  si(14)=si(14)+z12*z22*wij
+                  si(15)=si(15)+z22*z22*wij
+                  siy(4)=siy(4)+z11*wijy
+                  siy(5)=siy(5)+z12*wijy
+		  siy(6)=siy(6)+z22*wijy
                END DO
             END DO
 C        prepare matrix to test for singularity of Bi 

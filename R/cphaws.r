@@ -36,7 +36,7 @@
 #
 cphaws <- function(y,x=NULL,p=1,sigma2=NULL,qlambda=NULL,heta=NULL,tau1=NULL,tau2=NULL,eta0=0,
                 lkern="Triangle",hinit=NULL,hincr=NULL,hmax=NULL,NN=FALSE,
-                u=NULL,graph=FALSE,demo=FALSE,wghts=NULL,spmax=5)
+                u=NULL,graph=FALSE,demo=FALSE,wghts=NULL,spmin=0,spmax=5)
 { 
 #
 #          Auxilary functions
@@ -146,7 +146,7 @@ dp1<-dim(zobj$ai)[1]
 dp2<-dim(bi)[1]
 etadd<-outer(rep(1,dp2),eta)
 bi<-(1-etadd)*bi+etadd*tobj$bi
-etadd<-outer(matrix(1,dp1,dd),eta)
+etadd<-outer(rep(1,dp1),eta)
 theta <- (1-etadd)*thetanew + etadd * theta
 #  local polynomial uni  mcode=1
 #  local polynomial bi   mcode=2
@@ -170,7 +170,7 @@ if(demo&& !graph) graph <- TRUE
 gridded <- is.null(x)
 if(gridded){
 #  this is the version on a grid
-if(is.null(hinit)||hinit<=0) hinit <- p+1
+if(is.null(hinit)||hinit<=0) hinit <- p+.1
 dy <- dim(y)
 if(is.null(dy)) {
    form <- "uni"
@@ -343,6 +343,7 @@ zobj <- .Fortran("cphawsun",
               double(dp2),
               double(dp1),
 	      double(dp2),
+	      as.double(spmin),
 	      as.double(spmax),PACKAGE="aws")[c("ai","bi","bi0","hakt")]
 dim(zobj$ai)<-c(dp1,n)
 dim(zobj$bi)<-c(dp2,n)
@@ -383,7 +384,7 @@ ind <- matrix(c(1, 2, 3, 4, 5, 6,
                 4, 7, 8,11,12,13,
                 5, 8, 9,12,13,14,
                 6, 9,10,13,14,15),6,6)[1:dp1,1:dp1]
-if(is.null(hinit)||hinit<p+1) hinit <- p+1
+if(is.null(hinit)||hinit<p+.1) hinit <- p+.1
 if(demo) readline("Press return")
 # now run aws-cycle                                                         
 hakt <- hinit
@@ -415,6 +416,7 @@ zobj <- .Fortran("cphawsbi",
               double(dp1),
               as.integer(ind),
               as.double(wghts),
+	      as.double(spmin),
 	      as.double(spmax),PACKAGE="aws")[c("ai","bi","bi0","hakt")]
 dim(zobj$ai)<-c(dp1,n1,n2)
 dim(zobj$bi)<-c(dp2,n1,n2)
