@@ -285,6 +285,7 @@ if(hinit>1) lambda0<-1e10 # that removes the stochstic term for the first step
 #   run single steps to display intermediate results
 #
 while(hakt<=hmax){
+dlw<-rep(2*trunc(hakt)+1,length(dy))
 if(family=="Gaussian"&scorr[1]>0) lambda0<-lambda0*Spatialvar.gauss(hakt/0.42445/4,h0,d)/Spatialvar.gauss(hakt/0.42445/4,1e-5,d)
 if(family=="Gaussian"&length(sigma2)==n){
 # heteroskedastic Gaussian case
