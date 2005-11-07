@@ -383,7 +383,9 @@ mae<-c(mae,signif(mean(abs(tobj$theta-u)),3))
 		    }
 if(demo) readline("Press return")
 hakt <- hakt*hincr
-lambda0<-lambda*lseq[k]
+x<-1.25^(k-1)
+scorrfactor<-x/(3^d*prod(scorr)*prod(h0)+x)
+lambda0<-lambda*lseq[k]*scorrfactor
 k<-k+1
 gc()
 }
@@ -404,6 +406,7 @@ vartheta <- switch(family,Gaussian=sigma2,
 			  Variance=2*tobj$theta,0)*tobj$bi2/tobj$bi^2
 vred<-tobj$bi2/tobj$bi^2
 }
+vartheta<-vartheta*Spatialvar.gauss(hakt/0.42445/4,h0,d)/Spatialvar.gauss(hakt/0.42445/4,1e-5,d)
 z<-list(theta=tobj$theta,ni=tobj$bi,var=vartheta,vred=vred,y=y,
 hmax=hakt/hincr,mae=mae,lseq=c(0,lseq[-steps]),call=args)
 class(z)<-switch(family,Gaussian="aws.gaussian",Bernoulli="aws.bernoulli",Exponential="aws.exponential",
