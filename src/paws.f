@@ -100,7 +100,7 @@ C
 C           get difference of thetas
 C
                DO k=1,dp1
-                  thij(k)=theta(jind+(k-1)*n)-thij(k)
+                  thij(k)=theta(iind+(k-1)*n)-thij(k)
                END DO
                sij=kldistp(dp1,thij,bii,ind)
                IF (sij.le.spmax) THEN
@@ -304,7 +304,7 @@ C
 C           get difference of thetas
 C
 		     DO k=1,dp1
-                        thij(k)=theta(jind+(k-1)*n)-thij(k)
+                        thij(k)=theta(iind+(k-1)*n)-thij(k)
                      END DO
                    sij=kldistp(dp1,thij,bii,ind)
                      IF (sij.le.spmax) THEN
@@ -562,7 +562,7 @@ C
 C           get difference of thetas
 C
 		           DO k=1,dp1
-                              thij(k)=theta(jind+(k-1)*n)-thij(k)
+                              thij(k)=theta(iind+(k-1)*n)-thij(k)
                            END DO
                            sij=kldistp(dp1,thij,bii,ind)
                            IF (sij.le.spmax) THEN
@@ -943,3 +943,49 @@ C
       kldistp=d
       RETURN
       END
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C      Generate estimates from ai and bi (bivariate case)
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      subroutine mpaws(n,dp1,dp2,ai,bi,theta,dmat,ind)
+C    
+C     n          number of design points
+C     dp1        number of parameters  (p+1)
+C     dp2        number of components in bi  (1,6,15)
+C     ai         \sum \Psi^T Wi^k Y       
+C     bi         \sum \Psi^T Wi^k \Psi    
+C     theta      new parameter estimate
+C     dmat       working arrays
+C
+      implicit logical (a-z)
+      integer n,dp1,dp2
+      real*8 ai(n,dp1),bi(n,dp2),theta(n,dp1),dmat(dp1,dp1)
+      integer i,j,k,info,ind(dp1,dp1)
+      real*8 d
+      DO i=1,n
+         DO k=1,dp1
+            DO j=1,dp1
+               IF (j.gt.k) then
+                  dmat(j,k)=0.d0
+               ELSE
+                  dmat(j,k)=bi(i,ind(j,k))
+               END IF
+            END DO
+C            dmat(k,k)=dmat(k,k)*1.001
+	 END DO
+         call invers(dmat,dp1,info)
+         IF (info.gt.0) CYCLE  
+C     just keep the old estimate
+C     now dmat contains inverse of B_i 
+C     now calculate theta as B_i^{-1} A_i
+         DO j=1,dp1
+            d=0.0d0
+            DO k=1,dp1
+               d=d+dmat(j,k)*ai(i,k)  
+            END DO
+            theta(i,j)=d
+         END DO
+      END DO
+      RETURN
+      END      

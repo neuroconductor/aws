@@ -170,6 +170,7 @@ if(qlambda<1) lambda <- qchisq(qlambda,1) else lambda <- 1e50
 #
 #   estimate variance in the gaussian case if necessary
 #
+h0<-0
 if(family=="Gaussian") {
   if(scorr[1]>0) {
          h0<-numeric(length(scorr))

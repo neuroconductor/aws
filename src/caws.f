@@ -1754,7 +1754,7 @@ C  fields are used to sum components of ai, bin and bi0
                IF (j.le.dp1) siy(j)=0.d0
             END DO
             IF (aws) THEN
-               DO j=1,dp1
+	       DO j=1,dp1
                   DO k=1,dp1
                      m=ind(j,k)
                      dmat(j,k)=bi(m,i1,i2)/lambda
