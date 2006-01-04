@@ -201,20 +201,26 @@ sum(z^2)/sum(z)^2
 
 geth.gauss<-function(corr,step=1.01){
 #   get the   bandwidth for lkern corresponding to a given correlation
-h<-.1
-z<-0
 # 
 #  keep it simple result does not depend on d
 #
-while(z<corr){
-h<-h*step
-z<-SpatialCorr.gauss(h)
-}
-h
+  if (corr < 0.1) {
+    h <- 0
+  } else { 
+    h <- .8
+    z <- 0
+    while (z<corr) {
+      h <- h*step
+      z <- get.corr.gauss(h)
+    }
+    h <- h/step
+  }
+  h
 }
 
 get3Dh.gauss<-function(vred,h0,vwghts,step=1.01){
-n<-length(vred)
+  h0 <- pmax(h0,1e-5)
+  n<-length(vred)
 vred1<-vred
 h<-.5/vwghts
 fixed<-rep(FALSE,length(vred))
