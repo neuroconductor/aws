@@ -317,6 +317,8 @@ C
       dlw1=ih1+clw1
       dlw2=ih2+clw2
       dlw3=ih3+clw3
+      z2=0.d0
+      z3=0.d0
       DO j3=1,dlw3
          if(n3.gt.1) THEN
             z3=(clw3-j3)*wght(2)
@@ -451,6 +453,8 @@ C
       dlw1=ih1+clw1
       dlw2=ih2+clw2
       dlw3=ih3+clw3
+      z2=0.d0
+      z3=0.d0
       DO j3=1,dlw3
          if(n3.gt.1) THEN
             z3=(clw3-j3)*wght(2)
@@ -1250,8 +1254,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine smwghtu0(n,i,ja,je,wghts,work,h,kern)
       integer n,kern,i,ja,je,h(2)
       real*8 wghts(n),work(n)
-      integer j,k,ka,ke,ih,kj
-      real*8 ha,maxwght,lkern,x,d
+      integer j,k,ih,kj
+      real*8 ha,maxwght,lkern,x
       external lkern
       ih=max0(i-h(1),h(2)-i)
       ha=ih+0.5d0
@@ -1285,7 +1289,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer n,kern,i,ja,je,h(2)
       real*8 wghts(n),work(n)
       integer j,k,ka,ke,ih
-      real*8 ha,maxwght,lkern,x
+      real*8 maxwght,lkern
       external lkern
       ih=max0(i-h(1),h(2)-i)
       DO j=ja,je
@@ -1314,7 +1318,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer n,kern,i,ja,je,h(2)
       real*8 wghts(n),work(n)
       integer j,k,ka,ke,ih
-      real*8 ha,maxwght,lkern,d
+      real*8 maxwght,lkern,d
       external lkern
       ih=max0(i-h(1),h(2)-i)
       d=0.d0

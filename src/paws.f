@@ -34,7 +34,7 @@ C
       logical aws,fix(1)
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1)
-      integer ih,i1,j1,k,iind,jind,jwind,dlw,clw,jw1,
+      integer ih,j1,k,iind,jind,dlw,clw,jw1,
      2        dp1,dp2,ihs,csw,dsw,l,dsw2
       real*8 bii(5),sij,swj(5),swj2(5),swj0(5),swjy(3),z1,wj,
      1       hakt2,thij(3),zz(5),lwj,yj,hs2,hs,z,cc
@@ -104,12 +104,12 @@ C
                END DO
                sij=kldistp(dp1,thij,bii,ind)
                IF (sij.le.spmax) THEN
-                  w(jwind)=wj*exp(-sij)
+                  w(jind)=wj*exp(-sij)
                ELSE
-	          w(jwind)=0.d0
+	          w(jind)=0.d0
                END IF
 	    ELSE
-               w(jwind)=wj     
+               w(jind)=wj     
             END IF
          END DO
 C
@@ -134,7 +134,7 @@ C
          END DO
 	 dsw2=dsw*dsw
          DO jw1=1,dsw
-	    j1=jw1-csw+i1
+	    j1=jw1-csw+iind
 	    if(j1.lt.1.or.j1.gt.n) CYCLE
 	    z1=jw1-csw
 	    lwj=slw(jw1)
@@ -477,7 +477,7 @@ C   compute location weights first
 	 z3=z3*z3
          ih2=dsqrt(hakt2-z3)
          jind3=(j3-1)*dlw2
-         DO j2=clw-ih1,clw+ih1
+         DO j2=clw-ih2,clw+ih2
             z2=clw-j2
             z2=z2*z2
             ih1=dsqrt(hakt2-z3-z2)
@@ -581,7 +581,7 @@ C      Smooth the weights
 C   
                z=0.d0
                DO jw3=1,dlw
-	          if(jw2.eq.clw) CYCLE
+	          if(jw3.eq.clw) CYCLE
                   jwind3=(jw3-1)*dlw2
                   DO jw2=1,dlw
 	             if(jw2.eq.clw) CYCLE
@@ -718,6 +718,7 @@ C
       hsw2=hsw*hsw
       hakt2=hakt*hakt
       hw2=hw*hw
+      zmax=0.d0
       DO i1=1,dsw
 	 sw(i1)=0.d0
       END DO
@@ -773,6 +774,7 @@ C
       hsw2=hsw*hsw
       hakt2=hakt*hakt
       hw2=hw*hw
+      zmax=0.d0
       DO i1=1,dsw
          DO i2=1,dsw
 	    sw(i1,i2)=0.d0
@@ -846,6 +848,7 @@ C
       hsw2=hsw*hsw
       hakt2=hakt*hakt
       hw2=hw*hw
+      zmax=0.d0
       DO i1=1,dsw
          DO i2=1,dsw
             DO i3=1,dsw
