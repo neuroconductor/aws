@@ -170,13 +170,14 @@ C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 function skern(x,xmin,xmax)
       implicit logical (a-z)
-      real*8 x,xmin,xmax
+      real*8 x,xmin,xmax,spf
+      spf=xmax/(xmax-xmin)
       IF (x.le.xmin) THEN
          skern=1.d0
       ELSE IF (x.gt.xmax) THEN
          skern=0.d0
       ELSE
-         skern=dexp(-(x-xmin))
+         skern=dexp(-spf*(x-xmin))
       ENDIF
       RETURN
       END
@@ -296,11 +297,12 @@ C
       integer n1,n2,n3,model,kern
       logical aws,fix(1)
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,wght(2),
-     1       bi2(1),hakt,lwght(1),spmin
+     1       bi2(1),hakt,lwght(1),spmin,spf
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3
       real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0
       hakt2=hakt*hakt
+      spf=spmax/(spmax-spmin)
       ih1=hakt
       aws=lambda.lt.1d40
 C
@@ -385,7 +387,7 @@ C  first stochastic term
                         IF (aws) THEN
                   sij=bii*kldist(model,thetai,theta(jind),bii0)
                            IF (sij.gt.spmax) CYCLE
-			   IF (sij.gt.spmin) wj=wj*exp(-sij+spmin)
+			   IF (sij.gt.spmin) wj=wj*exp(-spf*(sij-spmin))
 C   if sij <= spmin  this just keeps the location penalty
 C    spmin = 0 corresponds to old choice of K_s 
 C   new kernel is flat in [0,spmin] and then decays exponentially
@@ -435,8 +437,9 @@ C
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3
       real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0,
-     1        sv1,sv2
+     1        sv1,sv2,spf
       hakt2=hakt*hakt
+      spf=spmax/(spmax-spmin)
       ih1=hakt
       aws=lambda.lt.1d40
 C
@@ -524,7 +527,7 @@ C  first stochastic term
                         IF (aws) THEN
                   sij=bii*kldist(model,thetai,theta(jind),bii0)
                            IF (sij.gt.spmax) CYCLE
-                           IF (sij.gt.spmin) wj=wj*exp(-sij)
+                           IF (sij.gt.spmin) wj=wj*exp(-spf*(sij-spmin))
 C   if sij <= spmin  this just keeps the location penalty
 C    spmin = 0 corresponds to old choice of K_s 
 C   new kernel is flat in [0,spmin] and then decays exponentially
@@ -897,12 +900,13 @@ C
       real*8 lkern,x(n),y(n),psix(dp2),psiy(dp1),theta(dp1,n),
      1 bi(dp2,n),ai(dp1,n),lam,spmax,dmat(dp1,dp1),bii(dp2),
      2 thij(dp1),cb(dp1,dp1),bi0(dp2,n),lambda,h,
-     3 sij,wij,z,xij,ha,ha2,eps,xi,thijl,spmin
+     3 sij,wij,z,xij,ha,ha2,eps,xi,thijl,spmin,spf
       external lkern
 C     
 C     in case of dp1==1  lawsuni should be preferred  (p=0)
 C
       eps=1.e-10
+      spf=spmax/(spmax-spmin)
       aws=lam.lt.1.d20
       DO i=1,n
 C        loop over design points, initialization
@@ -1006,7 +1010,7 @@ C
 C     now we have everything to compute  w_{ij}
 C       
                IF (sij.gt.spmax) CYCLE
-               IF(sij.gt.spmin) wij=wij*dexp(-sij+spmin)
+               IF(sij.gt.spmin) wij=wij*dexp(-spf*(sij-spmin))
             END IF
             IF (wij.gt.eps) nwij=nwij+1
 C        now compute contributions to bi(i),bi0(i),ai(i)  
@@ -1572,8 +1576,9 @@ C      implicit logical (a-z)
       real*8 lkern,skern,x(n),y(n),psix(dp2),psiy(dp1),theta(dp1,n),
      1 bi(dp2,n),bii(dp2),ai(dp1,n),lam,spmax,si2(n),dmat(dp1,dp1),
      2 thij(dp1),cb(dp1,dp1),bi0(dp2,n),lambda,h,si0(n),
-     4 sij,wij,z,xij,ha,ha2,eps,xi,wijs,thijl,spmin
+     4 sij,wij,z,xij,ha,ha2,eps,xi,wijs,thijl,spmin,spf
       external lkern,skern
+      spf=spmax/(spmax-spmin)
       eps=1.e-10
       aws=lam.lt.1.d20
       DO i=1,n
@@ -1737,12 +1742,13 @@ C
      1       ai(dp1,n1,n2),wght,theta(dp1,n1,n2),siy(dp1),
      2       dmat(dp1,dp1),thij(dp1),spmax,y(n1,n2),h,lam,
      3       psix(dp2),si(dp2),si0(dp2),sii,wijy,d,z11,z12,z22,ha2,
-     4       lambda,wij,s0i,z1,z2,thijl,spmin
+     4       lambda,wij,s0i,z1,z2,thijl,spmin,spf
       external lkern
 C     
 C     in case of dp1==1  lawsbi should be called  (p=0)
 C
       ha2=h*h
+      spf=spmax/(spmax-spmin)
       ih1=h
       aws=lam.lt.1.d20
       DO i1=1,n1
@@ -1842,7 +1848,7 @@ C           now compute weights
 C           stochastic and extension penalty can be added because kernel is exp
 C
                      IF (d.gt.spmax) CYCLE
-                     IF(d.gt.spmin) wij=wij*dexp(-d+spmin)
+                     IF(d.gt.spmin) wij=wij*dexp(-spf*(d-spmin))
 	          END IF
 C           now compute contributions to bi(i),ai(i)  
                   wijy=y(j1,j2)*wij
@@ -1943,12 +1949,13 @@ C
      1       wght,si2(n1,n2),theta(dp1,n1,n2),dmat(dp1,dp1),siy(dp1),
      2       thij(dp1),spmax,y(n1,n2),lam,psix(dp2),si(dp2),si0(dp2),
      3       sii,wijy,d,z11,z12,z22,ha2,h,lambda,wij,s0i,z1,z2,thijl,
-     4       spmin
+     4       spmin,spf
       external lkern,skern
 C     
 C     in case of dp1==1  lawsbi should be called  (p=0)
 C
       ha2=h*h
+      spf=spmax/(spmax-spmin)
       ih1=h
       aws=lam.lt.1.d20
       DO i1=1,n1

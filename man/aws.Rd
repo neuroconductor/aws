@@ -38,7 +38,7 @@ lseq = NULL, heta = NULL, eta0 = NULL, u = NULL, graph = FALSE, demo = FALSE, wg
    Defaults to \code{NULL}. In this case a homoskedastic variance estimate is generated. If \code{length(sigma2)==length(y)} then \code{sigma2}
    is assumed to contain the pointwise variance of \code{y} and a heteroscedastic variance model is used.}
   \item{shape}{\code{shape} allows to specify additional parameters if \code{family!="Gaussian"}, e.g. for degrees of freedom in \code{family="Variance"} }
-  \item{hinit}{\code{hinit} specifies the initial bandwidth. Defaults to \code{hinit=1} }
+  \item{hinit}{\code{hinit} specifies the initial bandwidth. Defaults to \code{hinit=1}.}
   \item{hincr}{\code{hincr} specifies the factor used to increase the size of local neigborhoods after each iteration. The bandwidth is increased by
    a factor \code{hincr^(1/dd)} with \code{dd} specifying the dimensionality of the grid. Defaults to \code{hincr=1.25}  }
   \item{hmax}{ \code{hmax} specifies the maximal bandwidth. Defaults to \code{hmax=250, 12, 5} for \code{dd=1, 2, 3}, respectively.}
