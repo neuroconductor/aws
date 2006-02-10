@@ -35,7 +35,7 @@
 #             Weibull:       qlambda=.98     
 #             Volatility:    qlambda=.98       
 #
-aws <- function(y,qlambda=NULL,qtau=NULL,family="Gaussian",lkern="Triangle",aggkern="Uniform",
+aws <- function(y,qlambda=NULL,qtau=NULL,family="Gaussian",lkern="Triangle",skern="EXP",aggkern="Uniform",
                  sigma2=NULL,shape=NULL,hinit=NULL,hincr=NULL,hmax=NULL,lseq=NULL,
 		 heta=NULL,eta0=NULL,u=NULL,graph=FALSE,demo=FALSE,wghts=NULL,
 		 spmin=0,spmax=5,scorr=0)
@@ -216,6 +216,11 @@ cpar$tau1 <- cpar$tau1/shape
 cpar$tau2 <- cpar$tau2/shape 
 }
 cpar$shape<-shape
+skern <- switch(skern,"Exp"=1,"Triangle"=2,1)
+if(skern==2) {
+   lambda<-lambda*1.8
+   spmax <- 1
+   }
 #
 #     now set hinit and hincr if not provided
 #
@@ -309,6 +314,7 @@ zobj <- .Fortran("chaws",as.double(y),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
+                       as.integer(skern),
 	               as.double(spmin),
 		       as.double(spmax),
 		       double(prod(dlw)),
@@ -331,6 +337,7 @@ zobj <- .Fortran("caws",as.double(y),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
+                       as.integer(skern),
                        as.double(spmin),
 		       as.double(spmax),
 		       double(prod(dlw)),

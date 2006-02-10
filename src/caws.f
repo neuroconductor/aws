@@ -254,7 +254,7 @@ C  first stochastic term
                         IF (aws) THEN
                   sij=bii*kldist(model,thetai,theta(jind),bii0)
                            IF (sij.gt.spmax) CYCLE
-                           wj=wj*exp(-sij)
+                           wj=wj*dexp(-sij)
                         END IF
                         swj=swj+wj
                         swj2=swj2+wj*wj
@@ -277,7 +277,7 @@ C   Perform one iteration in local constant three-variate aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine caws(y,fix,n1,n2,n3,hakt,lambda,theta,bi,bi2,
-     1                bi0,ai,model,kern,spmin,spmax,lwght,wght)
+     1                bi0,ai,model,kern,skern,spmin,spmax,lwght,wght)
 C   
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -294,7 +294,7 @@ C
       implicit logical (a-z)
       external kldist,lkern
       real*8 kldist,lkern
-      integer n1,n2,n3,model,kern
+      integer n1,n2,n3,model,kern,skern
       logical aws,fix(1)
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,wght(2),
      1       bi2(1),hakt,lwght(1),spmin,spf
@@ -388,7 +388,11 @@ C  first stochastic term
                         IF (aws) THEN
                   sij=bii*kldist(model,thetai,theta(jind),bii0)
                            IF (sij.gt.spmax) CYCLE
-			IF (sij.gt.spmin) wj=wj*exp(-spf*(sij-spmin))
+			   IF (skern.eq.2) THEN
+			      wj=wj*(1.d0-sij)
+			   ELSE
+			IF (sij.gt.spmin) wj=wj*dexp(-spf*(sij-spmin))
+			   ENDIF
 C   if sij <= spmin  this just keeps the location penalty
 C    spmin = 0 corresponds to old choice of K_s 
 C   new kernel is flat in [0,spmin] and then decays exponentially
@@ -415,7 +419,7 @@ C   Perform one iteration in local constant three-variate aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine chaws(y,fix,si2,n1,n2,n3,hakt,lambda,theta,bi,bi2,
-     1                 bi0,vred,ai,model,kern,spmin,spmax,lwght,wght)
+     1           bi0,vred,ai,model,kern,skern,spmin,spmax,lwght,wght)
 C   
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -432,7 +436,7 @@ C
       implicit logical (a-z)
       external kldist,lkern
       real*8 kldist,lkern
-      integer n1,n2,n3,model,kern
+      integer n1,n2,n3,model,kern,skern
       logical aws,fix(1)
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,wght(2),
      1       bi2(1),hakt,lwght(1),si2(1),vred(1),spmin
@@ -530,10 +534,11 @@ C  first stochastic term
                         IF (aws) THEN
                   sij=bii*kldist(model,thetai,theta(jind),bii0)
                            IF (sij.gt.spmax) CYCLE
-                           IF (sij.gt.spmin) wj=wj*exp(-spf*(sij-spmin))
-C   if sij <= spmin  this just keeps the location penalty
-C    spmin = 0 corresponds to old choice of K_s 
-C   new kernel is flat in [0,spmin] and then decays exponentially
+			   IF (skern.eq.2) THEN
+			      wj=wj*(1.d0-sij)
+			   ELSE
+			IF (sij.gt.spmin) wj=wj*dexp(-spf*(sij-spmin))
+			   ENDIF
                         END IF
 			sv1=sv1+wj
 			sv2=sv2+wj*wj
@@ -629,7 +634,7 @@ C  first stochastic term
                         IF (aws) THEN
                    sij=bii*kldist(model,thetai,theta(jind),bii0)
                            IF (sij.gt.spmax) CYCLE
-                           wj=wj*exp(-sij)
+                           wj=wj*dexp(-sij)
                         END IF
                         swj=swj+wj
                         swj2=swj2+wj*wj0
@@ -749,7 +754,7 @@ C  first stochastic term
                         sij=bii*vkldist(model,d,thetai,theta(1,jind),
      1                                  bii0,vw)
                            IF (sij.gt.spmax) CYCLE
-                           wj=wj*exp(-sij)
+                           wj=wj*dexp(-sij)
                         END IF
                         swj=swj+wj
                         swj2=swj2+wj*wj
@@ -850,7 +855,7 @@ C  first stochastic term
                         sij=bii*vkldist(model,d,thetai,theta(1,jind),
      1                                  bii0,vw)
                            IF (sij.gt.spmax) CYCLE
-			   esij=exp(-sij)
+			   esij=dexp(-sij)
                            wj=wj*esij
                            wj0=wj0*esij
                         END IF
