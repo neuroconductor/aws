@@ -102,14 +102,10 @@ The essential parameter in the procedure is \code{qlambda}. This parameter has a
 }
 \references{ 
 \item{ }{Polzehl, J. and Spokoiny, V. (2004a). \emph{Propagation-Separation Approach for Local Likelihood Estimation}, 
-WIAS-Preprint 1000.}
+Probab. Theory & Relat. Fields, in print.}
 \item{ }{Belomestny, D. and Spokoiny, V. (2004a). \emph{Local likelihood modeling via stagewise aggregation}, 
-Manuscript, see webside.}
+WIAS-Preprint 1000.}
 \item{ }{Polzehl, J. and Spokoiny, V. (2004b). \emph{Spatially adaptive regression estimation: Propagation-separation approach}, WIAS-Preprint 998.}
-\item{ }{Polzehl, J. and Spokoiny, V. (2003). \emph{Varying coefficient 
-regression modeling by adaptive weights smoothing}, WIAS-Preprint 818.}
-\item{ }{Polzehl, J. and Spokoiny, V. (2002). \emph{Local likelihood 
-modelling by adaptive weights smoothing}, WIAS-Preprint 787.}
 \item{ }{ Polzehl, J. and Spokoiny, V. (2000). \emph{Adaptive Weights Smoothing
      with applications to image restoration}, J.R.Statist.Soc. B, 62,
      Part 2, pp. 335-354}}

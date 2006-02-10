@@ -347,6 +347,7 @@ C  first stochastic term
             END DO
          END DO
       END DO
+      call rchkusr()
       DO i3=1,n3
          DO i2=1,n2
              DO i1=1,n1
@@ -387,7 +388,7 @@ C  first stochastic term
                         IF (aws) THEN
                   sij=bii*kldist(model,thetai,theta(jind),bii0)
                            IF (sij.gt.spmax) CYCLE
-			   IF (sij.gt.spmin) wj=wj*exp(-spf*(sij-spmin))
+			IF (sij.gt.spmin) wj=wj*exp(-spf*(sij-spmin))
 C   if sij <= spmin  this just keeps the location penalty
 C    spmin = 0 corresponds to old choice of K_s 
 C   new kernel is flat in [0,spmin] and then decays exponentially
@@ -402,6 +403,7 @@ C   new kernel is flat in [0,spmin] and then decays exponentially
                bi(iind)=swj
                bi2(iind)=swj2
                bi0(iind)=swj0
+               call rchkusr()
             END DO
          END DO
       END DO
@@ -484,6 +486,7 @@ C  first stochastic term
             END DO
          END DO
       END DO
+      call rchkusr()
       DO i3=1,n3
          DO i2=1,n2
              DO i1=1,n1
@@ -545,6 +548,7 @@ C   new kernel is flat in [0,spmin] and then decays exponentially
                bi2(iind)=swj2
                bi0(iind)=swj0
 	       vred(iind)=sv2/sv1/sv1
+               call rchkusr()
             END DO
          END DO
       END DO
@@ -761,6 +765,7 @@ C  first stochastic term
                bi(iind)=swj
                bi2(iind)=swj2
                bi0(iind)=swj0
+               call rchkusr()
             END DO
          END DO
       END DO
@@ -863,6 +868,7 @@ C  first stochastic term
                bi(iind)=swj
                bi2(iind)=swj2
                bi0(iind)=swj0
+               call rchkusr()
             END DO
          END DO
       END DO
