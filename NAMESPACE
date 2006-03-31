@@ -1,0 +1,2 @@
+useDynLib(aws)
+export(aws,aws.gaussian,awsgsigma2)
