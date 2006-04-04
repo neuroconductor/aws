@@ -182,7 +182,8 @@ if(d==2){
 par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
 image(y,col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Observed Image  min=",signif(min(y),3)," max=",signif(max(y),3)))
-image(tobj$theta,col=gray((0:255)/255),xaxt="n",yaxt="n",zlim=quantile(tobj$theta,c(0.001,0.999)))
+zlim <- quantile(tobj$theta,c(0.001,0.999))
+image(array(pmax(pmin(tobj$theta,zlim[2]),zlim[1]),dy),col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Reconstruction  h=",signif(hakt,3)," min=",signif(min(tobj$theta),3)," max=",signif(max(tobj$theta),3)))
 image(tobj$bi,col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Sum of weights: min=",signif(min(tobj$bi),3)," mean=",signif(mean(tobj$bi),3)," max=",signif(max(tobj$bi),3)))
@@ -193,7 +194,8 @@ if(d==3){
 par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
 image(y[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Observed Image  min=",signif(min(y),3)," max=",signif(max(y),3)))
-image(tobj$theta[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n",zlim=quantile(tobj$theta,c(0.00,0.999)))
+zlim <- quantile(tobj$theta,c(0.001,0.999))
+image(array(pmax(pmin(tobj$theta[,,n3%/%2+1],zlim[2]),zlim[1]),dy[-3]),col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Reconstruction  h=",signif(hakt,3)," min=",signif(min(tobj$theta),3)," max=",signif(max(tobj$theta),3)))
 image(tobj$bi[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Sum of weights: min=",signif(min(tobj$bi),3)," mean=",signif(mean(tobj$bi),3)," max=",signif(max(tobj$bi),3)))
@@ -243,7 +245,7 @@ vartheta <- sigma2*tobj$bi2/tobj$bi^2
 vred<-tobj$bi2/tobj$bi^2
 }
 vartheta<-vartheta/Spatialvar.gauss(hakt/0.42445/4,h0+1e-5,d)*Spatialvar.gauss(hakt/0.42445/4,1e-5,d)
-z<-list(theta=tobj$theta,ni=tobj$bi,var=vartheta,vred=vred,y=y,
+z<-list(theta=tobj$theta,sigma2=1/sigma2,ni=tobj$bi,var=vartheta,vred=vred,y=y,
         hmax=hakt/hincr,mae=mae,lseq=c(0,lseq),call=args)
 class(z)<-"aws.gaussian"
 z
@@ -307,4 +309,95 @@ varquantile <- quantile(residsq,varprop)
 sigma2 <- pmax(sigma2,varquantile)
 cat("Estimated mean variance",signif(mean(sigma2),3)," Variance parameters:",signif(coef,3),"\n")
 1/sigma2
+}
+############################################################################
+#
+#  estimate local trend
+#
+############################################################################
+awsgsigma2 <- function(y,h){
+if(is.null(dy <- dim(y))) dy <- length(y)
+
+}
+###########################################################################
+#
+#   nonadaptive 1D -- 3D smoothing on a grid
+#
+###########################################################################
+gkernsm<-function (y, h = 1)
+{
+    extend.y <- function(y,h,d){
+       if(d==1) dim(y)<-c(length(y),1)
+          n <- dim(y)[1]
+	  h <- min(h,n%/%2)
+          nn <- nextn(n+4*h)
+	  yy <- matrix(0,dim(y)[2],nn)
+	  ih0 <- (nn-n)%/%2
+	  ih1 <- nn-ih0-n
+	  ind <- (ih0+1):(ih0+n)
+	  yy[,ind] <- t(y)
+	  yy[,1:ih0] <- t(y[ih0:1,])
+	  yy[,(nn-ih1+1):nn] <- t(y[n:(n-ih1+1),])
+list(yy=t(yy),ind=ind)
+}	
+    grid <- function(d) {
+        d0 <- d%/%2 + 1
+        gd <- seq(0, 1, length = d0)
+        if (2 * d0 == d + 1)
+            gd <- c(gd, -gd[d0:2],)
+        else gd <- c(gd, -gd[(d0 - 1):2])
+        gd
+    }
+    dy <- dim(y)
+    if (is.null(dy))
+    dy <- length(y)
+    d <- length(dy)
+    if(length(h)==1) h <- rep(h,d)
+    if(length(h) != d) stop("Incompatible length of bandwidth vector h")
+    if(d==1){
+       z<-extend.y(y,h[1],1)
+       yy <- z$yy
+       dyy <- length(yy)
+       kern <- dnorm(grid(dyy), 0, 2 * h[1]/dyy)
+       yhat<-Re(fft(fft(yy) * fft(kern),inv=TRUE))[z$ind]/dyy/sum(kern)
+    }
+    if(d==2){
+       z<-extend.y(y,h[1],2)
+       yy <- z$yy
+       dyy <- dim(yy)[1]
+      kern <- dnorm(grid(dyy), 0, 2 * h[1]/dyy)
+      yhat<-t(Re(mvfft(mvfft(yy) * fft(kern),inv=TRUE))[z$ind,]/dyy/sum(kern))
+       z<-extend.y(yhat,h[2],2)
+       yy <- z$yy
+       dyy <- dim(yy)[1]
+      kern <- dnorm(grid(dyy), 0, 2 * h[2]/dyy)
+      yhat<-t(Re(mvfft(mvfft(yy) * fft(kern),inv=TRUE))[z$ind,]/dyy/sum(kern))
+    }
+    if(d==3){
+      dim(y) <- c(dy[1],dy[2]*dy[3])
+      z<-extend.y(y,h[1],2)
+      yy <- z$yy
+      dyy <- dim(yy)[1]
+      kern <- dnorm(grid(dyy), 0, 2 * h[1]/dyy)
+      yhat<-Re(mvfft(mvfft(yy) * fft(kern),inv=TRUE))[z$ind,]/dyy/sum(kern)
+      dim(yhat) <- dy
+      yhat <- aperm(yhat,c(2,1,3))
+      dim(yhat) <- c(dy[2],dy[1]*dy[3])
+      z<-extend.y(yhat,h[2],2)
+      yy <- z$yy
+      dyy <- dim(yy)[1]
+      kern <- dnorm(grid(dyy), 0, 2 * h[2]/dyy)
+      yhat<-Re(mvfft(mvfft(yy) * fft(kern),inv=TRUE))[z$ind,]/dyy/sum(kern)
+      dim(yhat) <- c(dy[2],dy[1],dy[3])
+      yhat <- aperm(yhat,c(3,2,1))
+      dim(yhat) <- c(dy[3],dy[1]*dy[2])
+      z<-extend.y(yhat,h[3],2)
+      yy <- z$yy
+      dyy <- dim(yy)[1]
+      kern <- dnorm(grid(dyy), 0, 2 * h[3]/dyy)
+      yhat<-Re(mvfft(mvfft(yy) * fft(kern),inv=TRUE))[z$ind,]/dyy/sum(kern)
+      dim(yhat) <- c(dy[3],dy[1],dy[2])
+      yhat <- aperm(yhat,c(2,3,1))
+      }
+      yhat
 }

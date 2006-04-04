@@ -23,7 +23,7 @@ Varcor.gauss<-function(h){
 #
 #   in case of colored noise that was produced by smoothing with lkern and bandwidth h
 #
-h<-h/2.3548
+h<-pmax(h/2.3548,1e-5)
 ih<-trunc(4*h)+1
 dx<-2*ih+1
 d<-length(h)
@@ -205,13 +205,13 @@ geth.gauss<-function(corr,step=1.01){
 #  keep it simple result does not depend on d
 #
   if (corr < 0.1) {
-    h <- 0
+    h <- 1e-5
   } else { 
     h <- .8
     z <- 0
     while (z<corr) {
       h <- h*step
-      z <- get.corr.gauss(h)
+      z <- get.corr.gauss(h,interv=2)
     }
     h <- h/step
   }
@@ -244,3 +244,14 @@ h<-sqrt(h0^2+hh^2)
 t(hvred)
 }
 
+get.corr.gauss <- function(h,interv=1) {
+    #
+    #   Calculates the correlation of 
+    #   colored noise that was produced by smoothing with "gaussian" kernel and bandwidth h
+    #   Result does not depend on d for "Gaussian" kernel !!
+    h <- h/2.3548*interv
+    ih <- trunc(4*h+ 2*interv-1)
+    dx <- 2*ih+1
+    penl <- dnorm(((-ih):ih)/h)
+    sum(penl[-(1:interv)]*penl[-((dx-interv+1):dx)])/sum(penl^2)
+}
