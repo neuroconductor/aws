@@ -255,3 +255,4 @@ get.corr.gauss <- function(h,interv=1) {
     penl <- dnorm(((-ih):ih)/h)
     sum(penl[-(1:interv)]*penl[-((dx-interv+1):dx)])/sum(penl^2)
 }
+

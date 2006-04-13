@@ -14,7 +14,7 @@ vaws                       vaws.r            vaws                    caws.f
 #
 Function                     in            calls FORTRAN                in
 
-AWS lokal constant likelihood model
+AWS lokal constant likelihood model       (obsolete)
 
 caws                       caws.r            cawsuni                 cawsold.f
                                              cawsbi                  cawsold.f
@@ -22,7 +22,7 @@ caws                       caws.r            cawsuni                 cawsold.f
 					     cawsmnn                 caws.f
 					     cawsmul                 caws.f
 
-AWS lokal constant heteroskedastic regression model
+AWS lokal constant heteroskedastic regression model      (obsolete)
 
 chaws                      chaws.r           chawsuni                cawsold.f
                                              chawsbi                 cawsold.f
