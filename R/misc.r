@@ -255,4 +255,74 @@ get.corr.gauss <- function(h,interv=1) {
     penl <- dnorm(((-ih):ih)/h)
     sum(penl[-(1:interv)]*penl[-((dx-interv+1):dx)])/sum(penl^2)
 }
-
+###########################################################################################
+#
+#       gfft:   smoothing data on a 1D, 2D or 3D regular grid depending on dim(y) 
+#               bandwidth h in standard dev. on grid units 
+#
+##########################################################################################
+gfft<-function (y, h = 1)
+{
+    extend.y <- function(y,h,d){
+       if(d==1) dim(y)<-c(length(y),1)
+          n <- dim(y)[1]
+	  h <- min(h,n%/%2)
+          nn <- nextn(n+6*h)
+	  yy <- matrix(0,dim(y)[2],nn)
+	  ih0 <- (nn-n)%/%2
+	  ih1 <- nn-ih0-n
+	  ind <- (ih0+1):(ih0+n)
+	  yy[,ind] <- t(y)
+	  yy[,1:ih0] <- t(y[ih0:1,])
+	  yy[,(nn-ih1+1):nn] <- t(y[n:(n-ih1+1),])
+list(yy=t(yy),ind=ind)
+}	
+    grid <- function(d) {
+        d0 <- d%/%2 + 1
+        gd <- seq(0, 1, length = d0)
+        if (2 * d0 == d + 1)
+            gd <- c(gd, -gd[d0:2],)
+        else gd <- c(gd, -gd[(d0 - 1):2])
+        gd
+    }
+    dy <- dim(y)
+    if (is.null(dy))
+    dy <- length(y)
+    if(length(dy)==1){
+       z<-extend.y(y,h,1)
+       yy <- z$yy
+       dy <- length(yy)
+       kern <- dnorm(grid(dy), 0, 2 * h/dy)
+       yhat<-Re(fft(fft(yy) * fft(kern),inv=TRUE))[z$ind]/dy/sum(kern)
+    }
+    if(length(dy)==2){
+       z<-extend.y(y,h,2)
+       yy <- z$yy
+       dy <- dim(yy)
+      kern <- dnorm(grid(dy[1]), 0, 2 * h/dy[1])
+      yhat<-t(Re(mvfft(mvfft(yy) * fft(kern),inv=TRUE))[z$ind,]/dy[1]/sum(kern))
+       z<-extend.y(yhat,h,2)
+       yy <- z$yy
+       dy <- dim(yy)
+      kern <- dnorm(grid(dy[1]), 0, 2 * h/dy[1])
+      yhat<-t(Re(mvfft(mvfft(yy) * fft(kern),inv=TRUE))[z$ind,]/dy[1]/sum(kern))
+    }
+    if(length(dy)==3){
+      kern <- dnorm(grid(dy[1]), 0, 2 * h/dy[1])
+      dim(y) <- c(dy[1],dy[2]*dy[3])
+      yhat<-Re(mvfft(mvfft(y) * fft(kern),inv=TRUE))/dy[1]
+      dim(yhat) <- dy
+      yhat <- aperm(yhat,c(2,1,3))
+      dim(yhat) <- c(dy[2],dy[1]*dy[3])
+      kern <- dnorm(grid(dy[2]), 0, 2 * h/dy[2])
+      yhat<-Re(mvfft(mvfft(yhat)* fft(kern),inv=TRUE))/dy[2]
+      dim(yhat) <- c(dy[2],dy[1],dy[3])
+      yhat <- aperm(yhat,c(3,2,1))
+      dim(yhat) <- c(dy[3],dy[1]*dy[2])
+      kern <- dnorm(grid(dy[3]), 0, 2 * h/dy[3])
+      yhat<-Re(mvfft(mvfft(yhat)* fft(kern),inv=TRUE))/dy[3]
+      dim(yhat) <- c(dy[3],dy[1],dy[2])
+      yhat <- aperm(yhat,c(2,3,1))
+      }
+      yhat
+}

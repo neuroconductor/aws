@@ -255,7 +255,7 @@ z
 #   AWS - segmentation
 #
 ###############################################################################################
-aws2.gaussian <- function(y,hmax=NULL,hpre=NULL,qlambda=NULL,varmodel="Constant",
+aws.segment <- function(y,hmax=NULL,hpre=NULL,qlambda=NULL,varmodel="Constant",
                 varprop=.1,scorr=0,wghts=NULL,graph=FALSE,demo=FALSE,
 		lkern="Triangle",skern="Triangle",aggkern="Uniform",
 		spmin=0,spmax=5,lseq=NULL,u=NULL,nlevels=2,levels=NULL,lwghts=NULL,rhoseq=NULL,rho=.95)
@@ -589,7 +589,7 @@ gkernsm<-function (y, h = 1)
        if(d==1) dim(y)<-c(length(y),1)
           n <- dim(y)[1]
 	  h <- min(h,n%/%2)
-          nn <- nextn(n+4*h)
+          nn <- nextn(n+6*h)
 	  yy <- matrix(0,dim(y)[2],nn)
 	  ih0 <- (nn-n)%/%2
 	  ih1 <- nn-ih0-n
