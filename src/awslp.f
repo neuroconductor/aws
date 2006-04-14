@@ -4,7 +4,7 @@ C   Perform one iteration in local constant  aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine awsp1(y,fix,n,degr,hw,hakt,lambda,theta,bi,
-     1        bi2,bi0,ai,model,kern,spmax,lw,w,slw,sw,ind)
+     1        bi2,bi0,ai,model,kern,spmin,spmax,lw,w,slw,sw,ind)
 C   
 C   y        observed values of regression function
 C   fix      logical TRUE fro points where we have nothing to do
@@ -32,12 +32,12 @@ C
       real*8 kldistp,lkern
       integer n,model,kern,degr,ind(1)
       logical aws,fix(1)
-      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,
+      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,spmin,
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1)
       integer ih,j1,k,iind,jind,dlw,clw,jw1,
-     2        dp1,dp2,ihs,csw,dsw,l,dsw2
-      real*8 bii(5),sij,swj(5),swj2(5),swj0(5),swjy(3),z1,wj,
-     1       hakt2,thij(3),zz(5),lwj,yj,hs2,hs,z,cc
+     2        dp1,dp2,ihs,csw,dsw,l
+      real*8 bii(7),sij,swj(7),swj2(7),swj0(7),swjy(7),z1,wj,
+     1       hakt2,thij(4),zz(7),lwj,yj,hs2,hs,z,cc
 C   arrays with variable length are organized as 
 C   theta(n,dp1)
 C   bi(n,dp2)
@@ -54,6 +54,8 @@ C   first set dimensions for arrays depending on degree
          dp1=3
 	 dp2=5
       END IF
+      call intpr("n",1,n,1)
+      call intpr("degr",4,degr,1)
       hakt2=hakt*hakt
       ih=hakt
       dlw=2*ih+1
@@ -68,9 +70,13 @@ C   compute location weights first
          z1=clw-j1
          lw(j1)=lkern(kern,z1*z1/hakt2)
       END DO
+      call dblepr("lw",2,lw,dlw)
       cc=0.0d0
       call smwghts1(lw,hakt,hw,slw,dlw,dsw,cc)
 C  now stochastic term
+      call dblepr("slw",3,slw,dsw)
+      call dblepr("cc",2,cc,1)
+      call dblepr("lambda",6,lambda,1)
       zz(1)=1.d0
       DO iind=1,n
          IF (fix(iind)) CYCLE
@@ -109,7 +115,7 @@ C
 	          w(jind)=0.d0
                END IF
 	    ELSE
-               w(jind)=wj     
+               w(jw1)=wj
             END IF
          END DO
 C
@@ -123,7 +129,11 @@ C
 	 z=(2.d0-z/2.d0)*hw-1+z/2.d0
 	 z=dmax1(.1d0,dmin1(z,hw))
 	 cc=dmin1(z-1.d0,1.d0/hakt2)
+      call dblepr("w",1,w,dlw)
+      call dblepr("hw",2,z,1)
          call smwghts1(w,hakt,z,sw,dlw,dsw,cc)
+      call dblepr("slw",3,slw,dsw)
+      call dblepr("cc",2,cc,1)
          DO k=1,dp2
             swj(k)=0.d0
             swj2(k)=0.d0
@@ -132,7 +142,6 @@ C
          DO k=1,dp1
                swjy(k)=0.d0
          END DO
-	 dsw2=dsw*dsw
          DO jw1=1,dsw
 	    j1=jw1-csw+iind
 	    if(j1.lt.1.or.j1.gt.n) CYCLE
@@ -176,7 +185,7 @@ C   Perform one iteration in local constant  aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine awsph1(y,si,fix,n,degr,hw,hakt,lambda,theta,bi,
-     1        bi2,bi0,ai,model,kern,spmax,lw,w,slw,sw,ind)
+     1        bi2,bi0,ai,model,kern,spmin,spmax,lw,w,slw,sw,ind)
 C   
 C   y        observed values of regression function
 C   fix      logical TRUE fro points where we have nothing to do
@@ -205,11 +214,11 @@ C
       integer n,model,kern,degr,ind(1)
       logical aws,fix(1)
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,
-     1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),si(1)
+     1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),si(1),spmin
       integer ih,j1,k,iind,jind,dlw,clw,jw1,
-     2        dp1,dp2,ihs,csw,dsw,l,dsw2
-      real*8 bii(5),sij,swj(5),swj2(5),swj0(5),swjy(3),z1,wj,
-     1       hakt2,thij(3),zz(5),lwj,yj,hs2,hs,z,cc
+     2        dp1,dp2,ihs,csw,dsw,l
+      real*8 bii(7),sij,swj(7),swj2(7),swj0(7),swjy(7),z1,wj,
+     1       hakt2,thij(4),zz(7),lwj,yj,hs2,hs,z,cc
 C   arrays with variable length are organized as 
 C   theta(n,dp1)
 C   bi(n,dp2)
@@ -276,12 +285,12 @@ C
                END DO
                sij=kldistp(dp1,thij,bii,ind)
                IF (sij.le.spmax) THEN
-                  w(jind)=wj*exp(-sij)
+                  w(jw1)=wj*exp(-sij)
                ELSE
-	          w(jind)=0.d0
+	          w(jw1)=0.d0
                END IF
 	    ELSE
-               w(jind)=wj     
+               w(jw1)=wj     
             END IF
          END DO
 C
@@ -304,7 +313,6 @@ C
          DO k=1,dp1
                swjy(k)=0.d0
          END DO
-	 dsw2=dsw*dsw
          DO jw1=1,dsw
 	    j1=jw1-csw+iind
 	    if(j1.lt.1.or.j1.gt.n) CYCLE
@@ -379,9 +387,9 @@ C
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1)
       integer ih,ih1,i1,i2,j1,j2,k,n,
      1        iind,jind,jind2,jwind,jwind2,dlw,clw,jw1,jw2,
-     2        dp1,dp2,dnp1,ihs,csw,dsw,l,dsw2
-      real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(18),z1,z2,wj,
-     1       hakt2,thij(18),zz(15),lwj,hs2,hs,z,cc,wjy,spf
+     2        dp1,dp2,dnp1,ihs,csw,dsw,l
+      real*8 bii(6),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
+     1       hakt2,thij(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf
 C   arrays with variable length are organized as 
 C   theta(n1,n2,dp1)
 C   bi(n1,n2,dp2)
@@ -513,7 +521,6 @@ C
             DO k=1,dnp1
                swjy(k)=0.d0
             END DO
-	    dsw2=dsw*dsw
             DO jw2=1,dsw
 	       j2=jw2-csw+i2
 	       if(j2.lt.1.or.j2.gt.n2) CYCLE
@@ -616,9 +623,9 @@ C
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1)
       integer ih,ih1,i1,i2,j1,j2,k,n,
      1        iind,jind,jind2,jwind,jwind2,dlw,clw,jw1,jw2,
-     2        dp1,dp2,dnp1,ihs,csw,dsw,l,dsw2
-      real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(18),z1,z2,wj,
-     1       hakt2,thij(18),zz(15),lwj,hs2,hs,z,cc,wjy,spf
+     2        dp1,dp2,dnp1,ihs,csw,dsw,l
+      real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
+     1       hakt2,thij(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf
 C   arrays with variable length are organized as 
 C   theta(n1,n2,dp1)
 C   bi(n1,n2,dp2)
@@ -750,7 +757,6 @@ C
             DO k=1,dnp1
                swjy(k)=0.d0
             END DO
-	    dsw2=dsw*dsw
             DO jw2=1,dsw
 	       j2=jw2-csw+i2
 	       if(j2.lt.1.or.j2.gt.n2) CYCLE
@@ -896,7 +902,7 @@ C
 	    zmax=dmax1(zmax,z)
          END DO
          DO i1=1,dsw
-	       sw(i1)=sw(i1)/zmax
+	    sw(i1)=sw(i1)/zmax
          END DO
       END IF
       RETURN

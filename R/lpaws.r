@@ -24,13 +24,12 @@
 #
 ##############################################################################
 #
-#   Local polynomal AWS (Gaussian case on a grid) max. polynomial degree 3 (1D) 2 (2D) 
+#   Local polynomal AWS (Gaussian case on a grid) max. polynomial degree 2  
 #
 ##############################################################################
 lpaws <- function(y,degree=1,hmax=NULL,qlambda=NULL,qtau=NULL,lkern="Triangle",skern="Triangle",
                   aggkern="Uniform",sigma2=NULL,hinit=NULL,
-                  lseq=NULL,u=NULL,graph=FALSE,demo=FALSE,wghts=NULL,spmax=5,eps=1.e-8,
-		  conf=FALSE,usevar=TRUE,smoothwghts=TRUE)
+                  lseq=NULL,u=NULL,graph=FALSE,demo=FALSE,spmin=0,spmax=5)
 { 
 #
 #          Auxilary functions
@@ -64,10 +63,9 @@ if(d==1){
    n <- dim(ai)[1]
    dp1 <- dim(ai)[2]
    dp2 <- dim(bi)[2]
-   ind <- matrix(c(1, 2, 3, 4,
-                   2, 3, 4, 5,
-                   3, 4, 5, 6,
-                   4, 5, 6, 7),4,4)[1:dp1,1:dp1]
+   ind <- matrix(c(1, 2, 3,
+                   2, 3, 4,
+                   3, 4, 5),3,3)[1:dp1,1:dp1]
 }  else {
    n1 <- dim(ai)[1]
    n2 <- dim(ai)[2]
@@ -137,7 +135,7 @@ mae <- NULL
 #     set approriate defaults
 #
 dy <- dim(y)
-if(is.null(dy)) d==1 else d<-length(dy) 
+if(is.null(dy)) d<-1 else d<-length(dy) 
 if(d>2) return(warning("Local polynomial PS is only implemented for 1 and 2 dimensional grids"))
 if(d==1){
 dp1 <-  degree+1
@@ -150,6 +148,12 @@ n <- n1*n2
 dp1 <- switch( degree+1,1,3,6)
 dp2 <- switch( degree+1,1,6,15)
 }
+lkern<-switch(lkern,Triangle=2,Quadratic=3,Cubic=4,Uniform=1,
+	            Gaussian=5,2)
+skern <- switch(skern,"Exp"=1,"Triangle"=2,2)
+if(is.null(qlambda)) qlambda <-switch(d,
+                                     switch( degree+1,.96,.96,.96),
+                                     switch( degree+1,.96,.96,.96))
   if (qlambda>=1) {
     # thats stagewise aggregation with kernel specified by aggkern
     if(is.null(qtau)) qtau <- switch(d,
@@ -173,19 +177,18 @@ dp2 <- switch( degree+1,1,6,15)
   cat("tau1",tau1,"\n")
   if (qlambda<1) lambda <- qchisq(qlambda,dp1) else lambda <- 1e50
   cat("Value of lambda",lambda,"\n")
-if(qtau<1) heta <- max(heta,degree+3) else heta <- 1e40
+if(qtau<1) heta <- degree+3 else heta <- 1e40
 if(is.null(hinit)) hinit <- 1 
 hincr <- 1.25^(1/d)
 if (is.null(hmax)) hmax <- switch(d,100,12)
 kstar <- switch(d,log(100*dp1),log(15*dp1))
-cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dimg=dimg,kstar=kstar)
+cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
     if (length(sigma2)==1) {
       #   homoskedastic Gaussian case
       lambda <- lambda*sigma2*2 
       cpar$tau1 <- cpar$tau1*sigma2*2 
       cpar$tau2 <- cpar$tau2*sigma2*2 
     } else if (length(sigma2)!=n) {
-      wghts <- wghts0/sigma2
       cpar$tau1 <- cpar$tau1*sigma2*2 
       cpar$tau2 <- cpar$tau2*sigma2*2 
       lambda <- lambda*2 
@@ -197,7 +200,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dimg=dimg,kstar=kstar)
       cpar$tau2 <- cpar$tau2*2 
       sigma2 <- 1/sigma2 #  taking the invers yields simpler formulaes 
     }
-  tobj <- list(bi= rep(1,n*dp2), bi2= rep(1,n*dp2), theta= array(y,c(dy,dp1)), fix=rep(FALSE,n))
+  tobj <- list(bi= rep(1,n*dp2), bi2= rep(1,n*dp2), theta= rep(0,n*dp1), fix=rep(FALSE,n))
   bi0old <- rep(1,n*dp2)
   ind <- switch(d,
                 matrix(c(1, 2, 3, 4,
@@ -210,7 +213,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dimg=dimg,kstar=kstar)
                          4, 7, 8,11,12,13,
                          5, 8, 9,12,13,14,
                          6, 9,10,13,14,15),6,6)[1:dp1,1:dp1])
-  hw<-max(hw,degree+.1)
+  hw<-degree+.1
   steps <- as.integer(log(hmax/hinit)/log(hincr)+1)
   if (is.null(lseq)) lseq <- 1
   if (length(lseq)<steps) lseq <- c(lseq,rep(1,steps-length(lseq)))
@@ -232,13 +235,12 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dimg=dimg,kstar=kstar)
 		       as.double(y),
                        as.double(sigma2),
                        as.logical(tobj$fix),
-                       as.integer(n1),
-                       as.integer(n2),
+                       as.integer(n),
                        as.integer(degree),
 		       as.double(hw),
                        hakt=as.double(hakt),
                        as.double(lambda0),
-                       as.double(tobj$theta[1:(n*dp1*nwghts)]),
+                       as.double(tobj$theta),
                        bi=as.double(tobj$bi),
                        bi2=double(n*dp2),
                        bi0=double(n*dp2),
@@ -251,7 +253,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dimg=dimg,kstar=kstar)
                        double(twohhwp1*twohhwp1),# array for smoothed location weights
                        double(twohhwp1*twohhwp1),# array for smoothed general weights
                        as.integer(ind),
-                       PACKAGE="aws"),
+                       PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt")],
                      .Fortran("awsph2",
 		       as.double(y),
                        as.double(sigma2),
@@ -262,7 +264,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dimg=dimg,kstar=kstar)
 		       as.double(hw),
                        hakt=as.double(hakt),
                        as.double(lambda0),
-                       as.double(tobj$theta[1:(n*dp1*nwghts)]),
+                       as.double(tobj$theta),
                        bi=as.double(tobj$bi),
                        bi2=double(n*dp2),
                        bi0=double(n*dp2),
@@ -275,20 +277,19 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dimg=dimg,kstar=kstar)
                        double(twohhwp1*twohhwp1),# array for smoothed location weights
                        double(twohhwp1*twohhwp1),# array for smoothed general weights
                        as.integer(ind),
-                       PACKAGE="aws"))[c("bi","bi0","bi2","ai","hakt")]
+                       PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt")])
     } else {
       # all other cases
       zobj <- switch(d,
                      .Fortran("awsp1",
 		       as.double(y),
                        as.logical(tobj$fix),
-                       as.integer(n1),
-                       as.integer(n2),
+                       as.integer(n),
                        as.integer(degree),
 		       as.double(hw),
                        hakt=as.double(hakt),
                        as.double(lambda0),
-                       as.double(tobj$theta[1:(n*dp1*nwghts)]),
+                       as.double(tobj$theta),
                        bi=as.double(tobj$bi),
                        bi2=double(n*dp2),
                        bi0=double(n*dp2),
@@ -301,7 +302,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dimg=dimg,kstar=kstar)
                        double(twohhwp1*twohhwp1),# array for smoothed location weights
                        double(twohhwp1*twohhwp1),# array for smoothed general weights
                        as.integer(ind),
-                       PACKAGE="aws"),
+                       PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt")],
                      .Fortran("awsp2",
 		       as.double(y),
                        as.logical(tobj$fix),
@@ -311,7 +312,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dimg=dimg,kstar=kstar)
 		       as.double(hw),
                        hakt=as.double(hakt),
                        as.double(lambda0),
-                       as.double(tobj$theta[1:(n*dp1*nwghts)]),
+                       as.double(tobj$theta),
                        bi=as.double(tobj$bi),
                        bi2=double(n*dp2),
                        bi0=double(n*dp2),
@@ -324,11 +325,11 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dimg=dimg,kstar=kstar)
                        double(twohhwp1*twohhwp1),# array for smoothed location weights
                        double(twohhwp1*twohhwp1),# array for smoothed general weights
                        as.integer(ind),
-                       PACKAGE="aws"))[c("bi","bi0","bi2","ai","hakt")]
+                       PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt")])
     }
     gc()
     dim(zobj$ai) <- c(switch(d,n,dy),dp1)
-    if (hakt>n1/2) zobj$bi0 <- hincr^ddim*biold
+    if (hakt>n^(1/d)/2) zobj$bi0 <- hincr^ddim*biold
     biold <- zobj$bi0
     dim(zobj$bi0)<-c(switch(d,n,dy),dp2)
     tobj <- updtheta(zobj,tobj,cpar,aggkern)
