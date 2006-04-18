@@ -4,7 +4,7 @@ C   Perform one iteration in local constant  aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine awsp1(y,fix,n,degr,hw,hakt,lambda,theta,bi,
-     1        bi2,bi0,ai,model,kern,spmin,spmax,lw,w,slw,sw,ind)
+     1        bi2,bi0,ai,kern,spmin,spmax,lw,w,slw,sw,ind)
 C   
 C   y        observed values of regression function
 C   fix      logical TRUE fro points where we have nothing to do
@@ -18,7 +18,6 @@ C   bi       Matrix Bi dim(n1,n2,dp2)
 C   bi2      Matrix Bi dim(n1,n2,dp2) (with wij^2 instead of wij)
 C   bi0      Matrix Bi0 dim(n1,n2,dp2) (with location weights only)
 C   ai       \sum  Wi Y     (output) dim(n1,n2,dp1)
-C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
 C   spmax    specifies the truncation point of the stochastic kernel
 C   lw       array of location weights dim(dlw,dlw) dlw=2*ih+1
@@ -30,7 +29,7 @@ C
       implicit logical (a-z)
       external kldistp,lkern
       real*8 kldistp,lkern
-      integer n,model,kern,degr,ind(1)
+      integer n,kern,degr,ind(1)
       logical aws,fix(1)
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,spmin,
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1)
@@ -54,8 +53,6 @@ C   first set dimensions for arrays depending on degree
          dp1=3
 	 dp2=5
       END IF
-      call intpr("n",1,n,1)
-      call intpr("degr",4,degr,1)
       hakt2=hakt*hakt
       ih=hakt
       dlw=2*ih+1
@@ -70,13 +67,9 @@ C   compute location weights first
          z1=clw-j1
          lw(j1)=lkern(kern,z1*z1/hakt2)
       END DO
-      call dblepr("lw",2,lw,dlw)
       cc=0.0d0
       call smwghts1(lw,hakt,hw,slw,dlw,dsw,cc)
 C  now stochastic term
-      call dblepr("slw",3,slw,dsw)
-      call dblepr("cc",2,cc,1)
-      call dblepr("lambda",6,lambda,1)
       zz(1)=1.d0
       DO iind=1,n
          IF (fix(iind)) CYCLE
@@ -110,9 +103,9 @@ C
                END DO
                sij=kldistp(dp1,thij,bii,ind)
                IF (sij.le.spmax) THEN
-                  w(jind)=wj*exp(-sij)
+                  w(jw1)=wj*dexp(-sij)
                ELSE
-	          w(jind)=0.d0
+	          w(jw1)=0.d0
                END IF
 	    ELSE
                w(jw1)=wj
@@ -129,11 +122,7 @@ C
 	 z=(2.d0-z/2.d0)*hw-1+z/2.d0
 	 z=dmax1(.1d0,dmin1(z,hw))
 	 cc=dmin1(z-1.d0,1.d0/hakt2)
-      call dblepr("w",1,w,dlw)
-      call dblepr("hw",2,z,1)
          call smwghts1(w,hakt,z,sw,dlw,dsw,cc)
-      call dblepr("slw",3,slw,dsw)
-      call dblepr("cc",2,cc,1)
          DO k=1,dp2
             swj(k)=0.d0
             swj2(k)=0.d0
@@ -185,7 +174,7 @@ C   Perform one iteration in local constant  aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine awsph1(y,si,fix,n,degr,hw,hakt,lambda,theta,bi,
-     1        bi2,bi0,ai,model,kern,spmin,spmax,lw,w,slw,sw,ind)
+     1        bi2,bi0,ai,kern,spmin,spmax,lw,w,slw,sw,ind)
 C   
 C   y        observed values of regression function
 C   fix      logical TRUE fro points where we have nothing to do
@@ -199,7 +188,6 @@ C   bi       Matrix Bi dim(n1,n2,dp2)
 C   bi2      Matrix Bi dim(n1,n2,dp2) (with wij^2 instead of wij)
 C   bi0      Matrix Bi0 dim(n1,n2,dp2) (with location weights only)
 C   ai       \sum  Wi Y     (output) dim(n1,n2,dp1)
-C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
 C   spmax    specifies the truncation point of the stochastic kernel
 C   lw       array of location weights dim(dlw,dlw) dlw=2*ih+1
@@ -211,7 +199,7 @@ C
       implicit logical (a-z)
       external kldistp,lkern
       real*8 kldistp,lkern
-      integer n,model,kern,degr,ind(1)
+      integer n,kern,degr,ind(1)
       logical aws,fix(1)
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),si(1),spmin
@@ -285,7 +273,7 @@ C
                END DO
                sij=kldistp(dp1,thij,bii,ind)
                IF (sij.le.spmax) THEN
-                  w(jw1)=wj*exp(-sij)
+                  w(jw1)=wj*dexp(-sij)
                ELSE
 	          w(jw1)=0.d0
                END IF
@@ -387,8 +375,8 @@ C
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1)
       integer ih,ih1,i1,i2,j1,j2,k,n,
      1        iind,jind,jind2,jwind,jwind2,dlw,clw,jw1,jw2,
-     2        dp1,dp2,dnp1,ihs,csw,dsw,l
-      real*8 bii(6),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
+     2        dp1,dp2,ihs,csw,dsw,l
+      real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
      1       hakt2,thij(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf
 C   arrays with variable length are organized as 
 C   theta(n1,n2,dp1)
@@ -430,6 +418,7 @@ C  first stochastic term
 	    lw(jind)=lkern(kern,(z1*z1+z2)/hakt2)
          END DO
       END DO
+      cc=0.0d0
       call smwghts2(lw,hakt,hw,slw,dlw,dsw,cc)
 C  now stochastic term
       zz(1)=1.d0
@@ -475,7 +464,7 @@ C  get rest of directional differences
 		     zz(5)=z1*z2
                   END IF
                   IF (aws) THEN
-		     DO k=1,dnp1
+		     DO k=1,dp1
 		        thij(k)=theta(jind+(k-1)*n)
 		     END DO
                      IF(dp1.gt.1) THEN
@@ -497,7 +486,7 @@ C
                      IF (sij.le.spmin) THEN 
 		        w(jwind)=wj
 		     ELSE IF (sij.le.spmax) THEN
-		        w(jwind)=wj*exp(-spf*(sij-spmin))
+		        w(jwind)=wj*dexp(-spf*(sij-spmin))
 		     ELSE
 		        w(jwind)=0.d0
 		     END IF
@@ -509,16 +498,20 @@ C
 C
 C      Smooth the weights
 C   
+C      call dblepr("w",1,w,dlw*dlw)
             call testwgh2(w,dlw,dp1,hw,z)
 	    z=dmax1(.1d0,dmin1(z,hw))
 	    cc=dmin1(z-1.d0,1.d0/hakt2)
+C      call dblepr("cc",2,cc,1)
 	    call smwghts2(w,hakt,z,sw,dlw,dsw,cc)
+C      call dblepr("sw",2,sw,dsw*dsw)
+C      call intpr("dsw",3,dsw,1)
             DO k=1,dp2
                swj(k)=0.d0
                swj2(k)=0.d0
                swj0(k)=0.d0
             END DO
-            DO k=1,dnp1
+            DO k=1,dp1
                swjy(k)=0.d0
             END DO
             DO jw2=1,dsw
@@ -623,7 +616,7 @@ C
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1)
       integer ih,ih1,i1,i2,j1,j2,k,n,
      1        iind,jind,jind2,jwind,jwind2,dlw,clw,jw1,jw2,
-     2        dp1,dp2,dnp1,ihs,csw,dsw,l
+     2        dp1,dp2,ihs,csw,dsw,l
       real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
      1       hakt2,thij(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf
 C   arrays with variable length are organized as 
@@ -711,7 +704,7 @@ C  get rest of directional differences
 		     zz(5)=z1*z2
                   END IF
                   IF (aws) THEN
-		     DO k=1,dnp1
+		     DO k=1,dp1
 		        thij(k)=theta(jind+(k-1)*n)
 		     END DO
                      IF(dp1.gt.1) THEN
@@ -733,7 +726,7 @@ C
                      IF (sij.le.spmin) THEN 
 		        w(jwind)=wj
 		     ELSE IF (sij.le.spmax) THEN
-		        w(jwind)=wj*exp(-spf*(sij-spmin))
+		        w(jwind)=wj*dexp(-spf*(sij-spmin))
 		     ELSE
 		        w(jwind)=0.d0
 		     END IF
@@ -754,7 +747,7 @@ C
                swj2(k)=0.d0
                swj0(k)=0.d0
             END DO
-            DO k=1,dnp1
+            DO k=1,dp1
                swjy(k)=0.d0
             END DO
             DO jw2=1,dsw

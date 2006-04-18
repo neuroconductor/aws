@@ -37,11 +37,11 @@ lpaws <- function(y,degree=1,hmax=NULL,qlambda=NULL,qtau=NULL,lkern="Triangle",s
 Pardist <- function(d,Bi0,dtheta){
 #  local polynomial uni  mcode=1
 #  local polynomial bi   mcode=2
-   dp1 <- dim(dtheta)[1]
-   dp2 <- dim(Bi0)[1]
+   dp1 <- switch(d,dim(dtheta)[2],dim(dtheta)[3])
+   dp2 <- switch(d,dim(Bi0)[2],dim(Bi0)[3])
    if(d==1){
       dist <- 0
-      for(i in 1:dp1) for(j in 1:dp1) dist <- dist+dtheta[i,]*Bi0[i+j-1,]*dtheta[j,]
+      for(i in 1:dp1) for(j in 1:dp1) dist <- dist+dtheta[,i]*Bi0[,i+j-1]*dtheta[,j]
    }
    if(d==2){
          ind <- matrix(c(1, 2, 3, 4, 5, 6,
@@ -51,7 +51,7 @@ Pardist <- function(d,Bi0,dtheta){
                          5, 8, 9,12,13,14,
                          6, 9,10,13,14,15),6,6)[1:dp1,1:dp1,drop=FALSE]
                 dist <- 0
-                for(i in 1:dp1) for(j in 1:dp1) dist <- dist+dtheta[i,,]*Bi0[ind[i,j],,]*dtheta[j,,]
+                for(i in 1:dp1) for(j in 1:dp1) dist <- dist+dtheta[,,i]*Bi0[,,ind[i,j]]*dtheta[,,j]
    }
    dist
    }
@@ -107,7 +107,7 @@ updtheta <- function(d,zobj,tobj,cpar,aggkern){
     thetanew <- gettheta(d,zobj$ai,bi)
     theta <- tobj$theta
     dim(theta)<-dim(thetanew)
-    n<-prod(dim(tobj$fix))
+    n<-length(tobj$fix)
     thetanew[array(tobj$fix,dim(thetanew))] <- theta[rep(tobj$fix,dp1)]
     if (hakt>heta) {
 	eta <- rep(pmin(1,Pardist(d,bi0,thetanew-theta)/tau),dp2)
@@ -183,6 +183,7 @@ hincr <- 1.25^(1/d)
 if (is.null(hmax)) hmax <- switch(d,100,12)
 kstar <- switch(d,log(100*dp1),log(15*dp1))
 cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
+    if(is.null(sigma2))    sigma2 <- IQRdiff(as.vector(y))^2
     if (length(sigma2)==1) {
       #   homoskedastic Gaussian case
       lambda <- lambda*sigma2*2 
@@ -203,10 +204,9 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
   tobj <- list(bi= rep(1,n*dp2), bi2= rep(1,n*dp2), theta= rep(0,n*dp1), fix=rep(FALSE,n))
   bi0old <- rep(1,n*dp2)
   ind <- switch(d,
-                matrix(c(1, 2, 3, 4,
-                         2, 3, 4, 5, 
-                         3, 4, 5, 6, 
-                         4, 5, 6, 7),6,6)[1:dp1,1:dp1],
+                matrix(c(1, 2, 3,
+                         2, 3, 4, 
+                         3, 4, 5),3,3)[1:dp1,1:dp1],
                 matrix(c(1, 2, 3, 4, 5, 6,
                          2, 4, 5, 7, 8, 9,
                          3, 5, 6, 8, 9,10,
@@ -248,10 +248,10 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
                        as.integer(lkern),
                        as.double(spmin),
                        as.double(spmax),
-                       double(twohp1*twohp1),# array for location weights
-                       double(twohp1*twohp1),# array for general weights
-                       double(twohhwp1*twohhwp1),# array for smoothed location weights
-                       double(twohhwp1*twohhwp1),# array for smoothed general weights
+                       double(twohp1),# array for location weights
+                       double(twohp1),# array for general weights
+                       double(twohhwp1),# array for smoothed location weights
+                       double(twohhwp1),# array for smoothed general weights
                        as.integer(ind),
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt")],
                      .Fortran("awsph2",
@@ -297,10 +297,10 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
                        as.integer(lkern),
                        as.double(spmin),
                        as.double(spmax),
-                       double(twohp1*twohp1),# array for location weights
-                       double(twohp1*twohp1),# array for general weights
-                       double(twohhwp1*twohhwp1),# array for smoothed location weights
-                       double(twohhwp1*twohhwp1),# array for smoothed general weights
+                       double(twohp1),# array for location weights
+                       double(twohp1),# array for general weights
+                       double(twohhwp1),# array for smoothed location weights
+                       double(twohhwp1),# array for smoothed general weights
                        as.integer(ind),
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt")],
                      .Fortran("awsp2",
@@ -332,7 +332,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
     if (hakt>n^(1/d)/2) zobj$bi0 <- hincr^ddim*biold
     biold <- zobj$bi0
     dim(zobj$bi0)<-c(switch(d,n,dy),dp2)
-    tobj <- updtheta(zobj,tobj,cpar,aggkern)
+    tobj <- updtheta(d,zobj,tobj,cpar,aggkern)
     rm(zobj)
     gc()
     dim(tobj$theta) <- c(switch(d,n,dy),dp1)
@@ -340,6 +340,13 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
     dim(tobj$eta) <- switch(d,NULL,dy)
     if (graph) {
       if(d==1){
+      par(mfrow=c(1,2),mar=c(3,3,3,.25),mgp=c(2,1,0))
+      plot(y)
+      lines(tobj$theta[,1],col=2)
+      title("Observed data and estimate")
+      plot(tobj$bi[,1],type="l",ylim=c(0,max(tobj$bi[,1])))
+      lines(tobj$eta*max(tobj$bi[,1]),col=2)
+      title(paste("hakt=",signif(hakt,3),"bi and eta"))
       } else {
       par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
       image(y,xaxt="n",yaxt="n")
@@ -355,7 +362,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
     if (!is.null(u)) {
       th <- switch(d,tobj$theta[,1],tobj$theta[,,1])
        cat("bandwidth: ",signif(hakt,3),"eta==1",sum(tobj$eta==1),"   MSE: ",
-          signif(mean((th-u)^2),3),"   MAE: ",signif(mean(abs(th-u)),3)," mean(bi)=",signif(mean(tobj$bi[,,1]),3),"\n")
+          signif(mean((th-u)^2),3),"   MAE: ",signif(mean(abs(th-u)),3),"\n")
       mae<-c(mae,signif(mean(abs(th-u)),3))
     }
     if (demo) readline("Press return")
@@ -376,7 +383,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
     vartheta <- sigma2[1]*tobj$bi2/tobj$bi^2
   }
   z <- list(theta=tobj$theta,
-            ni=tobj$bi[,,1],
+            ni=switch(d,tobj$bi[,1],tobj$bi[,,1]),
 	    sigma2=sigma2,
             var=vartheta,
             hmax=hakt/hincr,
