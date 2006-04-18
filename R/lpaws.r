@@ -152,32 +152,45 @@ lkern<-switch(lkern,Triangle=2,Quadratic=3,Cubic=4,Uniform=1,
 	            Gaussian=5,2)
 skern <- switch(skern,"Exp"=1,"Triangle"=2,2)
 if(is.null(qlambda)) qlambda <-switch(d,
-                                     switch( degree+1,.96,.96,.96),
-                                     switch( degree+1,.96,.96,.96))
+                                     switch( degree+1,.96,.75,.92),
+                                     switch( degree+1,.96,.75,.92))
   if (qlambda>=1) {
     # thats stagewise aggregation with kernel specified by aggkern
     if(is.null(qtau)) qtau <- switch(d,
-                                     switch( degree+1,.6,.1,.1),
-                                     switch( degree+1,.6,.1,.1))
-    if (qtau==1) tau1 <- 1e50 else tau1 <- qchisq(qtau,dp2)
+                                     switch( degree+1,.6,.5,.8),
+                                     switch( degree+1,.6,.02,.00002))
+    if (qtau==1) {
+        tau1 <- 1e50 
+	hinit <- heta <- hmax
+    } else {
+	tau1 <- qchisq(qtau,dp2)
+	hinit <- heta <- degree+1.1
+    }
     if (aggkern=="Triangle") tau1 <- 2.5*tau1
     tau2 <- tau1/2
   } else {
     if (is.null(qtau)) qtau<-switch(d,
-                                    switch( degree+1,.95,.95,.99),
-                                    switch( degree+1,.95,.95,.99))
+                                    switch( degree+1,.95,.99,.99),
+                                    switch( degree+1,.95,.99,.99))
     if (qtau>=1) {
       tau1 <- 1e50 
+      heta <- 1e40
     } else {
       tau1 <- qchisq(qtau,dp2)
+      heta <- degree+3
     }
     if (aggkern=="Triangle") tau1 <- 2.5*tau1
     tau2 <- tau1/2
   }
   cat("tau1",tau1,"\n")
   if (qlambda<1) lambda <- qchisq(qlambda,dp1) else lambda <- 1e50
-  cat("Value of lambda",lambda,"\n")
-if(qtau<1) heta <- degree+3 else heta <- 1e40
+if(skern==2) {
+   lambda<-lambda*2
+   spmax <- 1
+   } else {
+   if(is.null(spmax)) spmax <- 5
+   }
+ cat("Value of lambda",lambda,"\n")
 if(is.null(hinit)) hinit <- 1 
 hincr <- 1.25^(1/d)
 if (is.null(hmax)) hmax <- switch(d,100,12)
@@ -246,6 +259,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
                        bi0=double(n*dp2),
                        ai=double(n*dp1),
                        as.integer(lkern),
+                       as.integer(skern),
                        as.double(spmin),
                        as.double(spmax),
                        double(twohp1),# array for location weights
@@ -270,6 +284,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
                        bi0=double(n*dp2),
                        ai=double(n*dp1),
                        as.integer(lkern),
+                       as.integer(skern),
                        as.double(spmin),
                        as.double(spmax),
                        double(twohp1*twohp1),# array for location weights
@@ -295,6 +310,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
                        bi0=double(n*dp2),
                        ai=double(n*dp1),
                        as.integer(lkern),
+                       as.integer(skern),
                        as.double(spmin),
                        as.double(spmax),
                        double(twohp1),# array for location weights
@@ -318,6 +334,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
                        bi0=double(n*dp2),
                        ai=double(n*dp1),
                        as.integer(lkern),
+                       as.integer(skern),
                        as.double(spmin),
                        as.double(spmax),
                        double(twohp1*twohp1),# array for location weights
@@ -349,13 +366,13 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
       title(paste("hakt=",signif(hakt,3),"bi and eta"))
       } else {
       par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
-      image(y,xaxt="n",yaxt="n")
+      image(y,xaxt="n",yaxt="n",col=gray((0:255)/255))
       title("Observed Image")
-      image(tobj$theta[,,1],xaxt="n",yaxt="n")
-      title(paste("Reconstruction  h=",signif(hakt,3)))
-      image(tobj$bi[,,1],xaxt="n",yaxt="n")
+      image(tobj$theta[,,1],xaxt="n",yaxt="n",col=gray((0:255)/255))
+      title(paste("Reconstruction  h=",signif(hakt,3)," Range ",signif(min(tobj$theta[,,1]),3),"-",signif(max(tobj$theta[,,1]),3)))
+      image(tobj$bi[,,1],xaxt="n",yaxt="n",col=gray((0:255)/255))
       title(paste("Sum of weights: min=",signif(min(tobj$bi[,,1]),3)," mean=",signif(mean(tobj$bi[,,1]),3)," max=",signif(max(tobj$bi[,,1]),3)))
-      image(tobj$eta,xaxt="n",yaxt="n")
+      image(tobj$eta,xaxt="n",yaxt="n",col=gray((0:255)/255))
       title(paste("eta   max=",signif(max(tobj$eta),3)))
     }
     }

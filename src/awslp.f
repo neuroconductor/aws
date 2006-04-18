@@ -4,7 +4,7 @@ C   Perform one iteration in local constant  aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine awsp1(y,fix,n,degr,hw,hakt,lambda,theta,bi,
-     1        bi2,bi0,ai,kern,spmin,spmax,lw,w,slw,sw,ind)
+     1        bi2,bi0,ai,kern,skern,spmin,spmax,lw,w,slw,sw,ind)
 C   
 C   y        observed values of regression function
 C   fix      logical TRUE fro points where we have nothing to do
@@ -29,20 +29,21 @@ C
       implicit logical (a-z)
       external kldistp,lkern
       real*8 kldistp,lkern
-      integer n,kern,degr,ind(1)
+      integer n,kern,skern,degr,ind(1)
       logical aws,fix(1)
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,spmin,
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1)
       integer ih,j1,k,iind,jind,dlw,clw,jw1,
      2        dp1,dp2,ihs,csw,dsw,l
       real*8 bii(7),sij,swj(7),swj2(7),swj0(7),swjy(7),z1,wj,
-     1       hakt2,thij(4),zz(7),lwj,yj,hs2,hs,z,cc
+     1       hakt2,thij(4),zz(7),lwj,yj,hs2,hs,z,cc,spf
 C   arrays with variable length are organized as 
 C   theta(n,dp1)
 C   bi(n,dp2)
 C   arrays of fixed length correspond to degr=2
 C   first set dimensions for arrays depending on degree
       aws=lambda.lt.1.d20
+      spf=spmax/(spmax-spmin)
       if(degr.eq.0) THEN
          dp1=1
 	 dp2=1
@@ -102,11 +103,21 @@ C
                   thij(k)=theta(iind+(k-1)*n)-thij(k)
                END DO
                sij=kldistp(dp1,thij,bii,ind)
-               IF (sij.le.spmax) THEN
-                  w(jw1)=wj*dexp(-sij)
-               ELSE
-	          w(jw1)=0.d0
-               END IF
+	       IF (skern.eq.2) THEN
+                  IF (sij.le.spmax) THEN
+		     w(jw1)=wj*(1.d0-sij)
+		  ELSE 
+		     w(jw1)=0.d0
+		  END IF
+	       ELSE
+		  IF (sij.le.spmin) THEN 
+		     w(jw1)=wj
+		  ELSE IF (sij.le.spmax) THEN
+		     w(jw1)=wj*dexp(-spf*(sij-spmin))
+		  ELSE
+		     w(jw1)=0.d0
+		  END IF
+	       END IF
 	    ELSE
                w(jw1)=wj
             END IF
@@ -174,7 +185,7 @@ C   Perform one iteration in local constant  aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine awsph1(y,si,fix,n,degr,hw,hakt,lambda,theta,bi,
-     1        bi2,bi0,ai,kern,spmin,spmax,lw,w,slw,sw,ind)
+     1        bi2,bi0,ai,kern,skern,spmin,spmax,lw,w,slw,sw,ind)
 C   
 C   y        observed values of regression function
 C   fix      logical TRUE fro points where we have nothing to do
@@ -199,20 +210,21 @@ C
       implicit logical (a-z)
       external kldistp,lkern
       real*8 kldistp,lkern
-      integer n,kern,degr,ind(1)
+      integer n,kern,skern,degr,ind(1)
       logical aws,fix(1)
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),si(1),spmin
       integer ih,j1,k,iind,jind,dlw,clw,jw1,
      2        dp1,dp2,ihs,csw,dsw,l
-      real*8 bii(7),sij,swj(7),swj2(7),swj0(7),swjy(7),z1,wj,
-     1       hakt2,thij(4),zz(7),lwj,yj,hs2,hs,z,cc
+      real*8 bii(5),sij,swj(5),swj2(5),swj0(5),swjy(5),z1,wj,
+     1       hakt2,thij(3),thi(3),zz(5),lwj,yj,hs2,hs,z,cc,spf
 C   arrays with variable length are organized as 
 C   theta(n,dp1)
 C   bi(n,dp2)
 C   arrays of fixed length correspond to degr=2
 C   first set dimensions for arrays depending on degree
       aws=lambda.lt.1.d20
+      spf=spmax/(spmax-spmin)
       if(degr.eq.0) THEN
          dp1=1
 	 dp2=1
@@ -244,6 +256,9 @@ C  now stochastic term
       DO iind=1,n
          IF (fix(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
+         DO k=1,dp1
+            thi(k)=theta(iind+(k-1)*n)
+	 END DO
          DO k=1,dp2
             bii(k)=bi(iind+(k-1)*n)/lambda
 	 END DO
@@ -269,14 +284,24 @@ C
 C           get difference of thetas
 C
                DO k=1,dp1
-                  thij(k)=theta(iind+(k-1)*n)-thij(k)
+                  thij(k)=thi(k)-thij(k)
                END DO
                sij=kldistp(dp1,thij,bii,ind)
-               IF (sij.le.spmax) THEN
-                  w(jw1)=wj*dexp(-sij)
-               ELSE
-	          w(jw1)=0.d0
-               END IF
+	       IF (skern.eq.2) THEN
+                  IF (sij.le.spmax) THEN
+		     w(jw1)=wj*(1.d0-sij)
+		  ELSE 
+		     w(jw1)=0.d0
+		  END IF
+	       ELSE
+		  IF (sij.le.spmin) THEN 
+		     w(jw1)=wj
+		  ELSE IF (sij.le.spmax) THEN
+		     w(jw1)=wj*dexp(-spf*(sij-spmin))
+		  ELSE
+		     w(jw1)=0.d0
+		  END IF
+	       END IF
 	    ELSE
                w(jw1)=wj     
             END IF
@@ -344,7 +369,7 @@ C   Perform one iteration in local constant  aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine awsp2(y,fix,n1,n2,degr,hw,hakt,lambda,theta,bi,
-     1              bi2,bi0,ai,kern,spmin,spmax,lw,w,slw,sw,ind)
+     1              bi2,bi0,ai,kern,skern,spmin,spmax,lw,w,slw,sw,ind)
 C   
 C   y        observed values of regression function
 C   fix      logical TRUE fro points where we have nothing to do
@@ -369,15 +394,15 @@ C
       implicit logical (a-z)
       external kldistp,lkern
       real*8 kldistp,lkern
-      integer n1,n2,kern,degr,ind(1)
+      integer n1,n2,kern,skern,degr,ind(1)
       logical aws,fix(1)
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,spmin,
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1)
       integer ih,ih1,i1,i2,j1,j2,k,n,
      1        iind,jind,jind2,jwind,jwind2,dlw,clw,jw1,jw2,
-     2        dp1,dp2,ihs,csw,dsw,l
+     2        dp1,dp2,ihs,csw,dsw,l,dlw2
       real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
-     1       hakt2,thij(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf
+     1       hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf
 C   arrays with variable length are organized as 
 C   theta(n1,n2,dp1)
 C   bi(n1,n2,dp2)
@@ -399,6 +424,7 @@ C   first set dimensions for arrays depending on degree
       ih=hakt
       dlw=2*ih+1
       clw=ih+1
+      dlw2=dlw*dlw
       hs=hakt+hw
       hs2=hs*hs
       ihs=hs
@@ -431,12 +457,12 @@ C    nothing to do, final estimate is already fixed by control
             DO k=1,dp2
                bii(k)=bi(iind+(k-1)*n)/lambda
 	    END DO
+            DO k=1,dp1
+               thi(k)=theta(iind+(k-1)*n)
+	    END DO
 C   scaling of sij outside the loop
-            DO jw2=1,dlw
-               jwind2=(jw2-1)*dlw
-	       DO jw1=1,dlw
-		  w(jw1+jwind2)=0.d0
-               END DO
+            DO jw1=1,dlw2
+	       w(jw1)=0.d0
 	    END DO
             DO jw2=1,dlw
 	       j2=jw2-clw+i2
@@ -480,15 +506,23 @@ C
 C           get difference of thetas
 C
 		     DO k=1,dp1
-                        thij(k)=theta(iind+(k-1)*n)-thij(k)
+                        thij(k)=thi(k)-thij(k)
                      END DO
                      sij=kldistp(dp1,thij,bii,ind)
-                     IF (sij.le.spmin) THEN 
-		        w(jwind)=wj
-		     ELSE IF (sij.le.spmax) THEN
-		        w(jwind)=wj*dexp(-spf*(sij-spmin))
+		     IF (skern.eq.2) THEN
+                        IF (sij.le.spmax) THEN
+		           w(jwind)=wj*(1.d0-sij)
+			ELSE 
+			   w(jwind)=0.d0
+		        END IF
 		     ELSE
-		        w(jwind)=0.d0
+		        IF (sij.le.spmin) THEN 
+		           w(jwind)=wj
+		        ELSE IF (sij.le.spmax) THEN
+		           w(jwind)=wj*dexp(-spf*(sij-spmin))
+		        ELSE
+		           w(jwind)=0.d0
+		        END IF
 		     END IF
 		  ELSE
 		     w(jwind)=wj		     
@@ -585,7 +619,7 @@ C   Perform one iteration in local constant  aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine awsph2(y,si,fix,n1,n2,degr,hw,hakt,lambda,theta,
-     1      bi,bi2,bi0,ai,kern,spmin,spmax,lw,w,slw,sw,ind)
+     1      bi,bi2,bi0,ai,kern,skern,spmin,spmax,lw,w,slw,sw,ind)
 C   
 C   y        observed values of regression function
 C   fix      logical TRUE fro points where we have nothing to do
@@ -610,15 +644,15 @@ C
       implicit logical (a-z)
       external kldistp,lkern
       real*8 kldistp,lkern
-      integer n1,n2,kern,degr,ind(1)
+      integer n1,n2,kern,skern,degr,ind(1)
       logical aws,fix(1)
       real*8 y(1),si(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,spmin,
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1)
       integer ih,ih1,i1,i2,j1,j2,k,n,
-     1        iind,jind,jind2,jwind,jwind2,dlw,clw,jw1,jw2,
+     1        iind,jind,jind2,jwind,jwind2,dlw,clw,dlw2,jw1,jw2,
      2        dp1,dp2,ihs,csw,dsw,l
       real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
-     1       hakt2,thij(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf
+     1       hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf
 C   arrays with variable length are organized as 
 C   theta(n1,n2,dp1)
 C   bi(n1,n2,dp2)
@@ -640,6 +674,7 @@ C   first set dimensions for arrays depending on degree
       ih=hakt
       dlw=2*ih+1
       clw=ih+1
+      dlw2=dlw*dlw
       hs=hakt+hw
       hs2=hs*hs
       ihs=hs
@@ -668,15 +703,15 @@ C  now stochastic term
             iind=i1+(i2-1)*n1
             IF (fix(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
+            DO k=1,dp1
+               thi(k)=theta(iind+(k-1)*n)
+	    END DO
             DO k=1,dp2
                bii(k)=bi(iind+(k-1)*n)/lambda
 	    END DO
 C   scaling of sij outside the loop
-            DO jw2=1,dlw
-               jwind2=(jw2-1)*dlw
-	       DO jw1=1,dlw
-		  w(jw1+jwind2)=0.d0
-               END DO
+            DO jw1=1,dlw2
+		  w(jw1)=0.d0
 	    END DO
             DO jw2=1,dlw
 	       j2=jw2-clw+i2
@@ -720,15 +755,23 @@ C
 C           get difference of thetas
 C
 		     DO k=1,dp1
-                        thij(k)=theta(iind+(k-1)*n)-thij(k)
+                        thij(k)=thi(k)-thij(k)
                      END DO
-                   sij=kldistp(dp1,thij,bii,ind)
-                     IF (sij.le.spmin) THEN 
-		        w(jwind)=wj
-		     ELSE IF (sij.le.spmax) THEN
-		        w(jwind)=wj*dexp(-spf*(sij-spmin))
+                     sij=kldistp(dp1,thij,bii,ind)
+		     IF (skern.eq.2) THEN
+                        IF (sij.le.spmax) THEN
+		           w(jwind)=wj*(1.d0-sij)
+			ELSE 
+			   w(jwind)=0.d0
+		        END IF
 		     ELSE
-		        w(jwind)=0.d0
+		        IF (sij.le.spmin) THEN 
+		           w(jwind)=wj
+		        ELSE IF (sij.le.spmax) THEN
+		           w(jwind)=wj*dexp(-spf*(sij-spmin))
+		        ELSE
+		           w(jwind)=0.d0
+		        END IF
 		     END IF
 		  ELSE
 		     w(jwind)=wj		     
