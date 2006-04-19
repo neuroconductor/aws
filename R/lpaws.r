@@ -137,6 +137,7 @@ mae <- NULL
 dy <- dim(y)
 if(is.null(dy)) d<-1 else d<-length(dy) 
 if(d>2) return(warning("Local polynomial PS is only implemented for 1 and 2 dimensional grids"))
+if(!(degree %in% 0:2)) return(warning("Local polynomial PS is only implemented for degrees up to 2"))
 if(d==1){
 dp1 <-  degree+1
 dp2 <- degree+dp1
@@ -152,31 +153,31 @@ lkern<-switch(lkern,Triangle=2,Quadratic=3,Cubic=4,Uniform=1,
 	            Gaussian=5,2)
 skern <- switch(skern,"Exp"=1,"Triangle"=2,2)
 if(is.null(qlambda)) qlambda <-switch(d,
-                                     switch( degree+1,.96,.75,.92),
+                                     switch( degree+1,.98,.92,.92),
                                      switch( degree+1,.96,.75,.92))
   if (qlambda>=1) {
     # thats stagewise aggregation with kernel specified by aggkern
     if(is.null(qtau)) qtau <- switch(d,
-                                     switch( degree+1,.6,.5,.8),
-                                     switch( degree+1,.6,.02,.00002))
+                                     switch( degree+1,.6,.8,.94),
+                                     switch( degree+1,.55,.45,.45))
     if (qtau==1) {
         tau1 <- 1e50 
 	hinit <- heta <- hmax
     } else {
-	tau1 <- qchisq(qtau,dp2)
+	tau1 <- qchisq(qtau,degree+1)
 	hinit <- heta <- degree+1.1
     }
     if (aggkern=="Triangle") tau1 <- 2.5*tau1
     tau2 <- tau1/2
   } else {
     if (is.null(qtau)) qtau<-switch(d,
-                                    switch( degree+1,.95,.99,.99),
-                                    switch( degree+1,.95,.99,.99))
+                                    switch( degree+1,.99,.9999999999,.99),
+                                    switch( degree+1,.99,.99,.99))
     if (qtau>=1) {
       tau1 <- 1e50 
       heta <- 1e40
     } else {
-      tau1 <- qchisq(qtau,dp2)
+      tau1 <- 10*qchisq(qtau,dp2)
       heta <- degree+3
     }
     if (aggkern=="Triangle") tau1 <- 2.5*tau1
@@ -194,7 +195,7 @@ if(skern==2) {
 if(is.null(hinit)) hinit <- 1 
 hincr <- 1.25^(1/d)
 if (is.null(hmax)) hmax <- switch(d,100,12)
-kstar <- switch(d,log(100*dp1),log(15*dp1))
+kstar <- switch(d,log(250*dp1),log(15*dp1))
 cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
     if(is.null(sigma2))    sigma2 <- IQRdiff(as.vector(y))^2
     if (length(sigma2)==1) {
@@ -226,7 +227,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
                          4, 7, 8,11,12,13,
                          5, 8, 9,12,13,14,
                          6, 9,10,13,14,15),6,6)[1:dp1,1:dp1])
-  hw<-degree+.1
+  hw<-switch(d,degree+1.1,degree+.1)
   steps <- as.integer(log(hmax/hinit)/log(hincr)+1)
   if (is.null(lseq)) lseq <- 1
   if (length(lseq)<steps) lseq <- c(lseq,rep(1,steps-length(lseq)))
@@ -346,7 +347,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
     }
     gc()
     dim(zobj$ai) <- c(switch(d,n,dy),dp1)
-    if (hakt>n^(1/d)/2) zobj$bi0 <- hincr^ddim*biold
+    if (hakt>n^(1/d)/2) zobj$bi0 <- hincr^d*biold
     biold <- zobj$bi0
     dim(zobj$bi0)<-c(switch(d,n,dy),dp2)
     tobj <- updtheta(d,zobj,tobj,cpar,aggkern)

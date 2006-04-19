@@ -35,8 +35,8 @@ C
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1)
       integer ih,j1,k,iind,jind,dlw,clw,jw1,
      2        dp1,dp2,ihs,csw,dsw,l
-      real*8 bii(7),sij,swj(7),swj2(7),swj0(7),swjy(7),z1,wj,
-     1       hakt2,thij(4),zz(7),lwj,yj,hs2,hs,z,cc,spf
+      real*8 bii(5),sij,swj(5),swj2(5),swj0(5),swjy(5),z1,wj,
+     1       hakt2,thij(3),thi(3),zz(5),lwj,yj,hs2,hs,z,cc,spf
 C   arrays with variable length are organized as 
 C   theta(n,dp1)
 C   bi(n,dp2)
@@ -75,6 +75,9 @@ C  now stochastic term
       DO iind=1,n
          IF (fix(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
+         DO k=1,dp1
+            thi(k)=theta(iind+(k-1)*n)
+	 END DO
          DO k=1,dp2
             bii(k)=bi(iind+(k-1)*n)/lambda
 	 END DO
@@ -100,7 +103,7 @@ C
 C           get difference of thetas
 C
                DO k=1,dp1
-                  thij(k)=theta(iind+(k-1)*n)-thij(k)
+                  thij(k)=thi(k)-thij(k)
                END DO
                sij=kldistp(dp1,thij,bii,ind)
 	       IF (skern.eq.2) THEN
@@ -176,6 +179,7 @@ C
             bi2(iind+(k-1)*n)=swj2(k)
             bi0(iind+(k-1)*n)=swj0(k)
          END DO
+         call rchkusr()
       END DO
       RETURN
       END
@@ -360,6 +364,7 @@ C
             bi2(iind+(k-1)*n)=swj2(k)
             bi0(iind+(k-1)*n)=swj0(k)
          END DO
+         call rchkusr()
       END DO
       RETURN
       END
@@ -618,8 +623,8 @@ C
 C   Perform one iteration in local constant  aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine awsph2(y,si,fix,n1,n2,degr,hw,hakt,lambda,theta,
-     1      bi,bi2,bi0,ai,kern,skern,spmin,spmax,lw,w,slw,sw,ind)
+      subroutine awsph2(y,si,fix,n1,n2,degr,hw,hakt,lambda,theta,bi,
+     1              bi2,bi0,ai,kern,skern,spmin,spmax,lw,w,slw,sw,ind)
 C   
 C   y        observed values of regression function
 C   fix      logical TRUE fro points where we have nothing to do
@@ -646,11 +651,11 @@ C
       real*8 kldistp,lkern
       integer n1,n2,kern,skern,degr,ind(1)
       logical aws,fix(1)
-      real*8 y(1),si(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,spmin,
-     1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1)
+      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,spmin,
+     1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),si(1)
       integer ih,ih1,i1,i2,j1,j2,k,n,
-     1        iind,jind,jind2,jwind,jwind2,dlw,clw,dlw2,jw1,jw2,
-     2        dp1,dp2,ihs,csw,dsw,l
+     1        iind,jind,jind2,jwind,jwind2,dlw,clw,jw1,jw2,
+     2        dp1,dp2,ihs,csw,dsw,l,dlw2
       real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
      1       hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf
 C   arrays with variable length are organized as 
@@ -694,24 +699,25 @@ C  first stochastic term
 	    lw(jind)=lkern(kern,(z1*z1+z2)/hakt2)
          END DO
       END DO
+      cc=0.0d0
       call smwghts2(lw,hakt,hw,slw,dlw,dsw,cc)
 C  now stochastic term
-      call rchkusr()
       zz(1)=1.d0
+      call rchkusr()
       DO i2=1,n2
          DO i1=1,n1
             iind=i1+(i2-1)*n1
             IF (fix(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
-            DO k=1,dp1
-               thi(k)=theta(iind+(k-1)*n)
-	    END DO
             DO k=1,dp2
                bii(k)=bi(iind+(k-1)*n)/lambda
 	    END DO
+            DO k=1,dp1
+               thi(k)=theta(iind+(k-1)*n)
+	    END DO
 C   scaling of sij outside the loop
             DO jw1=1,dlw2
-		  w(jw1)=0.d0
+	       w(jw1)=0.d0
 	    END DO
             DO jw2=1,dlw
 	       j2=jw2-clw+i2
@@ -745,11 +751,11 @@ C  get rest of directional differences
                      IF(dp1.gt.1) THEN
 			thij(1)=thij(1)-thij(2)*z1-thij(3)*z2
                         IF (dp1.gt.3) THEN
-                           thij(1)=thij(1)+thij(4)*zz(4)+
-     1                             thij(5)*zz(5)+thij(6)*zz(6)
+                           thij(1)=thij(1)+thij(4)*zz(4)+thij(5)*
+     1                             zz(5)+thij(6)*zz(6)
                            thij(2)=thij(2)-thij(5)*z2-2.d0*thij(4)*z1
                            thij(3)=thij(3)-thij(5)*z1-2.d0*thij(6)*z2
-		           END IF
+	                END IF
                      END IF
 C  
 C           get difference of thetas
@@ -781,10 +787,14 @@ C
 C
 C      Smooth the weights
 C   
+C      call dblepr("w",1,w,dlw*dlw)
             call testwgh2(w,dlw,dp1,hw,z)
 	    z=dmax1(.1d0,dmin1(z,hw))
 	    cc=dmin1(z-1.d0,1.d0/hakt2)
+C      call dblepr("cc",2,cc,1)
 	    call smwghts2(w,hakt,z,sw,dlw,dsw,cc)
+C      call dblepr("sw",2,sw,dsw*dsw)
+C      call intpr("dsw",3,dsw,1)
             DO k=1,dp2
                swj(k)=0.d0
                swj2(k)=0.d0
@@ -839,10 +849,10 @@ C
                      swj(k)=swj(k)+wj*zz(k)
                      swj2(k)=swj2(k)+wj*wj*zz(k)
 		  END DO
-		  wjy=wj*y(jind+(k-1)*n)
-		  DO l=1,dp1
-                        swjy(l)=swjy(l)+wjy*zz(l)
-		     END DO
+		  wjy=wj*y(jind)
+	          DO l=1,dp1
+                     swjy(l)=swjy(l)+wjy*zz(l)
+		  END DO
                END DO
             END DO
             DO k=1,dp1
