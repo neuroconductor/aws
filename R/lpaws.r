@@ -28,7 +28,7 @@
 #
 ##############################################################################
 lpaws <- function(y,degree=1,hmax=NULL,qlambda=NULL,qtau=NULL,lkern="Triangle",skern="Triangle",
-                  aggkern="Uniform",sigma2=NULL,hinit=NULL,
+                  aggkern="Uniform",sigma2=NULL,hinit=NULL,hw=NULL,
                   lseq=NULL,u=NULL,graph=FALSE,demo=FALSE,spmin=0,spmax=5)
 { 
 #
@@ -227,7 +227,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
                          4, 7, 8,11,12,13,
                          5, 8, 9,12,13,14,
                          6, 9,10,13,14,15),6,6)[1:dp1,1:dp1])
-  hw<-switch(d,degree+1.1,degree+.1)
+  if(is.null(hw)) hw<-switch(d,degree+1.1,degree+.1) else hw<-max(hw,degree+.1)
   steps <- as.integer(log(hmax/hinit)/log(hincr)+1)
   if (is.null(lseq)) lseq <- 1
   if (length(lseq)<steps) lseq <- c(lseq,rep(1,steps-length(lseq)))

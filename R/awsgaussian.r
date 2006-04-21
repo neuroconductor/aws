@@ -222,7 +222,7 @@ if(demo) readline("Press return")
 #
 #   Create new variance estimate
 #
-sigma2 <- awsgsigma2(y,hobj,tobj,varmodel,varprop)
+sigma2 <- awsgsigma2(y,hobj,tobj,varmodel,varprop,h0)
 hakt <- hakt*hincr
 x<-1.25^(k-1)
 scorrfactor<-x/(3^d*prod(scorr)*prod(h0)+x)
@@ -458,7 +458,7 @@ if(demo) readline("Press return")
 #
 #   Create new variance estimate
 #
-sigma2 <- awsgsigma2(y,hobj,tobj,varmodel,varprop)
+sigma2 <- awsgsigma2(y,hobj,tobj,varmodel,varprop,h0)
 hakt <- hakt*hincr
 x<-1.25^(k-1)
 scorrfactor<-x/(3^d*prod(scorr)*prod(h0)+x)
@@ -496,13 +496,11 @@ z
 #
 ############################################################################
 awsgfamily <- function(y,scorr,lambda,cpar){
-h0 <- 0
 d <- cpar$d
+h0 <- numeric(d)
 if(scorr[1]>0) {
-   h0<-numeric(length(scorr))
-   for(i in 1:length(h0))
-   h0[i]<-geth.gauss(scorr[i])
-   if(length(h0)<d) h0<-rep(h0[1],d)
+   if(length(scorr)<d) scorr <- c(scorr,rep(0,d))[1:d]
+   for(i in 1:d) h0[i]<-geth.gauss(scorr[i])
    cat("Corresponding bandwiths for specified correlation:",h0,"\n")
 }
         sigma2 <- IQRdiff(as.vector(y))^2
@@ -521,10 +519,13 @@ list(cpar=cpar,lambda=lambda,y=y,sigma2=sigma2,h0=h0)
 #  estimate inverse of variances
 #
 ############################################################################
-awsgsigma2 <- function(y,hobj,tobj,varmodel,varprop){
+awsgsigma2 <- function(y,hobj,tobj,varmodel,varprop,h0){
 if(is.null(dy <- dim(y))) dy <- length(y)
+if(is.null(dy)) d <- 1 else d <- length(dy)
+corfactor <- 1
+for( i in 1:d ) corfactor <- corfactor*sum(dnorm((-5:5),0,h0[i]*0.59+1e-10))/dnorm(0,0,h0[i]*0.59+1e-10)
 ind <- tobj$gi>1
-residsq <- ((y-tobj$theta)[ind]*tobj$gi[ind]/(tobj$gi[ind]-1))^2
+residsq <- ((y-tobj$theta)[ind]*tobj$gi[ind]/(tobj$gi[ind]-pmin(.95*tobj$gi[ind],corfactor)))^2
 theta <- tobj$theta[ind]
 if(varmodel=="Quadratic") theta2 <- theta^2
 wght <- tobj$gi[ind]-1

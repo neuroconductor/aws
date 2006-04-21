@@ -135,7 +135,7 @@ C
          END DO
 	 z=(2.d0-z/2.d0)*hw-1+z/2.d0
 	 z=dmax1(.1d0,dmin1(z,hw))
-	 cc=dmin1(z-1.d0,1.d0/hakt2)
+	 cc=dmin1(z-1.d0,1.d0/hakt)
          call smwghts1(w,hakt,z,sw,dlw,dsw,cc)
          DO k=1,dp2
             swj(k)=0.d0
@@ -320,7 +320,7 @@ C
          END DO
 	 z=(2.d0-z/2.d0)*hw-1+z/2.d0
 	 z=dmax1(.1d0,dmin1(z,hw))
-	 cc=dmin1(z-1.d0,1.d0/hakt2)
+	 cc=dmin1(z-1.d0,1.d0/hakt)
          call smwghts1(w,hakt,z,sw,dlw,dsw,cc)
          DO k=1,dp2
             swj(k)=0.d0
