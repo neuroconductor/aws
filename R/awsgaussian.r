@@ -258,7 +258,8 @@ z
 aws.segment <- function(y,hmax=NULL,hpre=NULL,qlambda=NULL,varmodel="Constant",
                 varprop=.1,scorr=0,wghts=NULL,graph=FALSE,demo=FALSE,
 		lkern="Triangle",skern="Triangle",aggkern="Uniform",
-		spmin=0,spmax=5,lseq=NULL,u=NULL,nlevels=2,levels=NULL,lwghts=NULL,rhoseq=NULL,rho=.95)
+		spmin=0,spmax=5,lseq=NULL,u=NULL,nlevels=2,swghts=NULL,rhoseq=NULL,
+		rho=.95)
 {
 #
 #    first check arguments and initialize
@@ -273,8 +274,7 @@ if(!(varmodel %in% c("Constant","Linear","Quadratic"))) stop("Model for variance
 lkern<-switch(lkern,Triangle=2,Quadratic=3,Cubic=4,Uniform=1,
 	            Gaussian=5,2)
 skern <- switch(skern,"Exp"=1,"Triangle"=2,2)
-if(is.null(levels)) levels <- as.vector(quantile(y,(1:nlevels)/(nlevels+1)))
-if(is.null(lwghts)) lwghts <- rep(1,nlevels)
+if(is.null(swghts)) swghts<-rep(1/nlevels,nlevels)
 cpar<-setawsdefaults(dy,mean(y),"Gaussian",skern,aggkern,qlambda,1,lseq,hmax,1,spmax)
 lambda <- cpar$lambda
 hmax <- cpar$hmax
@@ -396,7 +396,14 @@ tobj$gi <- zobj$gi
 dim(tobj$theta)<-dy
 dim(tobj$bi)<-dy
 dim(tobj$eta)<-dy
-tobj <- awssegment(tobj,levels,rhoseq[k],sigma2,lwghts)
+#
+#   Create new variance estimate
+#
+sigma2 <- awsgsigma2(y,hobj,tobj,varmodel,varprop,h0)
+#
+#   Segmentation
+#
+tobj <- awssegment(tobj,nlevels,swghts,rhoseq[k])
 levels <- tobj$levels
 if(graph){
 #
@@ -455,10 +462,6 @@ if(demo) readline("Press return")
 #
 #   Prepare for next iteration
 #
-#
-#   Create new variance estimate
-#
-sigma2 <- awsgsigma2(y,hobj,tobj,varmodel,varprop,h0)
 hakt <- hakt*hincr
 x<-1.25^(k-1)
 scorrfactor<-x/(3^d*prod(scorr)*prod(h0)+x)
@@ -552,22 +555,17 @@ cat("Estimated mean variance",signif(mean(sigma2),3)," Variance parameters:",sig
 #    segmentation
 #
 ############################################################################
-awssegment <- function(tobj,levels,rho,sigma2,lwghts)
+awssegment <- function(tobj,nlevels,swghts,rho)
 {
 theta <- tobj$theta
 dy <- dim(theta)
 dim(theta) <- NULL
-n <- length(theta)
-nlevels <- length(levels)
-dist <- matrix(0,nlevels,n)
-ind <- rep(0,n)
-distmin <- rep(1e20,n)
+squant <- cumsum(c(0,swghts))/sum(swghts)
+cuts <- as.vector(quantile(theta,squant))
+ind<-tapply(theta,cut(theta,cuts))
+ind[is.na(ind)] <- 1 # there seems to be a problem with the minimum ... .
+levels <- numeric(nlevels)
 for ( i in 1:nlevels) {
-   dist[i,] <- (levels[i]-theta)^2/as.vector(sigma2)*lwghts[i]
-   distmin <- pmin(dist[i,],distmin)
-   }
-for ( i in 1:nlevels) {
-ind[ind==0& dist[i,] == distmin] <- i
 if(any(ind==i)) {
    levels[i] <- mean(theta[ind==i])
    theta[ind==i] <- rho * levels[i] + (1-rho) * theta[ind==i]
@@ -576,7 +574,7 @@ if(any(ind==i)) {
 dim(theta) <- dim(ind) <- dy
 tobj$theta <- theta
 tobj$ind <- ind
-tobj$levels <- sort(levels)
+tobj$levels <- levels
 tobj
 }
 ###########################################################################

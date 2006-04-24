@@ -572,7 +572,7 @@ if(family=="Gaussian") {
     cpar$tau2 <- cpar$tau2*sigma2*2 
     } else {
 #   heteroskedastic Gaussian case
-    if(length(sigma2)!=n) 
+    if(length(sigma2)!=length(y)) 
 	stop("sigma2 does not have length 1 or same length as y")
     lambda <- lambda*2 
     cpar$tau1 <- cpar$tau1*2 
