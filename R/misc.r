@@ -1,3 +1,90 @@
+###########################################################################
+#
+#   nonadaptive 1D -- 3D smoothing on a grid
+#
+###########################################################################
+gkernsm<-function (y, h = 1)
+{
+    extend.y <- function(y,h,d){
+       if(d==1) dim(y)<-c(length(y),1)
+          n <- dim(y)[1]
+	  h <- min(h,n%/%2)
+          nn <- nextn(n+6*h)
+	  yy <- matrix(0,dim(y)[2],nn)
+	  ih0 <- (nn-n)%/%2
+	  ih1 <- nn-ih0-n
+	  ind <- (ih0+1):(ih0+n)
+	  yy[,ind] <- t(y)
+	  yy[,1:ih0] <- t(y[ih0:1,])
+	  yy[,(nn-ih1+1):nn] <- t(y[n:(n-ih1+1),])
+list(yy=t(yy),ind=ind)
+}	
+    grid <- function(d) {
+        d0 <- d%/%2 + 1
+        gd <- seq(0, 1, length = d0)
+        if (2 * d0 == d + 1)
+            gd <- c(gd, -gd[d0:2],)
+        else gd <- c(gd, -gd[(d0 - 1):2])
+        gd
+    }
+    dy <- dim(y)
+    if (is.null(dy))
+    dy <- length(y)
+    d <- length(dy)
+    if(length(h)==1) h <- rep(h,d)
+    if(length(h) != d) stop("Incompatible length of bandwidth vector h")
+    if(d==1){
+       z<-extend.y(y,h[1],1)
+       yy <- z$yy
+       dyy <- length(yy)
+       kern <- dnorm(grid(dyy), 0, 2 * h[1]/dyy)
+       bi <- sum(kern)
+       yhat<-Re(fft(fft(yy) * fft(kern),inv=TRUE))[z$ind]/dyy/bi
+       bi <- bi/dnorm(1,0,2 * h[1]/dyy)
+    }
+    if(d==2){
+       z<-extend.y(y,h[1],2)
+       yy <- z$yy
+       dyy1 <- dim(yy)[1]
+       kern1 <- dnorm(grid(dyy1), 0, 2 * h[1]/dyy1)
+       yhat<-t(Re(mvfft(mvfft(yy) * fft(kern1),inv=TRUE))[z$ind,]/dyy1/sum(kern1))
+       z<-extend.y(yhat,h[2],2)
+       yy <- z$yy
+       dyy2 <- dim(yy)[1]
+       kern2 <- dnorm(grid(dyy2), 0, 2 * h[2]/dyy2)
+       yhat<-t(Re(mvfft(mvfft(yy) * fft(kern2),inv=TRUE))[z$ind,]/dyy2/sum(kern2))
+       bi <- sum(outer(kern1,kern2))/dnorm(1,0,2 * h[1]/dyy1)/dnorm(1,0,2 * h[2]/dyy2)
+    }
+    if(d==3){
+      dim(y) <- c(dy[1],dy[2]*dy[3])
+      z<-extend.y(y,h[1],2)
+      yy <- z$yy
+      dyy1 <- dim(yy)[1]
+      kern1 <- dnorm(grid(dyy1), 0, 2 * h[1]/dyy1)
+      yhat<-Re(mvfft(mvfft(yy) * fft(kern1),inv=TRUE))[z$ind,]/dyy1/sum(kern1)
+      dim(yhat) <- dy
+      yhat <- aperm(yhat,c(2,1,3))
+      dim(yhat) <- c(dy[2],dy[1]*dy[3])
+      z<-extend.y(yhat,h[2],2)
+      yy <- z$yy
+      dyy2 <- dim(yy)[1]
+      kern2 <- dnorm(grid(dyy2), 0, 2 * h[2]/dyy2)
+      yhat<-Re(mvfft(mvfft(yy) * fft(kern2),inv=TRUE))[z$ind,]/dyy2/sum(kern2)
+      dim(yhat) <- c(dy[2],dy[1],dy[3])
+      yhat <- aperm(yhat,c(3,2,1))
+      dim(yhat) <- c(dy[3],dy[1]*dy[2])
+      z<-extend.y(yhat,h[3],2)
+      yy <- z$yy
+      dyy3 <- dim(yy)[1]
+      kern3 <- dnorm(grid(dyy3), 0, 2 * h[3]/dyy3)
+      yhat<-Re(mvfft(mvfft(yy) * fft(kern3),inv=TRUE))[z$ind,]/dyy3/sum(kern3)
+      dim(yhat) <- c(dy[3],dy[1],dy[2])
+      yhat <- aperm(yhat,c(2,3,1))
+      bi <- sum(outer(outer(kern1,kern2),kern3))/dnorm(1,0,2 * h[1]/dyy1)/dnorm(1,0,2 * h[2]/dyy2)/dnorm(1,0,2 * h[3]/dyy3)
+      }
+      bi <- array(bi,dim(y))
+      list(theta=yhat,bi=bi)
+}
 Varcor<-function(lkern,h,d=1){
 #
 #   Calculates a correction for the variance estimate obtained by (IQRdiff(y)/1.908)^2

@@ -1,0 +1,204 @@
+#################################################################################
+#
+#      User level functions
+#
+#################################################################################
+Function                     in            calls FORTRAN                in
+==================================================================================
+AWS lokal constant likelihood model (includes heteroskedastic case)  25.4.06
+
+aws                        aws.r             caws                    caws.f
+                                             chaws                   caws.f
+==================================================================================
+AWS lokal constant Gaussian model including variance estimation (as f(mean))    25.4.06
+
+aws.gaussian               awsgaussian.r     caws                    caws.f
+                                             cgaws                   caws.f
+==================================================================================
+AWS lokal constant Gaussian model/Segmentation including variance estimation (as f(mean))  25.4.06
+
+aws.segment                awsgaussian.r     caws                    caws.f
+                                             cgaws                   caws.f
+==================================================================================
+AWS lokal constant Gaussian model including variance estimation (as f(mean))
+Irregular design (1D, 2D)   25.4.06
+
+aws.irreg                  awsirregular.r    mask                    cawsmask.f       
+                                             cawsmask                cawsmask.f
+					     cgawsmas                cawsmask.f
+==================================================================================
+Nonadaptive Gaussian filter on a 1D, 2D or 3D grid using fft and mirroring   25.4.06
+
+gkernsm                    misc.r
+==================================================================================
+AWS for local polynomial Gaussian models (1D or 2D grid, up to degree 2)  25.4.06
+
+lpaws                      lpaws.r           mpaws2                  awslp.f
+                                             awsph1                  awslp.f
+					     awsph2                  awslp.f
+                                             awsp1                   awslp.f
+					     awsp2                   awslp.f
+					     
+###############################################################################
+###
+###     Auxiliary functions
+###
+###############################################################################	Function              used in         stored in       calls FORTRAN          in
+==================================================================================
+setawsdefaults        aws.r            aws.r      
+                      awsgaussian.r
+		      awsirregular.r
+IQRdiff               aws.r            aws.r
+                      lpaws.r
+		      glmaws.r
+awsfamily             aws.r            aws.r  
+KLdist                aws.r            aws.r  
+updtheta              aws.r            aws.r  
+                      awsgaussian.r
+		      awsirregular.r
+Spatialvar.gauss      aws.r            misc.r
+                      awsgaussian.r
+awstestprop           aws.r            aws.r           chaws
+                                                       caws
+regularize            aws.r            aws.r  
+
+awsgfamily            awsgaussian.r    awsgaussian.r
+awsgsigma2            awsgaussian.r    awsgaussian.r
+awssegment            awsgaussian.r    awsgaussian.r
+
+binning               awsirregular.r   from package sm   
+awsisigma2            awsirregular.r   awsirregular.r
+
+###############################################################################
+###
+###     Locally defined functions
+###
+###############################################################################	
+Function              defined in                calls FORTRAN          in
+==================================================================================
+Pardist               local in lpaws
+gettheta              local in lpaws            mpaws2               awslp.f
+updtheta              local in lpaws            
+
+###############################################################################
+###
+###    Experimental stuff
+###
+###############################################################################
+Function                  in               calls FORTRAN                in
+==================================================================================
+glmaws                 glmaws.r              poisdes                 awsglm.f
+                                             lpawsunw                awsglm.f
+					     lpawsuni                awsglm.f
+					     bibi2ibi
+					     confuni
+					     cpawsbi
+
+###############################################################################
+###
+###     Locally defined functions
+###
+###############################################################################	
+Function              defined in                calls FORTRAN          in
+==================================================================================
+Pardist               local in glmaws
+updtheta              local in glmaws            
+
+
+
+
+
+
+
+
+vaws                       vaws.r            vaws                    caws.f
+                                             vhaws                   caws.f
+#
+# old situation
+#
+Function                     in            calls FORTRAN                in
+
+AWS lokal constant likelihood model       (obsolete)
+
+caws                       caws.r            cawsuni                 cawsold.f
+                                             cawsbi                  cawsold.f
+					     cawstri                 cawsold.f
+					     cawsmnn                 caws.f
+					     cawsmul                 caws.f
+
+AWS lokal constant heteroskedastic regression model      (obsolete)
+
+chaws                      chaws.r           chawsuni                cawsold.f
+                                             chawsbi                 cawsold.f
+					     chawstri                cawsold.f
+					     chawsmnn                caws.f
+					     chawsmul                caws.f
+					     
+AWS lokal constant Gaussian model (unknown mean and Variance)
+
+cnorm                      cnorm.r           cawsnuni                cnorm.f
+                                             cawsnbi                 cnorm.f
+					     cawsntri                cnorm.f
+					     
+AWS lokal polynomial homoskedastic regression model
+
+cpaws                      cpaws.r           mpawsuni                caws.f
+                                             mpawsbi                 caws.f
+					     mpawsmul                caws.f
+                                             cpawsuni                caws.f
+					     cpawsbi                 caws.f
+					     cpawsmnn                caws.f
+					     cpawsmul                caws.f
+
+AWS lokal polynomial heteroskedastic regression model  (not yet complete)
+
+cphaws                     cphaws.r          mpawsuni                caws.f
+                                             mpawsbi                 caws.f
+					     mpawsmul                caws.f
+					     cphawsun                caws.f
+					     cphawsbi                caws.f
+					     ipawsmnn             not realized
+					     cpawsmnn             not appropriate   
+					     ipawsmul             not realized
+					     cpawsmul             not appropriate   
+
+AWS lokal polynomial Gaussian model (unknown mean and Variance)  (not yet complete)
+
+cpnorm                     cpnorm.r          mpawsuni                caws.f
+                                             mpawsbi                 caws.f
+					     mpawsmul                caws.f
+					     cpawsnun                cnorm.f
+					     cpawsnbi                cnorm.f
+					     
+AWS lokal constant multivariate Gaussian model (unknown mean and Variance)
+
+cvnorm                     cnorm.r           klmnormn                cvnorm.f
+                                             cvawsnun                cvnorm.f
+					     
+AWS lokal constant multivariate Volatility model (Gaussian model with 0 mean and unknown  Variance)
+
+cvvola                     cvvola.r          klvolan                 cvvola.f
+                                             cvawsvol                cvvola.f
+					     
+Interface for Propagation - Separation approach (AWS)
+
+psaws                      psaws.r
+
+Interface for Stagewise Aggregation (SAGG)
+
+sagg                       sagg.r
+
+AWS multivariate  lokal constant heteroskedastic regression model
+
+vaws                       vaws.r            vhawsuni                vaws.f
+                                             vhawsbi                 vaws.f
+					     vhawstri                vaws.f
+					     
+AWS multivariate  lokal polynomial heteroskedastic regression model
+
+vpaws                      vpaws.r           vmpawsun                vaws.f
+                                             vmpawsbi                vaws.f
+					     vphawsun                vaws.f
+					     vphawsbi                vaws.f
+					     
+

@@ -1,2 +1,2 @@
 useDynLib(aws)
-export(aws,aws.gaussian,awsgsigma2,aws.segment,aws.irreg,gkernsm,lpaws,awsgfamily)
+export(aws,aws.gaussian,aws.segment,aws.irreg,gkernsm,lpaws,glmaws)
