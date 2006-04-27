@@ -358,7 +358,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
     dim(tobj$eta) <- switch(d,NULL,dy)
     if (graph) {
       if(d==1){
-      par(mfrow=c(1,2),mar=c(3,3,3,.25),mgp=c(2,1,0))
+      oldpar<-par(mfrow=c(1,2),mar=c(3,3,3,.25),mgp=c(2,1,0))
       plot(y)
       lines(tobj$theta[,1],col=2)
       title("Observed data and estimate")
@@ -366,7 +366,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
       lines(tobj$eta*max(tobj$bi[,1]),col=2)
       title(paste("hakt=",signif(hakt,3),"bi and eta"))
       } else {
-      par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
+      oldpar<-par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
       image(y,xaxt="n",yaxt="n",col=gray((0:255)/255))
       title("Observed Image")
       image(tobj$theta[,,1],xaxt="n",yaxt="n",col=gray((0:255)/255))
@@ -376,6 +376,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
       image(tobj$eta,xaxt="n",yaxt="n",col=gray((0:255)/255))
       title(paste("eta   max=",signif(max(tobj$eta),3)))
     }
+    par(oldpar)
     }
     if (!is.null(u)) {
       th <- switch(d,tobj$theta[,1],tobj$theta[,,1])

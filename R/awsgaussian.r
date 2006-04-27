@@ -169,7 +169,7 @@ if(graph){
 #     Display intermediate results if graph == TRUE
 #
 if(d==1){ 
-par(mfrow=c(1,2),mar=c(3,3,3,.2),mgp=c(2,1,0))
+oldpar<-par(mfrow=c(1,2),mar=c(3,3,3,.2),mgp=c(2,1,0))
 plot(y,ylim=range(y,tobj$theta),col=3)
 if(!is.null(u)) lines(u,col=2)
 lines(tobj$theta,lwd=2)
@@ -179,7 +179,7 @@ lines(tobj$eta*max(tobj$bi),col=2)
 title("Sum of weights and eta")
 } 
 if(d==2){ 
-par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
+oldpar<-par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
 image(y,col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Observed Image  min=",signif(min(y),3)," max=",signif(max(y),3)))
 zlim <- quantile(tobj$theta,c(0.001,0.999))
@@ -191,7 +191,7 @@ image(tobj$eta,col=gray((0:255)/255),xaxt="n",yaxt="n",zlim=c(0,1))
 title("eta")
 }
 if(d==3){ 
-par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
+oldpar<-par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
 image(y[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Observed Image  min=",signif(min(y),3)," max=",signif(max(y),3)))
 zlim <- quantile(tobj$theta,c(0.001,0.999))
@@ -202,6 +202,7 @@ title(paste("Sum of weights: min=",signif(min(tobj$bi),3)," mean=",signif(mean(t
 image(tobj$eta[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n",zlim=c(0,1))
 title("eta")
 } 
+par(oldpar)
 }
 #
 #    Calculate MAE and MSE if true parameters are given in u 
@@ -411,7 +412,7 @@ if(graph){
 #     Display intermediate results if graph == TRUE
 #
 if(d==1){ 
-par(mfrow=c(1,2),mar=c(3,3,3,.2),mgp=c(2,1,0))
+oldpar<-par(mfrow=c(1,2),mar=c(3,3,3,.2),mgp=c(2,1,0))
 plot(y,ylim=range(y,tobj$theta),col=3)
 if(!is.null(u)) lines(u,col=2)
 lines(tobj$theta,lwd=2)
@@ -421,7 +422,7 @@ lines(tobj$ind*max(tobj$bi)/nlevels,col=2)
 title("Sum of weights and segmentation")
 } 
 if(d==2){ 
-par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
+oldpar<-par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
 image(y,col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Observed Image  min=",signif(min(y),3)," max=",signif(max(y),3)))
 zlim <- quantile(tobj$theta,c(0.001,0.999))
@@ -433,7 +434,7 @@ image(tobj$ind,col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Segmentation (rho=",signif(rhoseq[k],3),")"))
 }
 if(d==3){ 
-par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
+oldpar<-par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
 image(y[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Observed Image  min=",signif(min(y),3)," max=",signif(max(y),3)))
 zlim <- quantile(tobj$theta,c(0.001,0.999))
@@ -444,6 +445,7 @@ title(paste("Sum of weights: min=",signif(min(tobj$bi),3)," mean=",signif(mean(t
 image(tobj$ind[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Segmentation (rho=",signif(rhoseq[k],3),")"))
 } 
+par(oldpar)
 }
 #
 #    Calculate MAE and MSE if true parameters are given in u 

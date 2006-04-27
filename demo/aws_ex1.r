@@ -9,7 +9,7 @@ f1 <- function(x){
      Kern <- function(x) (1-sign(x))/2
      apply(Kern(outer(xj,x,"-"))*hj,2,sum)
      }
-f2 <- function(x) 10*sin(2*pi*1.2/(x+.2))
+f2 <- function(x) 25*sin(2*pi*1.2/(x+.2))
 
 x <- seq(0,1,length=2048)
 example <- as.integer(readline("Select example: 1 for Blocks data (default),  2 for Smooth example"))

@@ -153,7 +153,7 @@ if(graph){
 #     Display intermediate results if graph == TRUE
 #
 if(d==1){ 
-par(mfrow=c(1,2),mar=c(3,3,3,.2),mgp=c(2,1,0))
+oldpar<-par(mfrow=c(1,2),mar=c(3,3,3,.2),mgp=c(2,1,0))
 plot((1:nn)[ni>0],yy[ni>0],ylim=range(yy,tobj$theta[mask]),col=3)
 points((1:nn)[mask&ni==0],yy[mask&ni==0],col=4)
 lines((1:nn)[mask],tobj$theta[mask],lwd=2)
@@ -164,7 +164,7 @@ points((1:nn)[mask],rep(0,sum(mask)),col=4)
 title("Sum of weights, ni and mask")
 } 
 if(d==2){ 
-par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
+oldpar<-par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
 image(yy,col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Observed Image  min=",signif(min(yy[mask]),3)," max=",signif(max(yy[mask]),3)))
 zlim <- quantile(tobj$theta,c(0.001,0.999))
@@ -175,6 +175,7 @@ title(paste("Sum of weights: min=",signif(min(tobj$bi[mask]),3)," mean=",signif(
 image(mask,col=gray((0:255)/255),xaxt="n",yaxt="n")
 title("mask")
 }
+par(oldpar)
 }
 #
 #   Prepare for next iteration
