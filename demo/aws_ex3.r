@@ -33,6 +33,8 @@ title("Noisy image")
 hmax <- readline("Maximal bandwidth:\n Press 'Enter' for hmax=10, otherwise provide value of hmax:")
 if(is.na(as.numeric(hmax))) hmax <- 10 else hmax <- as.numeric(hmax)
 if(hmax <= 1) hmax <- 10
+risk <- readline("Report risks (N/Y):")
+if(risk %in% c("y","Y")) u <-w0 else u <- NULL
 cat("Run aws \n")
-yhat <- aws(y,hmax=hmax,graph=TRUE)
-rm(fw0,w0,y,sigma,hmax,yhat)
+yhat <- aws(y,hmax=hmax,graph=TRUE,u=u,qtau=1)
+rm(fw0,w0,y,sigma,hmax,yhat,u,risk)

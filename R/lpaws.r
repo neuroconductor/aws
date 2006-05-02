@@ -191,13 +191,16 @@ if(skern==2) {
    } else {
    if(is.null(spmax)) spmax <- 5
    }
- cat("Value of lambda",lambda,"\n")
+cat("Value of lambda",lambda,"\n")
 if(is.null(hinit)) hinit <- 1 
 hincr <- 1.25^(1/d)
 if (is.null(hmax)) hmax <- switch(d,100,12)
 kstar <- switch(d,log(250*dp1),log(15*dp1))
 cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
-    if(is.null(sigma2))    sigma2 <- IQRdiff(as.vector(y))^2
+    if(is.null(sigma2)) {
+       sigma2 <- IQRdiff(as.vector(y))^2
+       cat("Estimated error variance",signif(sigma2,3),"\n")
+       }
     if (length(sigma2)==1) {
       #   homoskedastic Gaussian case
       lambda <- lambda*sigma2*2 

@@ -28,7 +28,7 @@
 #     default parameters:  see function setawsdefaults
 #       
 aws.gaussian <- function(y,hmax=NULL,hpre=NULL,qlambda=NULL,qtau=NULL,varmodel="Constant",
-                varprop=.1,scorr=0,wghts=NULL,graph=FALSE,demo=FALSE,
+                varpar=NULL,varprop=.1,scorr=0,wghts=NULL,graph=FALSE,demo=FALSE,
 		lkern="Triangle",skern="Triangle",aggkern="Uniform",
 		spmin=0,spmax=5,lseq=NULL,u=NULL)
 {
@@ -223,7 +223,10 @@ if(demo) readline("Press return")
 #
 #   Create new variance estimate
 #
-sigma2 <- awsgsigma2(y,hobj,tobj,varmodel,varprop,h0)
+vobj <- awsgsigma2(y,hobj,tobj,varmodel,varpar,varprop,h0)
+sigma2 <- vobj$sigma2inv
+coef <- vobj$coef
+rm(vobj)
 hakt <- hakt*hincr
 x<-1.25^(k-1)
 scorrfactor<-x/(3^d*prod(scorr)*prod(h0)+x)
@@ -257,7 +260,7 @@ z
 #
 ###############################################################################################
 aws.segment <- function(y,hmax=NULL,hpre=NULL,qlambda=NULL,sigma2=NULL,varmodel="Constant",
-                varprop=.1,scorr=0,wghts=NULL,graph=FALSE,demo=FALSE,
+                varpar=NULL,varprop=.1,scorr=0,wghts=NULL,graph=FALSE,demo=FALSE,
 		lkern="Triangle",skern="Triangle",aggkern="Uniform",
 		spmin=0,spmax=5,lseq=NULL,u=NULL,nlevels=2,swghts=NULL,rhoseq=NULL,
 		rho=.95)
@@ -401,7 +404,12 @@ dim(tobj$eta)<-dy
 #
 #   Create new variance estimate
 #
-if(varmodel!="None") sigma2 <- awsgsigma2(y,hobj,tobj,varmodel,varprop,h0)
+if(varmodel!="None") {
+vobj <- awsgsigma2(y,hobj,tobj,varmodel,varpar,varprop,h0)
+sigma2 <- vobj$sigma2inv
+coef <- vobj$coef
+rm(vobj)
+}
 #
 #   Segmentation
 #
@@ -516,8 +524,9 @@ list(cpar=cpar,lambda=lambda,y=y,sigma2=sigma2,h0=h0)
 #  estimate inverse of variances
 #
 ############################################################################
-awsgsigma2 <- function(y,hobj,tobj,varmodel,varprop,h0){
+awsgsigma2 <- function(y,hobj,tobj,varmodel,coef,varprop,h0){
 if(is.null(dy <- dim(y))) dy <- length(y)
+if(is.null(coef)){
 if(is.null(dy)) d <- 1 else d <- length(dy)
 corfactor <- 1
 for( i in 1:d ) corfactor <- corfactor*sum(dnorm((-5:5),0,h0[i]*0.59+1e-10))/dnorm(0,0,h0[i]*0.59+1e-10)
@@ -530,6 +539,9 @@ coef <- switch(varmodel,
                Constant=coefficients(lm(residsq~1,weights=wght^2)),
                Linear=coefficients(lm(residsq~theta,weights=wght^2)),
 	       Quadratic=coefficients(lm(residsq~theta+theta2,weights=wght^2)))
+} else {
+if(length(coef)<switch(varmodel,Constant=1,Linear=2,Quadratic=3)) stop("To few coefficiants for specified variance model")
+} 
 gamma <- pmin(tobj$gi/hobj$bi,1)
 theta <- gamma*tobj$theta+(1-gamma)*hobj$theta
 #
@@ -539,10 +551,11 @@ sigma2 <- switch(varmodel,
                Constant=array(coef,dy),
                Linear=coef[1]+coef[2]*theta,
 	       Quadratic=coef[1]+coef[2]*theta+coef[3]*theta^2)
-varquantile <- quantile(residsq,varprop)
+#varquantile <- quantile(residsq,varprop)
+varquantile <- varprop*mean(sigma2)
 sigma2 <- pmax(sigma2,varquantile)
 cat("Estimated mean variance",signif(mean(sigma2),3)," Variance parameters:",signif(coef,3),"\n")
-1/sigma2
+list(sigma2inv=1/sigma2,coef=coef)
 }
 ############################################################################
 #
