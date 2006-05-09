@@ -47,7 +47,7 @@ C
 C   Regularization for Poisson and Bernoulli
 C
       IF(mfamily.eq.3) THEN
-         bcorr=0.5d0/h
+         bcorr=1d0/h
          DO i=1,n
 	    if(y(i).gt.0.5d0) THEN
 	        y(i)=y(i)-bcorr
@@ -56,7 +56,7 @@ C
 	    END IF
 	 END DO
       ELSE IF(mfamily.eq.2) THEN
-         bcorr=0.5d0/h
+         bcorr=1d0/h
          DO i=1,n
 	    y(i)=y(i)+bcorr
 	 END DO
@@ -105,6 +105,7 @@ C
      2                bi2(1,i),bi02(1,i),iter,info)
          if(info.gt.0) fix(i)=.TRUE.
 C   singularity or failed convergence keep old estimate in this case
+         call rchkusr()
       END DO
       RETURN
       END
@@ -197,7 +198,7 @@ C          Now get weights in wghts and wghts0
 C
          call gluniwgt(n,i,ja,je,dp1,dp2,ha2,aws,kern,
      1                theta0,spmax,psix,thij,dmat,cb,wghts,wghts0)
-            call smwghtgl(n,i,ja,je,wghts,work,ha,hw,kern)
+         call smwghtgl(n,i,ja,je,wghts,work,ha,hw,kern)
          ni(i)=0.d0
          DO j=ja,je
             ni(i)=ni(i)+wghts(j)
@@ -210,6 +211,7 @@ C
      2                bi2(1,i),bi02(1,i),iter,info)
          if(info.gt.0) fix(i)=.TRUE.
 C   singularity or failed convergence keep old estimate in this case
+         call rchkusr()
       END DO
       RETURN
       END
@@ -306,7 +308,6 @@ C        now compute contributions to bi(i),bi0(i),ai(i)
       END DO
 999   RETURN
       END
-        
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
 C    compute weights for local GLM estimates
@@ -384,3 +385,127 @@ C
       END DO
       RETURN
       END     
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C   Calculate contribution of Y_j to ai and bi in univariate local polynomial aws (GLM)
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      subroutine guniaibi(mfamily,dp1,dp2,psix,theta,y,bii,ai,
+     1                    bi0,bi2,bi02,wij,wij0)
+      implicit logical (a-z)
+      integer mfamily,dp1,dp2
+      real*8 psix(dp1),theta(dp1),bii(dp2),ai(dp1),bi0(dp2),wij,wij0,
+     1       y,ymz1,z,bi2(dp2),bi02(dp2),wij2,wij02
+      integer i
+      real*8 psith,z1,z2
+      psith=0.0d0
+      wij2=wij*wij
+      wij02=wij0*wij0
+      DO i=1,dp1
+         psith=psith+psix(i)*theta(i)
+      ENDDO
+      IF (mfamily.eq.1) THEN
+C  Gaussian case
+         DO i=1,dp2
+            bii(i)=bii(i)+psix(i)*wij
+            bi0(i)=bi0(i)+psix(i)*wij0
+            bi2(i)=bi2(i)+psix(i)*wij2
+            bi02(i)=bi02(i)+psix(i)*wij02
+            IF (i.le.dp1) ai(i)=ai(i)+(y-psith)*psix(i)*wij
+         ENDDO 
+      ELSE IF (mfamily.eq.2) THEN
+C  Poisson case
+         IF (psith.gt.5.d0) THEN 
+             z1=psith-5.d0
+C             z1=dexp(5.d0)*(1.d0+z1*(1.d0+.5d0*z1))
+             z1=148.4132d0*(1.d0+z1*(1.d0+.5d0*z1*(1.d0+z1/6.d0)))
+             z2=z1*dexp(-psith)
+C             wij=0.d0
+             IF(wij.gt.0.d0) ymz1=z2*y-z1
+C             call dblepr("psith",5,psith,1)
+         ELSE 
+             z1=dexp(psith)
+             IF(wij.gt.0.d0) ymz1=y-z1
+         ENDIF
+         DO i=1,dp2
+            z=psix(i)*z1
+            bi0(i)=bi0(i)+z*wij0
+            bi02(i)=bi02(i)+z*wij02
+            if(wij.le.0.d0) CYCLE
+            bii(i)=bii(i)+z*wij
+            bi2(i)=bi2(i)+z*wij2
+            IF (i.le.dp1) ai(i)=ai(i)+ymz1*psix(i)*wij
+         ENDDO 
+      ELSE IF (mfamily.eq.3) THEN
+C  Bernoulli case
+         z2=dexp(psith)
+         z1=z2/(1+z2)
+         z2=z1/(1+z2)
+         DO i=1,dp2
+            bii(i)=bii(i)+z1*psix(i)*wij
+            bi0(i)=bi0(i)+z1*psix(i)*wij0
+            IF (i.le.dp1) ai(i)=ai(i)+(y-z2)*psix(i)*wij
+         ENDDO 
+      ELSE IF (mfamily.eq.4) THEN
+C  Exponential case
+         z1=-1/psith
+         z2=-z1/psith
+         DO i=1,dp2
+            bii(i)=bii(i)+z1*psix(i)*wij
+            bi0(i)=bi0(i)+z1*psix(i)*wij0
+            IF (i.le.dp1) ai(i)=ai(i)+(y-z2)*psix(i)*wij
+         ENDDO 
+      ENDIF
+      RETURN
+      END
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C      Generate estimates from ai and bi (univariate polynomial aws)
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      subroutine mpawsun0(dp1,dp2,ai,bi,dmat,d,info)
+C    
+C     dp1        number of parameters  (p+1)
+C     dp2        number of components in bi  (2*p+1)
+C     dpm        number of components in di  (dp1+1)*dp1/2
+C     ai         \sum \Psi^T Wi^k Y       
+C     bi         \sum \Psi^T Wi^k \Psi
+C     di         inverse of bi     
+C     di0         inverse of bi0     
+C     theta      new parameter estimate
+C     dmat       working array
+C
+C      implicit logical(a-z)
+      integer dp1,dp2,info
+      real*8 ai(dp1),bi(dp2),dmat(dp1,dp1),d(dp1)
+      integer j,k,eins
+      eins=1
+C      DO j=1,dp1
+C         DO k=1,dp1
+C            IF (j.gt.k) then 
+C               dmat(j,k)=0.0d0
+C            ELSE
+C               dmat(j,k)=bi(j+k-1)
+C            END IF
+C         END DO
+C      END DO
+      DO k=1,dp1
+	 DO j=k,dp1
+	    dmat(k,j)=bi(j+k-1)
+	 END DO
+	 d(k)=ai(k)
+      END DO
+C      call dpotri("U",dp1,dmat,dp1,info)
+      call dposv("U",dp1,eins,dmat,dp1,d,dp1,info)
+C      call invers(dmat,dp1,info)
+C      now dmat contains inverse of B_i 
+C      now calculate theta as B_i^{-1} A_i
+C      DO j=1,dp1
+C         d(j)=0.0d0
+C         DO k=1,dp1
+C            d(j)=d(j)+dmat(j,k)*ai(k)  
+C         END DO
+C      END DO
+C     just keep the old estimate if info > 0
+      RETURN
+      END      

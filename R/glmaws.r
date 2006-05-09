@@ -185,7 +185,8 @@ kstar <- log(switch(degree,15,30))
 }
 if(qlambda>=1) lamakt <- 1.e50 else lamakt <- 2*qchisq(qlambda,dp1)*sigma2
 #if(is.null(eta0))
-eta0<-switch(family,Gaussian=0,Poisson=.05,Bernoulli=.05,Exponential=.05,0.05)
+#eta0<-switch(family,Gaussian=0,Poisson=.05,Bernoulli=.05,Exponential=.05,0.05)
+eta0<-0
 cpar <- list(heta=heta,eta0=eta0,tau1=tau*sigma2,tau2=tau2*sigma2,kstar=kstar)
 steps<-as.integer(log(hmax/hinit)/log(hincr)+1)
 if(is.null(lseq)) lseq<-1
