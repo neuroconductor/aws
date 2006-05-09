@@ -1,6 +1,6 @@
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
-C   Perform one iteration in local constant  aws (gridded)
+C   Perform one iteration in local polynomial  aws (gridded) !D
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine awsp1(y,fix,n,degr,hw,hakt,lambda,theta,bi,
@@ -185,7 +185,7 @@ C
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
-C   Perform one iteration in local constant  aws (gridded)
+C   Perform one iteration in local polynomial  aws (gridded), 1D, heteroskedastic
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine awsph1(y,si,fix,n,degr,hw,hakt,lambda,theta,bi,
@@ -370,7 +370,7 @@ C
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
-C   Perform one iteration in local constant  aws (gridded)
+C   Perform one iteration in local polynomial  aws (gridded), 2D
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine awsp2(y,fix,n1,n2,degr,hw,hakt,lambda,theta,bi,
@@ -537,14 +537,10 @@ C
 C
 C      Smooth the weights
 C   
-C      call dblepr("w",1,w,dlw*dlw)
             call testwgh2(w,dlw,dp1,hw,z)
 	    z=dmax1(.1d0,dmin1(z,hw))
 	    cc=dmin1(z-1.d0,1.d0/hakt2)
-C      call dblepr("cc",2,cc,1)
 	    call smwghts2(w,hakt,z,sw,dlw,dsw,cc)
-C      call dblepr("sw",2,sw,dsw*dsw)
-C      call intpr("dsw",3,dsw,1)
             DO k=1,dp2
                swj(k)=0.d0
                swj2(k)=0.d0
@@ -620,7 +616,7 @@ C      call intpr("dsw",3,dsw,1)
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
-C   Perform one iteration in local constant  aws (gridded)
+C   Perform one iteration in local polynomial  aws (gridded), 2D, heteroskedastic
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine awsph2(y,si,fix,n1,n2,degr,hw,hakt,lambda,theta,bi,
@@ -787,14 +783,10 @@ C
 C
 C      Smooth the weights
 C   
-C      call dblepr("w",1,w,dlw*dlw)
             call testwgh2(w,dlw,dp1,hw,z)
 	    z=dmax1(.1d0,dmin1(z,hw))
 	    cc=dmin1(z-1.d0,1.d0/hakt2)
-C      call dblepr("cc",2,cc,1)
 	    call smwghts2(w,hakt,z,sw,dlw,dsw,cc)
-C      call dblepr("sw",2,sw,dsw*dsw)
-C      call intpr("dsw",3,dsw,1)
             DO k=1,dp2
                swj(k)=0.d0
                swj2(k)=0.d0
@@ -871,13 +863,11 @@ C      call intpr("dsw",3,dsw,1)
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 function kldistp(dp1,thij,bii,ind)
 C
-C  search for maximum in w within bandwidth hw, result in sw
+C  distance between local polynomial models
 C
 C     dp1  polynomial degree +1
-C     thij parameter estimate in j dim(dp1*nwght) for basis in i
+C     thij parameter estimate in j dim(dp1) for basis in i
 C     bii  XTX dim(dp2)
-C     wght     weight for color channels
-C     nwght    number of positive weights (<=dv)
 C     ind   index matrix to access the correct elements in bii
 C
       implicit logical (a-z)

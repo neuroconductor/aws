@@ -1,12 +1,19 @@
+<<<<<<< DESCRIPTION
+Package: awsimage
+Version: 0.1-1
+Date: 2005-09-19
+Title: Adaptive Weights Smoothing library for imaging problems
+=======
 Package: aws
 Version: 1.4-1
 Date: 2006-04-25
 Title: Adaptive Weights Smoothing
+>>>>>>> 1.2
 Author: Joerg Polzehl <polzehl@wias-berlin.de>
 Maintainer: Joerg Polzehl <polzehl@wias-berlin.de>
-Description: The library contains R-functions implementing the
-     Propagation-Separation Approach to adaptive smoothing as described
-     in
+Description: The library contains R-functions for image processing and handling.
+     Image processing is based on the Propagation-Separation Approach to 
+     adaptive smoothing as described in
      
      J. Polzehl and V. Spokoiny (2004) Propagation-Separation Approach for Local Likelihood Estimation,
      tentatively accepted in Prob. Theory and Rel. Fields
@@ -17,13 +24,6 @@ Description: The library contains R-functions implementing the
      WIAS-Preprint 998.
      
      
-     This approach generalizes the 
-     adaptive weights smoothing (AWS) procedure described in 
-     Polzehl und Spokoiny (2000), Adaptive weights smoothing with 
-     applications to image restoration. Journal of the Royal Statistical    
-     Society, Ser. B,  62, 2, 335--354. The former functions 
-     awsuni, awsbi and awstri have been removed. Functions 
-     caws and cpaws replace the former functions aws and laws.
 
 License: GPL version 2 or newer
      This library is Copyright (C) 2005 Weierstrass Institute for 
