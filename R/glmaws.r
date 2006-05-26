@@ -27,7 +27,7 @@
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,  
 #  USA.
 #
-glmaws <- function(y,degree=1,family="Gaussian",qlambda=NULL,heta=NULL,tau=NULL,KL=FALSE,
+glmaws <- function(y,degree=1,family="Gaussian",qlambda=NULL,heta=NULL,qtau=NULL,KL=FALSE,
                 lkern="Triangle",aggkern="Uniform",sigma2=NULL,hinit=NULL,hincr=NULL,hmax=NULL,hw=NULL,
                 lseq=NULL,iter=50,u=NULL,graph=FALSE,demo=FALSE,wghts=NULL,spmax=5,eps=1.e-8,
 		showwghts=FALSE,conf=FALSE,usevar=TRUE)
@@ -61,7 +61,7 @@ Pardist <- function(mcode,Bi0,dtheta){
    }
    dist
    }
-updtheta <- function(zobj,tobj,cpar,aggkern){
+updtheta <- function(zobj,tobj,cpar,aggkern,hakt){
 regdiff<-function(x1,x2){
 dx<-dim(x1)
 x<-x1-x2
@@ -76,11 +76,34 @@ kstar <- cpar$kstar
 hakt <- zobj$hakt
 tau <- 2*(tau1+tau2*max(kstar-log(hakt),0))
 mcode <- cpar$mcode
+mfamily <- cpar$mfamily
 bi0 <- zobj$bi0
 bi <- zobj$bi
 bi2 <- zobj$bi2
 theta <- tobj$theta
 thetanew <- zobj$theta
+dp1<-dim(theta)[1]
+n <- dim(theta)[2]
+#
+#    test if solution is meaningful (if argument in the link function gets to large keep the old estimate
+#
+#       Poisson case
+#
+if(mfamily==2){
+failed <- (1:n)[(hakt^(0:(dp1-1)))%*%abs(thetanew)>100]
+failed <- failed[!tobj$fix[failed]]
+tobj$fix[failed]<-TRUE
+if(length(failed)>0) cat("Old estimate kept in",failed,"\n")
+}
+#
+#       Bernoulli case
+#
+if(mfamily==3){
+failed <- (1:n)[(hakt^(0:(dp1-1)))%*%abs(thetanew)>100]
+failed <- failed[!tobj$fix[failed]]
+tobj$fix[failed]<-TRUE
+if(length(failed)>0) cat("Old estimate kept in",failed,"\n")
+}
 dd<-dim(theta)
 if(hakt>heta) {
 	eta <-switch(aggkern,"Uniform"=(1-eta0)*
@@ -92,6 +115,10 @@ eta <- rep(eta0,prod(dim(bi)[-1]))
 dim(eta) <- dim(bi)[-1]
 }
 eta[tobj$fix] <- 1
+thetanew[,tobj$fix] <- 0
+bi[,tobj$fix] <- 0
+bi2[,tobj$fix] <- 0
+# the last 4 lines handle NA's by keeping the values from the last iteration
 dp1 <- dim(zobj$theta)[1]
 dp2 <- dim(bi)[1]
 etadd<-outer(rep(1,dp1),eta)
@@ -111,7 +138,13 @@ if(degree>3)  return("no defaults for parameters available")
 mfamily<-switch(family,Gaussian=1,Poisson=2,Bernoulli=3,Exponential=4,1)
 args <- match.call()
 if(is.null(qlambda)) {
-if(is.null(dim(y))) qlambda <- switch(degree,.65,.966,.966) else qlambda <- switch(degree,.65,.92) 
+if(is.null(dim(y))) {
+   qlambda <- switch(family,Gaussian=switch(degree,.65,.966),
+                            Poisson=switch(degree,.9,.999),
+			    Bernoulli=switch(degree,.985,.999),
+			    Exponential=switch(degree,.65,.999),
+			    Volatility=switch(degree,.65,.999))
+   } else qlambda <- switch(degree,.65,.92) 
 }
 if(qlambda<.6) warning("Inappropriate value of qlambda")
 if(is.null(dim(y))){
@@ -121,7 +154,7 @@ if(demo&& !graph) graph <- TRUE
 # now check which procedure is appropriate
 dy <- dim(y)
 #  this is the version on a grid
-if(is.null(hinit)||hinit<=0) hinit <- degree+1
+if(is.null(hinit)||hinit<=0) hinit <- 1
 if(is.null(dy)) {
    form <- "uni"
    ddim  <- 1
@@ -174,7 +207,11 @@ lkern <- switch(lkern,Triangle=2,Quadratic=3,Cubic=4,Uniform=1,2)
 #                 p=2     qlambda=.92    heta=4     tau1=30     tau2= 50
 if(is.null(dy)) {
 if(is.null(heta)) heta <- switch(degree,10,25,100) # 2*(p+1)^2
-if(is.null(tau)) tau <- switch(degree,100,500,4000)
+if(is.null(qtau)) tau <- switch(degree,100,500,4000) else 
+if(qtau<1) tau<-qchisq(qtau,dp1) else {
+tau<-1e40
+heta<-1e40
+}
 tau2 <- (degree+1)^2*tau
 kstar <- log(switch(degree,150,300,600))
 } else {
@@ -184,10 +221,9 @@ tau2 <- (degree+1)^2*tau
 kstar <- log(switch(degree,15,30))
 }
 if(qlambda>=1) lamakt <- 1.e50 else lamakt <- 2*qchisq(qlambda,dp1)*sigma2
-#if(is.null(eta0))
-#eta0<-switch(family,Gaussian=0,Poisson=.05,Bernoulli=.05,Exponential=.05,0.05)
+cat("Value of lambda",signif(lamakt,3),"\n")
 eta0<-0
-cpar <- list(heta=heta,eta0=eta0,tau1=tau*sigma2,tau2=tau2*sigma2,kstar=kstar)
+cpar <- list(heta=heta,eta0=eta0,tau1=tau*sigma2,tau2=tau2*sigma2,kstar=kstar,mfamily=mfamily)
 steps<-as.integer(log(hmax/hinit)/log(hincr)+1)
 if(is.null(lseq)) lseq<-1
 if(length(lseq)<steps) lseq<-c(lseq,rep(1,steps-length(lseq)))
@@ -219,11 +255,11 @@ tobj$theta[1,]<- theta[1,] <- switch(mfamily,Gaussian=mean(y),
                                              Poisson=log(mean(y)),
                                              Bernoulli=log(mean(y)/(1-mean(y))),
                                              Exponential=1/mean(y))
-bi0old <- matrix(0,dp2,n)
+biold <- biold2 <- matrix(0,dp2,n)
 bii <- matrix(0,dp3,n)
-zobj <- list(bi0=bi0old,bi02=bi0old,ni=rep(hinit,n))
+zobj <- list(bi0=biold,bi02=biold,ni=rep(hinit,n))
 lamakt0 <- 1.e50
-if(is.null(hw)) hw<-switch(ddim,degree+1.1,degree+.1) else hw<-max(hw,degree+.1)
+if(is.null(hw)) hw<-switch(ddim,degree+2,degree+.1) else hw<-max(hw,degree+.1)
 #
 #       this defines an interval where kernel weights are used (identifiability)
 #
@@ -299,6 +335,8 @@ dim(zobj$bi0) <- c(dp2,n)
 dim(zobj$bi2) <- c(dp2,n)
 dim(zobj$bi02) <- c(dp2,n)
 failed<-(1:n)[tobj$fix!=zobj$fix]
+zobj$bi0[,failed]<-biold[,failed]
+zobj$bi02[,failed]<-biold2[,failed]
 if(length(failed)>0) cat("No convergence in", failed, "\n")
 tobj$fix[failed]<-TRUE
 gc()
@@ -308,7 +346,7 @@ if(hakt>n/2) {
 }
 biold <- zobj$bi0
 biold2 <- zobj$bi02
-tobj <- updtheta(zobj,tobj,cpar,aggkern)
+tobj <- updtheta(zobj,tobj,cpar,aggkern,hakt)
 if(usevar) {
 bii<-matrix(.Fortran("bibi2ibi",
                      as.integer(n),
@@ -671,9 +709,9 @@ tobj$theta[1,]<- theta[1,] <- switch(mfamily,Gaussian=mean(y),
                                              Poisson=log(mean(y)),
                                              Bernoulli=log(mean(y)/(1-mean(y))),
                                              Exponential=1/mean(y))
-bi0old <- matrix(0,dp2,n)
+biold <- matrix(0,dp2,n)
 bii <- matrix(0,dp3,n)
-zobj <- list(bi0=bi0old,bi02=bi0old,ni=rep(hinit,n))
+zobj <- list(bi0=biold,bi02=biold,ni=rep(hinit,n))
 lamakt0 <- 1.e50
 h0<-matrix(.Fortran("poisdes",
               as.double(y),

@@ -16,8 +16,12 @@ C
 C     n          number of design points
 C     dp1        number of parameters  (p+1)
 C     dp2        number of components in bi  (2*p+1)
+C     dp3        number of components in bii (p+2)*(p+1)/2
 C     y          observed values at design points
-C     theta      old estimates from last step (input)
+C     fix        index of that are alredy fixed (no convergence or memory step)
+C     theta0     old estimates from last step (input)
+C     theta      new estimates from last step (output)
+C     bii        old variances bi %*% bi2^{-1} %*% bi (usevar = TRUE) or bi (usevar = FALSE)   (input) 
 C     bi         \sum \Psi^T Wi^(k-1) \Psi    (input)
 C     si0        \sum \Psi^T Wi0 \Psi [1,]    (input)
 C     bi0        \sum \Psi^T Wi0 \Psi    (input/output)
@@ -47,7 +51,7 @@ C
 C   Regularization for Poisson and Bernoulli
 C
       IF(mfamily.eq.3) THEN
-         bcorr=1d0/h
+         bcorr=0.5d0/dsqrt(h)
          DO i=1,n
 	    if(y(i).gt.0.5d0) THEN
 	        y(i)=y(i)-bcorr
@@ -56,7 +60,7 @@ C
 	    END IF
 	 END DO
       ELSE IF(mfamily.eq.2) THEN
-         bcorr=1d0/h
+         bcorr=1d0/dsqrt(h)
          DO i=1,n
 	    y(i)=y(i)+bcorr
 	 END DO
@@ -153,7 +157,7 @@ C
 C   Regularization for Poisson and Bernoulli
 C
       IF(mfamily.eq.3) THEN
-         bcorr=0.5d0/h
+         bcorr=0.5d0/dexp(dlog(h)/dp1)
          DO i=1,n
 	    if(y(i).gt.0.5d0) THEN
 	        y(i)=y(i)-bcorr
@@ -162,7 +166,7 @@ C
 	    END IF
 	 END DO
       ELSE IF(mfamily.eq.2) THEN
-         bcorr=0.5d0/h
+         bcorr=1.d0/h
          DO i=1,n
 	    y(i)=y(i)+bcorr
 	 END DO
@@ -223,28 +227,30 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine smwghtgl(n,i,ja,je,wghts,work,hakt,hw,kern)
       integer n,kern,i,ja,je
       real*8 wghts(n),work(n),hw,hakt
-      integer j,k,ka,ke,iha,ihe,ih
+      integer j,k,ka,ke,iha,jan,jen,ih,jpk
       real*8 maxwght,lkern,d,d2,cc,ww
       external lkern
       d=0.d0
       DO k=ja,je
          d=d+wghts(k)
       END DO
-      d=(2.d0-d/2*d0)*hw-1+d/2.d0
+C      d=(2.d0-d/2.d0)*hw-1+d/2.d0
+      d=(hw-d)*hw
       d=dmax1(.1d0,dmin1(d,hw))
+C      cc=dmin1(d-1.d0,1.d0/dsqrt(hakt))
       cc=dmin1(d-1.d0,1.d0)
       IF(cc.gt.0.d0) THEN
          d2=d*d
-         ih=d
-	 iha=min0(ja-1,ih)
-	 ihe=min0(n-je,ih)
-	 ja=ja-iha
-	 je=je+ihe
-	 DO j=ja,je
+         ih=d-1.d0
+	 jan=max0(1,ja-ih)
+	 jen=min0(je+ih,n)
+	 DO j=jan,jen
 	    work(j)=0.d0
 	 END DO
-         DO j=ja+iha,je-ihe
-	    DO k=-iha,ihe
+         DO j=ja,je
+	    DO k=-ih,ih
+	       jpk=j+k
+	       if(jpk.le.0.or.jpk.gt.n) CYCLE
 	       ww=1.d0-k*k/d2
 	       if(ww.lt.1.d0) ww=cc*ww
                work(j+k)=work(j+k)+wghts(j)*ww
@@ -252,9 +258,11 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          END DO
 	 maxwght=work(i)
 C   scale such that wghts(i)=1
-         DO j=ja,je
+         DO j=jan,jen
             wghts(j)=work(j)/maxwght
          END DO
+	 ja=jan
+	 je=jen
       ENDIF
       RETURN
       END
@@ -271,7 +279,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
      1       bi2(dp2),bi02(dp2),d(dp1),wghts(n),wghts0(n),
      2       dmat(dp1,dp1)
       integer it,j,k,l
-      real*8 z,dist,xij
+      real*8 z,dist,xij,dth
       DO it=1,iter
          DO l=1,dp2
             bi(l)=0.d0
@@ -290,20 +298,26 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             END DO
 C        now compute contributions to bi(i),bi0(i),ai(i)  
             call guniaibi(mfamily,dp1,dp2,psix,theta,y(j),bi,
-     1           ai,bi0,bi2,bi02,wghts(j),wghts0(j))
+     1           ai,bi0,bi2,bi02,wghts(j),wghts0(j),info)
+            IF(info.gt.0) goto 999
          END DO
+         call rchkusr()
          call mpawsun0(dp1,dp2,ai,bi,dmat,d,info)
          IF(info.gt.0) goto 999
          dist=0.d0
+	 dth=0.d0
          DO k=1,dp1
             DO l=1,dp1
                dist=dist+d(k)*bi(k+l-1)*d(l)
+               dth=dth+theta(k)*bi(k+l-1)*theta(l)
             END DO
          END DO
+	 dist=dist/(dth+1.d-6)
          DO k=1,dp1
             theta(k)=theta(k)+d(k)
          END DO
-         IF(dist.lt.1.d-12) goto 999
+C         IF(dist.lt.1.d-12) goto 999
+         IF(dist.lt.1.d-8) goto 999
          info=10
       END DO
 999   RETURN
@@ -391,13 +405,14 @@ C   Calculate contribution of Y_j to ai and bi in univariate local polynomial aw
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine guniaibi(mfamily,dp1,dp2,psix,theta,y,bii,ai,
-     1                    bi0,bi2,bi02,wij,wij0)
+     1                    bi0,bi2,bi02,wij,wij0,info)
       implicit logical (a-z)
-      integer mfamily,dp1,dp2
+      integer mfamily,dp1,dp2,info
       real*8 psix(dp1),theta(dp1),bii(dp2),ai(dp1),bi0(dp2),wij,wij0,
      1       y,ymz1,z,bi2(dp2),bi02(dp2),wij2,wij02
       integer i
       real*8 psith,z1,z2
+      info=0
       psith=0.0d0
       wij2=wij*wij
       wij02=wij0*wij0
@@ -415,18 +430,17 @@ C  Gaussian case
          ENDDO 
       ELSE IF (mfamily.eq.2) THEN
 C  Poisson case
+         IF (dabs(psith).gt.1.d2) THEN
+	    info=1 
+	    return
+	 END IF
          IF (psith.gt.5.d0) THEN 
              z1=psith-5.d0
-C             z1=dexp(5.d0)*(1.d0+z1*(1.d0+.5d0*z1))
-             z1=148.4132d0*(1.d0+z1*(1.d0+.5d0*z1*(1.d0+z1/6.d0)))
-             z2=z1*dexp(-psith)
-C             wij=0.d0
-             IF(wij.gt.0.d0) ymz1=z2*y-z1
-C             call dblepr("psith",5,psith,1)
-         ELSE 
+             z1=148.4132*(1.d0+z1*(1.d0+.5d0*z1*(1.d0+z1/3.d0)))
+         ELSE  
              z1=dexp(psith)
-             IF(wij.gt.0.d0) ymz1=y-z1
          ENDIF
+         IF(wij.gt.0.d0) ymz1=y-z1
          DO i=1,dp2
             z=psix(i)*z1
             bi0(i)=bi0(i)+z*wij0
@@ -438,13 +452,25 @@ C             call dblepr("psith",5,psith,1)
          ENDDO 
       ELSE IF (mfamily.eq.3) THEN
 C  Bernoulli case
-         z2=dexp(psith)
-         z1=z2/(1+z2)
-         z2=z1/(1+z2)
+         IF (dabs(psith).gt.3.6d1) THEN
+	    info=1 
+	    return
+	 END IF
+C         IF (psith.gt.1.d1) THEN 
+C             z1=psith-1.d1
+C             z2=22026.47d0*(1.d0+z1*(1.d0+.5d0*z1*(1.d0+z1/3.d0)))
+C         ELSE  IF (psith.lt.-1.d1) THEN 
+C             z1=1.d1-psith
+C            z1=1.d0/22026.47d0/(1.d0+z1*(1.d0+.5d0*z1*(1.d0+z1/3.d0)))
+C         ELSE 
+            z2=dexp(-psith)
+C	 END IF
+         z1=1.d0/(1.d0+z2)
+         z2=z1/(1.d0+1.d0/z2)
          DO i=1,dp2
-            bii(i)=bii(i)+z1*psix(i)*wij
-            bi0(i)=bi0(i)+z1*psix(i)*wij0
-            IF (i.le.dp1) ai(i)=ai(i)+(y-z2)*psix(i)*wij
+            bii(i)=bii(i)+z2*psix(i)*wij
+            bi0(i)=bi0(i)+z2*psix(i)*wij0
+            IF (i.le.dp1) ai(i)=ai(i)+(y-z1)*psix(i)*wij
          ENDDO 
       ELSE IF (mfamily.eq.4) THEN
 C  Exponential case
@@ -507,5 +533,115 @@ C            d(j)=d(j)+dmat(j,k)*ai(k)
 C         END DO
 C      END DO
 C     just keep the old estimate if info > 0
+      RETURN
+      END      
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C      Generate  B_i Bsq_i^{-1} B_i
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      subroutine bibi2ibi(n,dp1,dp2,dp3,bi,bi2,erg,dmat,dmat2)
+C    
+C     n          number of design points
+C     dp1        number of parameters  (p+1)
+C     dp2        number of components in bi  (2*p+1)
+C     dp3        number of components in erg  (dp1+1)*dp1/2
+C     bi         \sum \Psi^T Wi        
+C     bi2        \sum \Psi^T Wi^2        
+C     bii        factor for KL-distance
+C     erg       
+C     dmat       working array
+C
+      implicit logical(a-z)
+      integer n,dp1,dp2,dp3
+      real*8 bi(dp2,n),bi2(dp2,n),erg(dp3,n),dmat(dp1,dp1),
+     1       dmat2(dp1,dp1)
+      integer ii,i,j,k,l,m,info
+      real*8 d
+      DO ii=1,n
+C         DO j=1,dp1
+C            DO k=1,dp1
+C               IF (j.gt.k) then 
+C                  dmat(j,k)=0.0d0
+C               ELSE
+C                  dmat(j,k)=bi2(j+k-1,ii)
+C               END IF
+C            END DO
+C	 END DO
+         DO k=1,dp1
+	    DO j=k,dp1
+	       dmat(k,j)=bi2(j+k-1,ii)
+	    END DO
+	 END DO
+	 call dpotri("U",dp1,dmat,dp1,info)
+C         call invers(dmat,dp1,info)
+         IF (info.ne.0) CYCLE 
+         m=1
+         DO i=1,dp1
+            DO j=1,i
+               d=0.d0
+               DO k=1,dp1
+                  DO l=1,dp1
+                     d=d+dmat(k,l)*bi(i+k-1,ii)*bi(j+l-1,ii)
+                  END DO
+               END DO
+               erg(m,ii)=d
+               m=m+1
+            END DO
+         END DO
+      END DO
+      RETURN
+      END      
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C      Generate estimates from ai and bi (univariate polynomial aws)
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      subroutine confuni(n,dp1,dp2,theta,bi,bi2,conf,dmat)
+C    
+C     n          number of design points
+C     dp1        number of parameters  (p+1)
+C     dp2        number of components in bi  (2*p+1)
+C     dpm        number of components in di  (dp1+1)*dp1/2
+C     ai         \sum \Psi^T Wi^k Y       
+C     bi         \sum \Psi^T Wi^k \Psi
+C     di         inverse of bi     
+C     di0         inverse of bi0     
+C     theta      new parameter estimate
+C     dmat       working array
+C
+C      implicit logical(a-z)
+      integer n,dp1,dp2
+      real*8 bi(dp2,n),bi2(dp2,n),theta(n),dmat(dp1,dp1),conf(2,n)
+      integer i,j,k,info
+      real*8 d
+      DO i=1,n
+C         DO j=1,dp1
+C            DO k=1,dp1
+C               IF (j.gt.k) then 
+C                  dmat(j,k)=0.0d0
+C               ELSE
+C                  dmat(j,k)=bi(j+k-1,i)
+C               END IF
+C            END DO
+C	 END DO
+         DO k=1,dp1
+	    DO j=k,dp1
+	       dmat(k,j)=bi(j+k-1,i)
+	    END DO
+	 END DO
+	 call dpotri("U",dp1,dmat,dp1,info)
+C         call invers(dmat,dp1,info)
+         IF (info.ne.0) CYCLE 
+         d=0.d0
+         DO j=1,dp1
+            DO k=1,dp1
+               d=d+dmat(1,k)*dmat(1,j)*bi2(j+k-1,i)
+            END DO
+         END DO
+         d=dsqrt(2*d)*1.96
+         conf(1,i)=theta(i)-d
+         conf(2,i)=theta(i)+d
+      END DO
       RETURN
       END      

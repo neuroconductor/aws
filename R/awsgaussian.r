@@ -571,13 +571,8 @@ squant <- cumsum(c(0,swghts))/sum(swghts)
 cuts <- as.vector(quantile(theta,squant))
 ind<-tapply(theta,cut(theta,cuts))
 ind[is.na(ind)] <- 1 # there seems to be a problem with the minimum ... .
-levels <- numeric(nlevels)
-for ( i in 1:nlevels) {
-if(any(ind==i)) {
-   levels[i] <- mean(theta[ind==i])
-   theta[ind==i] <- rho * levels[i] + (1-rho) * theta[ind==i]
-   }
-}
+levels <- as.vector(tapply(theta,ind,"mean"))
+theta <- rho * levels[ind] + (1-rho) * theta
 dim(theta) <- dim(ind) <- dy
 tobj$theta <- theta
 tobj$ind <- ind
