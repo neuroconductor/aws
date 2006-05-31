@@ -249,7 +249,7 @@ vartheta <- sigma2*tobj$bi2/tobj$bi^2
 vred<-tobj$bi2/tobj$bi^2
 }
 vartheta<-vartheta/Spatialvar.gauss(hakt/0.42445/4,h0+1e-5,d)*Spatialvar.gauss(hakt/0.42445/4,1e-5,d)
-z<-list(theta=tobj$theta,sigma2=1/sigma2,ni=tobj$bi,var=vartheta,vred=vred,y=y,
+z<-list(theta=tobj$theta,sigma2=1/sigma2,ni=tobj$bi,var=vartheta,vred=vred,y=y,varcoef=coef,
         hmax=hakt/hincr,mae=mae,lseq=c(0,lseq),call=args)
 class(z)<-"aws.gaussian"
 z

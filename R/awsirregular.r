@@ -1,5 +1,5 @@
 aws.irreg <- function(y,x,d=2,hmax=NULL,hpre=NULL,qlambda=NULL,qtau=NULL,varmodel="Constant",
-                varprop=.1,graph=FALSE,
+                sigma2=NULL,varprop=.1,graph=FALSE,
 		lkern="Triangle",skern="Triangle",aggkern="Uniform",
 		spmin=0,spmax=5,lseq=NULL,nbins=100,henv=NULL)
 {
@@ -17,8 +17,13 @@ if(!(varmodel %in% c("Constant","Linear","Quadratic"))) stop("Model for variance
 #
 require(sm)
 zbins<-binning(x,y,nbins=n^(1/d)/2)
+given.var<-!is.null(sigma2)
+if(!given.var) {
 sigma20 <- mean(zbins$devs[zbins$x.freq>1]/(zbins$x.freq[zbins$x.freq>1]-1))
 cat("Preliminary variance estimate:",sigma20,"\n")
+} else {
+coef <- sigma2[1]
+}
 zbins<-binning(x,y,nbins=nbins)
 ni <- t(zbins$table.freq)
 mask <- ni>0 
@@ -33,7 +38,12 @@ yy <- rep(mean(y),length(mask))
 dim(yy)<-dim(mask) <- dim(ni)
 yy[ni>0] <- zbins$means
 nn <- length(yy)
+if(given.var) {
+if(length(sigma2)!=nn) sigma2<-rep(sigma2[1],nn)
+sigma2 <- 1/sigma2
+} else {
 sigma2 <- 1/rep(sigma20,nn)
+}
 if(d==2) wghts<-diff(range(x[,1]))/diff(range(x[,2])) else wghts<-1
 if(d==2) dy<-dim(yy)<-dim(sigma2)<-c(nbins,nbins)
 #
@@ -183,7 +193,9 @@ par(oldpar)
 #
 #   Create new variance estimate
 #
+if(!given.var){
 sigma2 <- awsisigma2(yy,hobj,tobj,ni,sigma20,varmodel,varprop)
+}
 hakt <- hakt*hincr
 x<-1.25^(k-1)
 lambda0<-lambda*lseq[k]
@@ -204,8 +216,8 @@ vartheta <- tobj$bi2/tobj$bi^2
 vartheta <- sigma2*tobj$bi2/tobj$bi^2
 vred<-tobj$bi2/tobj$bi^2
 }
-z<-list(theta=tobj$theta,sigma2=1/sigma2,bi=tobj$bi,var=vartheta,vred=vred,y=yy,ni=ni,
-        hmax=hakt/hincr,lseq=c(0,lseq),call=args)
+z<-list(theta=tobj$theta,sigma2=1/sigma2,bi=tobj$bi,var=vartheta,vred=vred,y=yy,ni=ni,varcoef=coef,
+        hmax=hakt/hincr,lseq=c(0,lseq),call=args,zbins=zbins,x=x)
 class(z)<-"aws.gaussian"
 z
 }
@@ -218,6 +230,7 @@ awsisigma2 <- function(y,hobj,tobj,ni,sigma20,varmodel,varprop){
 if(is.null(dy <- dim(y))) dy <- length(y)
 vredinv <- 1/tobj$vred
 vredinv[is.na(vredinv)]<-0
+vredinv[vredinv>1e10]<-0
 ind <- vredinv>ni&ni>0
 residsq <- pmax(1,ni[ind]-1)*((y-tobj$theta)[ind]*vredinv[ind]/(vredinv[ind]-ni[ind]))^2
 theta <- tobj$theta[ind]
@@ -228,6 +241,7 @@ coef <- switch(varmodel,
                Linear=coefficients(lm(residsq~theta,weights=wght)),
 	       Quadratic=coefficients(lm(residsq~theta+theta2,weights=wght)))
 gamma <- pmin(vredinv/hobj$bi,1)
+gamma[is.na(gamma)]<-0
 theta <- gamma*tobj$theta+(1-gamma)*hobj$theta
 #
 #    use smoother estimates to obtain more stable variance estimates
