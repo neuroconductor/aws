@@ -51,7 +51,7 @@ C
 C   Regularization for Poisson and Bernoulli
 C
       IF(mfamily.eq.3) THEN
-         bcorr=0.5d0/dsqrt(h)
+         bcorr=0.25d0*dp1/dsqrt(h)
          DO i=1,n
 	    if(y(i).gt.0.5d0) THEN
 	        y(i)=y(i)-bcorr
@@ -107,7 +107,12 @@ C
          call gluniit(mfamily,n,dp1,dp2,i,ja,je,y,theta(1,i),psix,
      1                dmat,wghts(1,i),wghts0,thij,bi(1,i),ai,bi0(1,i),
      2                bi2(1,i),bi02(1,i),iter,info)
-         if(info.gt.0) fix(i)=.TRUE.
+         if(info.gt.0) THEN
+            fix(i)=.TRUE.
+            DO k=1,dp1
+               theta(k,i)=theta0(k,i)
+            END DO
+         END IF
 C   singularity or failed convergence keep old estimate in this case
          call rchkusr()
       END DO
@@ -142,7 +147,7 @@ C     psix,psiy                working memory
 C     
       implicit logical (a-z)
       integer n,dp1,dp2,i,j,k,l,je,ja,kern,mfamily,ih,iter,
-     1        dp3,info
+     1        dp3,info,ja0,je0,counts
       logical aws,fix(n)
       real*8 y(n),psix(dp2),theta(dp1,n),bi2(dp2,n),bi(dp2,n),
      1     ai(dp1),lam,spmax,dmat(dp1,dp1),lkern,thij(dp1),cb(dp1,dp1),
@@ -157,7 +162,8 @@ C
 C   Regularization for Poisson and Bernoulli
 C
       IF(mfamily.eq.3) THEN
-         bcorr=0.5d0/dexp(dlog(h)/dp1)
+C         bcorr=0.5d0/dexp(dlog(h)/dp1)
+         bcorr=0.25d0*dp1/dsqrt(h)
          DO i=1,n
 	    if(y(i).gt.0.5d0) THEN
 	        y(i)=y(i)-bcorr
@@ -166,9 +172,10 @@ C
 	    END IF
 	 END DO
       ELSE IF(mfamily.eq.2) THEN
-         bcorr=1.d0/h
+C         bcorr=1.d0/h
+         bcorr=dmin1(0.1d0,dp1/h)
          DO i=1,n
-	    y(i)=y(i)+bcorr
+	    if(y(i).eq.0) y(i)=y(i)+bcorr
 	 END DO
       END IF
       DO i=1,n
@@ -179,6 +186,8 @@ C    nothing to do, final estimate is already fixed by control
          ih=h
          ja=max0(1,i-ih)
          je=min0(n,i+ih)
+         ja0=ja
+         je0=je
          ha=h
          ha2=ha*ha
          IF (aws) THEN
@@ -203,6 +212,7 @@ C
          call gluniwgt(n,i,ja,je,dp1,dp2,ha2,aws,kern,
      1                theta0,spmax,psix,thij,dmat,cb,wghts,wghts0)
          call smwghtgl(n,i,ja,je,wghts,work,ha,hw,kern)
+         call smwghtgl(n,i,ja0,je0,wghts0,work,ha,hw,kern)
          ni(i)=0.d0
          DO j=ja,je
             ni(i)=ni(i)+wghts(j)
@@ -210,10 +220,31 @@ C
 C
 C          Now do the iterations to obtain the new estimates
 C
-         call gluniit(mfamily,n,dp1,dp2,i,ja,je,y,theta(1,i),psix,
+         counts=10
+9000     call gluniit(mfamily,n,dp1,dp2,i,ja,je,y,theta(1,i),psix,
      1                dmat,wghts,wghts0,thij,bi(1,i),ai,bi0(1,i),
      2                bi2(1,i),bi02(1,i),iter,info)
-         if(info.gt.0) fix(i)=.TRUE.
+C         if(info.gt.0) fix(i)=.TRUE.
+         if(info.gt.0) THEN 
+            DO j=ja,je
+               wghts(j)=.75d0*wghts(j)+.25d0*wghts0(j)
+            END DO
+            theta(1,i)=theta0(1,i)
+            DO k=2,dp1
+               theta(k,i)=0.d0
+            END DO
+            counts=counts-1
+C            call intpr("failed in",9,i,1)
+            if(counts.le.0) THEN
+               fix(i)=.TRUE.
+               DO k=1,dp1
+                  theta(k,i)=theta0(k,i)
+               END DO
+            ELSE
+               goto 9000
+            END IF
+         END IF
+         
 C   singularity or failed convergence keep old estimate in this case
          call rchkusr()
       END DO
@@ -234,11 +265,12 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       DO k=ja,je
          d=d+wghts(k)
       END DO
-C      d=(2.d0-d/2.d0)*hw-1+d/2.d0
-      d=(hw-d)*hw
-      d=dmax1(.1d0,dmin1(d,hw))
+C      d=(hw-d)*hw
+C      d=dmax1(.1d0,dmin1(d,hw))
 C      cc=dmin1(d-1.d0,1.d0/dsqrt(hakt))
-      cc=dmin1(d-1.d0,1.d0)
+C      cc=dmin1(d-1.d0,1.d0)
+      d=dmax1((hw-d),0.d0)
+      cc=dmin1(d/hw,1.d0)   
       IF(cc.gt.0.d0) THEN
          d2=d*d
          ih=d-1.d0
@@ -259,7 +291,7 @@ C      cc=dmin1(d-1.d0,1.d0/dsqrt(hakt))
 	 maxwght=work(i)
 C   scale such that wghts(i)=1
          DO j=jan,jen
-            wghts(j)=work(j)/maxwght
+            wghts(j)=dmin1(work(j)/maxwght,1.d0)
          END DO
 	 ja=jan
 	 je=jen
@@ -317,7 +349,7 @@ C        now compute contributions to bi(i),bi0(i),ai(i)
             theta(k)=theta(k)+d(k)
          END DO
 C         IF(dist.lt.1.d-12) goto 999
-         IF(dist.lt.1.d-8) goto 999
+         IF(dist.lt.1.d-12) goto 999
          info=10
       END DO
 999   RETURN
@@ -361,7 +393,7 @@ C    need translation of theta(l,j) to model centered in xi
                DO l=2,dp1
                   z=-z*xij
                   DO k=1,dp1-l+1
-                     thij(k)=thij(k)+cb(k+l-1,k)*z*theta(k+l-1,j)
+                     thij(k)=thij(k)+cb(k+l-1,l)*z*theta(k+l-1,j)
                   END DO
                END DO
             END IF

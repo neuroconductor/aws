@@ -27,7 +27,7 @@
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,  
 #  USA.
 #
-glmaws <- function(y,degree=1,family="Gaussian",qlambda=NULL,heta=NULL,qtau=NULL,KL=FALSE,
+glmaws <- function(y,degree=1,family="Gaussian",qlambda=NULL,heta=NULL,qtau=NULL,
                 lkern="Triangle",aggkern="Uniform",sigma2=NULL,hinit=NULL,hincr=NULL,hmax=NULL,hw=NULL,
                 lseq=NULL,iter=50,u=NULL,graph=FALSE,demo=FALSE,wghts=NULL,spmax=5,eps=1.e-8,
 		showwghts=FALSE,conf=FALSE,usevar=TRUE)
@@ -140,7 +140,7 @@ args <- match.call()
 if(is.null(qlambda)) {
 if(is.null(dim(y))) {
    qlambda <- switch(family,Gaussian=switch(degree,.65,.966),
-                            Poisson=switch(degree,.9,.999),
+                            Poisson=switch(degree,.35,.5),# with defaults for hw
 			    Bernoulli=switch(degree,.985,.999),
 			    Exponential=switch(degree,.65,.999),
 			    Volatility=switch(degree,.65,.999))
@@ -259,7 +259,7 @@ biold <- biold2 <- matrix(0,dp2,n)
 bii <- matrix(0,dp3,n)
 zobj <- list(bi0=biold,bi02=biold,ni=rep(hinit,n))
 lamakt0 <- 1.e50
-if(is.null(hw)) hw<-switch(ddim,degree+2,degree+.1) else hw<-max(hw,degree+.1)
+if(is.null(hw)) hw<-switch(ddim,switch(degree,5,10),degree+.1) else hw<-max(hw,degree+.1)
 #
 #       this defines an interval where kernel weights are used (identifiability)
 #
@@ -515,7 +515,7 @@ z
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,  
 #  USA.
 #
-glmawsold <- function(y,xd=NULL,p=1,family="Gaussian",qlambda=NULL,heta=NULL,tau=NULL,KL=FALSE,
+glmawsold <- function(y,xd=NULL,p=1,family="Gaussian",qlambda=NULL,heta=NULL,tau=NULL,
                 lkern="Triangle",aggkern="Uniform",sigma2=NULL,hinit=NULL,hincr=NULL,hmax=NULL,hf=2,
                 lseq=NULL,iter=50,u=NULL,graph=FALSE,demo=FALSE,wghts=NULL,spmax=5,eps=1.e-8,
 		showwghts=FALSE,conf=FALSE,usevar=TRUE,smoothwghts=TRUE)
