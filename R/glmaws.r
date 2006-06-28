@@ -28,9 +28,9 @@
 #  USA.
 #
 glmaws <- function(y,degree=1,family="Gaussian",qlambda=NULL,heta=NULL,qtau=NULL,
-                lkern="Triangle",aggkern="Uniform",sigma2=NULL,hinit=NULL,hincr=NULL,hmax=NULL,hw=NULL,
-                lseq=NULL,iter=50,u=NULL,graph=FALSE,demo=FALSE,wghts=NULL,spmax=5,eps=1.e-8,
-		showwghts=FALSE,conf=FALSE,usevar=TRUE)
+                lkern="Triangle",skern="Exponential",aggkern="Uniform",sigma2=NULL,hinit=NULL,hincr=NULL,hmax=NULL,hw=NULL,
+                lseq=NULL,iter=1000,u=NULL,graph=FALSE,demo=FALSE,wghts=NULL,spmax=5,eps=1.e-8,
+		showwghts=FALSE,conf=FALSE,usevar=FALSE,kstar=NULL,tau2=NULL)
 { 
 #
 #          Auxilary functions
@@ -69,6 +69,7 @@ x<-x1-x2
 dim(x)<-dx
 x
 }
+eta0 <- 0
 heta <- cpar$heta
 tau1 <- cpar$tau1
 tau2 <- cpar$tau2
@@ -140,13 +141,13 @@ args <- match.call()
 if(is.null(qlambda)) {
 if(is.null(dim(y))) {
    qlambda <- switch(family,Gaussian=switch(degree,.65,.966),
-                            Poisson=switch(degree,.35,.5),# with defaults for hw
+                            Poisson=switch(degree,.95,.998),# with defaults for hw
 			    Bernoulli=switch(degree,.985,.999),
 			    Exponential=switch(degree,.65,.999),
 			    Volatility=switch(degree,.65,.999))
    } else qlambda <- switch(degree,.65,.92) 
 }
-if(qlambda<.6) warning("Inappropriate value of qlambda")
+if(qlambda<.35) warning("Inappropriate value of qlambda")
 if(is.null(dim(y))){
 if(is.null(lseq)) lseq<-switch(family,Gaussian=1.3,Bernoulli=1,Exponential=1.7,Poisson=1,1.3)
 }
@@ -191,9 +192,10 @@ sigma2<-sigma2
 }
 
 #
-#    now generate kernel on a grid                                        
+#    now set kernels                                         
 #
 lkern <- switch(lkern,Triangle=2,Quadratic=3,Cubic=4,Uniform=1,2)
+skern <- switch(skern,Exponential=1,Triangle=2,1)
 #
 #   get lambda as quantile of appropriate chisq, rescale to be consistent 
 # with the paper and multiply by 2*sigma2 to get 2*sigma2*lambda in lamakt
@@ -212,8 +214,8 @@ if(qtau<1) tau<-qchisq(qtau,dp1) else {
 tau<-1e40
 heta<-1e40
 }
-tau2 <- (degree+1)^2*tau
-kstar <- log(switch(degree,150,300,600))
+if(is.null(tau2)) tau2 <- (degree+1)^2*tau
+if(is.null(kstar)) kstar <- log(switch(degree,150,300,600))
 } else {
 if(is.null(heta)) heta <- switch(degree,3,4)  # 
 tau <- switch(degree,4,12)
@@ -305,6 +307,7 @@ zobj <- .Fortran("glawsuni",
               as.double(y),
 	      fix=as.logical(tobj$fix),
               as.integer(mfamily),
+              as.integer(skern),
               as.double(tobj$theta),# this dixes the weights
               theta=as.double(tobj$theta),
               as.double(bii),
@@ -487,8 +490,13 @@ gc()
 ###
 ###            end cases
 ###
-z <- list(theta=tobj$theta,confint=confint,y=y,x=x,mae=mae,lseq=c(0,lseq[-steps]),call=args)
-class(z) <- "aws"
+z <- list(yhat=switch(mfamily,Gaussian=tobj$theta[1,],Poisson=exp(tobj$theta[1,]),
+                       Bernoulli=exp(tobj$theta[1,])/(1+exp(tobj$theta[1,])),
+                       Exponential=1/tobj$theta[1,]), theta=tobj$theta,
+                       confint=if(conf) switch(mfamily,Gaussian=confint,Poisson=exp(confint),
+                       Bernoulli=exp(confint)/(1+exp(confint)),Exponential=1/confint) else NULL,
+                       y=y,mae=mae,lseq=c(0,lseq[-steps]),call=args,bii=bii,bi=tobj$bi,bi2=tobj$bi2)
+class(z) <- "glmaws"
 z
 }
 #
@@ -518,7 +526,7 @@ z
 glmawsold <- function(y,xd=NULL,p=1,family="Gaussian",qlambda=NULL,heta=NULL,tau=NULL,
                 lkern="Triangle",aggkern="Uniform",sigma2=NULL,hinit=NULL,hincr=NULL,hmax=NULL,hf=2,
                 lseq=NULL,iter=50,u=NULL,graph=FALSE,demo=FALSE,wghts=NULL,spmax=5,eps=1.e-8,
-		showwghts=FALSE,conf=FALSE,usevar=TRUE,smoothwghts=TRUE)
+		showwghts=FALSE,conf=FALSE,usevar=FALSE,smoothwghts=TRUE)
 { 
 #
 #          Auxilary functions
@@ -947,8 +955,13 @@ gc()
 ###
 ###            end cases
 ###
-z <- list(theta=tobj$theta,confint=confint,y=y,x=x,mae=mae,lseq=c(0,lseq[-steps]),call=args)
-class(z) <- "aws"
+z <- list(yhat=switch(mfamily,Gaussian=tobj$theta[1,],Poisson=exp(tobj$theta[1,]),
+                       Bernoulli=exp(tobj$theta[1,])/(1+exp(tobj$theta[1,])),
+                       Exponential=1/tobj$theta[1,]), theta=tobj$theta,
+                       confint=switch(mfamily,Gaussian=confint,Poisson=exp(confint),
+                       Bernoulli=exp(confint)/(1+exp(confint)),Exponential=1/confint),
+                       y=y,x=x,mae=mae,lseq=c(0,lseq[-steps]),call=args)
+class(z) <- "awsglm"
 z
 }
 

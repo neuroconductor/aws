@@ -36,17 +36,17 @@ C     psix,psiy                working memory
 C     
       implicit logical (a-z)
       integer n,dp1,dp2,i,j,k,l,je,ja,kern,mfamily,ih,iter,
-     1        dp3,info
+     1        dp3,info,skern
       logical aws,fix(n)
       real*8 y(n),psix(dp2),theta(dp1,n),bi2(dp2,n),bi(dp2,n),
-     1     ai(dp1),lam,spmax,dmat(dp1,dp1),lkern,thij(dp1),cb(dp1,dp1),
+     1     ai(dp1),lam,spmax,dmat(dp1,dp1),thij(dp1),cb(dp1,dp1),
      2     bi0(dp2,n),lambda,h,ni(n),ha,ha2,bi02(dp2,n),wghts(n,n),
      3     wghts0(n),theta0(dp1,n),bii(dp3,n),d,work(n),hw,bcorr
-      external lkern
 C     
 C     in case of dp1==1  lawsuni should be preferred  (p=0)
 C
       aws=lam.lt.1.d20
+      skern=1
 C
 C   Regularization for Poisson and Bernoulli
 C
@@ -94,7 +94,7 @@ C    expand Bi in dmat
 C
 C          Now get weights in wghts and wghts0
 C
-         call gluniwgt(n,i,ja,je,dp1,dp2,ha2,aws,kern,
+         call gluniwgt(n,i,ja,je,dp1,dp2,ha2,aws,kern,skern,
      1              theta0,spmax,psix,thij,dmat,cb,wghts(1,i),wghts0)
             call smwghtgl(n,i,ja,je,wghts(1,i),work,ha,hw,kern)
          ni(i)=0.d0
@@ -123,10 +123,10 @@ C
 C   Perform one iteration in univariate local polynomial aws
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine glawsuni(n,dp1,dp2,dp3,y,fix,mfamily,theta0,theta,
-     1                    bii,bi,bi2,bi0,bi02,ai,ni,lam,h,hw,kern,cb,
-     2                    dmat,thij,psix,wghts,wghts0,spmax,iter,
-     3                    work)
+      subroutine glawsuni(n,dp1,dp2,dp3,y,fix,mfamily,skern,theta0,
+     1                    theta,bii,bi,bi2,bi0,bi02,ai,ni,lam,h,hw,
+     2                    kern,cb,dmat,thij,psix,wghts,wghts0,spmax,
+     3                    iter,work)
 C    
 C     n          number of design points
 C     dp1        number of parameters  (p+1)
@@ -147,13 +147,12 @@ C     psix,psiy                working memory
 C     
       implicit logical (a-z)
       integer n,dp1,dp2,i,j,k,l,je,ja,kern,mfamily,ih,iter,
-     1        dp3,info,ja0,je0,counts
+     1        dp3,info,ja0,je0,counts,skern
       logical aws,fix(n)
       real*8 y(n),psix(dp2),theta(dp1,n),bi2(dp2,n),bi(dp2,n),
-     1     ai(dp1),lam,spmax,dmat(dp1,dp1),lkern,thij(dp1),cb(dp1,dp1),
+     1     ai(dp1),lam,spmax,dmat(dp1,dp1),thij(dp1),cb(dp1,dp1),
      2     bi0(dp2,n),lambda,h,ni(n),ha,ha2,bi02(dp2,n),wghts(n),
      3     wghts0(n),theta0(dp1,n),bii(dp3,n),d,work(n),hw,bcorr
-      external lkern
 C     
 C     in case of dp1==1  lawsuni should be preferred  (p=0)
 C
@@ -209,7 +208,7 @@ C    expand Bi in dmat
 C
 C          Now get weights in wghts and wghts0
 C
-         call gluniwgt(n,i,ja,je,dp1,dp2,ha2,aws,kern,
+         call gluniwgt(n,i,ja,je,dp1,dp2,ha2,aws,kern,skern,
      1                theta0,spmax,psix,thij,dmat,cb,wghts,wghts0)
          call smwghtgl(n,i,ja,je,wghts,work,ha,hw,kern)
          call smwghtgl(n,i,ja0,je0,wghts0,work,ha,hw,kern)
@@ -226,6 +225,7 @@ C
      2                bi2(1,i),bi02(1,i),iter,info)
 C         if(info.gt.0) fix(i)=.TRUE.
          if(info.gt.0) THEN 
+C            call intpr("Regularization in i=",20,i,1)
             DO j=ja,je
                wghts(j)=.75d0*wghts(j)+.25d0*wghts0(j)
             END DO
@@ -259,8 +259,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       integer n,kern,i,ja,je
       real*8 wghts(n),work(n),hw,hakt
       integer j,k,ka,ke,iha,jan,jen,ih,jpk
-      real*8 maxwght,lkern,d,d2,cc,ww
-      external lkern
+      real*8 maxwght,d,d2,cc,ww
       d=0.d0
       DO k=ja,je
          d=d+wghts(k)
@@ -363,10 +362,10 @@ C
 C   wghts contains adaptive and wghts0 nonadaptive wghts
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine gluniwgt(n,i,ja,je,dp1,dp2,ha2,aws,kern,theta,
+      subroutine gluniwgt(n,i,ja,je,dp1,dp2,ha2,aws,kern,skern,theta,
      1                    spmax,psix,thij,dmat,cb,wghts,wghts0)
       implicit logical (a-z)
-      integer n,i,ja,je,dp2,dp1,kern
+      integer n,i,ja,je,dp2,dp1,kern,skern
       real*8 ha2,wghts(n),wghts0(n),psix(dp2),theta(dp1,n),
      1       thij(dp1),dmat(dp1,dp1),cb(dp1,dp1),spmax
       logical aws
@@ -420,7 +419,11 @@ C
 C     now we have everything to compute  w_{ij}
 C       
             IF (sij.le.spmax) THEN
+               if(skern.eq.1) then
                wij=wij0*dexp(-sij)
+               else
+               wij=wij0*(1.d0-sij/spmax)
+               endif
                wghts(j)=wij
             ELSE
                wghts(j)=0.d0
@@ -538,32 +541,13 @@ C      implicit logical(a-z)
       real*8 ai(dp1),bi(dp2),dmat(dp1,dp1),d(dp1)
       integer j,k,eins
       eins=1
-C      DO j=1,dp1
-C         DO k=1,dp1
-C            IF (j.gt.k) then 
-C               dmat(j,k)=0.0d0
-C            ELSE
-C               dmat(j,k)=bi(j+k-1)
-C            END IF
-C         END DO
-C      END DO
       DO k=1,dp1
 	 DO j=k,dp1
 	    dmat(k,j)=bi(j+k-1)
 	 END DO
 	 d(k)=ai(k)
       END DO
-C      call dpotri("U",dp1,dmat,dp1,info)
       call dposv("U",dp1,eins,dmat,dp1,d,dp1,info)
-C      call invers(dmat,dp1,info)
-C      now dmat contains inverse of B_i 
-C      now calculate theta as B_i^{-1} A_i
-C      DO j=1,dp1
-C         d(j)=0.0d0
-C         DO k=1,dp1
-C            d(j)=d(j)+dmat(j,k)*ai(k)  
-C         END DO
-C      END DO
 C     just keep the old estimate if info > 0
       RETURN
       END      
@@ -591,22 +575,12 @@ C
       integer ii,i,j,k,l,m,info
       real*8 d
       DO ii=1,n
-C         DO j=1,dp1
-C            DO k=1,dp1
-C               IF (j.gt.k) then 
-C                  dmat(j,k)=0.0d0
-C               ELSE
-C                  dmat(j,k)=bi2(j+k-1,ii)
-C               END IF
-C            END DO
-C	 END DO
          DO k=1,dp1
 	    DO j=k,dp1
 	       dmat(k,j)=bi2(j+k-1,ii)
 	    END DO
 	 END DO
 	 call dpotri("U",dp1,dmat,dp1,info)
-C         call invers(dmat,dp1,info)
          IF (info.ne.0) CYCLE 
          m=1
          DO i=1,dp1
@@ -648,22 +622,12 @@ C      implicit logical(a-z)
       integer i,j,k,info
       real*8 d
       DO i=1,n
-C         DO j=1,dp1
-C            DO k=1,dp1
-C               IF (j.gt.k) then 
-C                  dmat(j,k)=0.0d0
-C               ELSE
-C                  dmat(j,k)=bi(j+k-1,i)
-C               END IF
-C            END DO
-C	 END DO
          DO k=1,dp1
 	    DO j=k,dp1
 	       dmat(k,j)=bi(j+k-1,i)
 	    END DO
 	 END DO
 	 call dpotri("U",dp1,dmat,dp1,info)
-C         call invers(dmat,dp1,info)
          IF (info.ne.0) CYCLE 
          d=0.d0
          DO j=1,dp1
@@ -671,7 +635,7 @@ C         call invers(dmat,dp1,info)
                d=d+dmat(1,k)*dmat(1,j)*bi2(j+k-1,i)
             END DO
          END DO
-         d=dsqrt(2*d)*1.96
+         d=dsqrt(d)*1.96
          conf(1,i)=theta(i)-d
          conf(2,i)=theta(i)+d
       END DO
