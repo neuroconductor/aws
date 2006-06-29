@@ -29,7 +29,7 @@
 #
 glmaws <- function(y,degree=1,family="Gaussian",qlambda=NULL,heta=NULL,qtau=NULL,
                 lkern="Triangle",skern="Exponential",aggkern="Uniform",sigma2=NULL,hinit=NULL,hincr=NULL,hmax=NULL,hw=NULL,
-                lseq=NULL,iter=1000,u=NULL,graph=FALSE,demo=FALSE,wghts=NULL,spmax=5,eps=1.e-8,
+                lseq=NULL,iter=1000,u=NULL,graph=FALSE,demo=FALSE,wghts=NULL,spmax=NULL,eps=1.e-8,
 		showwghts=FALSE,conf=FALSE,usevar=FALSE,kstar=NULL,tau2=NULL)
 { 
 #
@@ -196,6 +196,7 @@ sigma2<-sigma2
 #
 lkern <- switch(lkern,Triangle=2,Quadratic=3,Cubic=4,Uniform=1,2)
 skern <- switch(skern,Exponential=1,Triangle=2,1)
+if(is.null(spmax)) spmax<-switch(skern,Exponential=5,Triangle=switch(degree,1.8,2.2),5)
 #
 #   get lambda as quantile of appropriate chisq, rescale to be consistent 
 # with the paper and multiply by 2*sigma2 to get 2*sigma2*lambda in lamakt

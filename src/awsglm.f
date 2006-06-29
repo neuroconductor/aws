@@ -580,8 +580,15 @@ C
 	       dmat(k,j)=bi2(j+k-1,ii)
 	    END DO
 	 END DO
+         call dpotrf("U",dp1,dmat,dp1,info)
+         IF (info.ne.0) CYCLE 
 	 call dpotri("U",dp1,dmat,dp1,info)
          IF (info.ne.0) CYCLE 
+         DO j=1,dp1-1
+            DO k=j+1,dp1
+               dmat(k,j)=dmat(j,k)
+            END DO
+         END DO
          m=1
          DO i=1,dp1
             DO j=1,i
@@ -627,9 +634,16 @@ C      implicit logical(a-z)
 	       dmat(k,j)=bi(j+k-1,i)
 	    END DO
 	 END DO
+         call dpotrf("U",dp1,dmat,dp1,info)
+         IF (info.ne.0) CYCLE 
 	 call dpotri("U",dp1,dmat,dp1,info)
          IF (info.ne.0) CYCLE 
          d=0.d0
+         DO j=1,dp1-1
+            DO k=j+1,dp1
+               dmat(k,j)=dmat(j,k)
+            END DO
+         END DO
          DO j=1,dp1
             DO k=1,dp1
                d=d+dmat(1,k)*dmat(1,j)*bi2(j+k-1,i)
