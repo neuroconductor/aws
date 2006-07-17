@@ -1106,35 +1106,17 @@ C     restricted to dp2<=20
       integer i,j,k,info,ind(dp1,dp1)
       real*8 d,aa(20)
       DO i=1,n
-C         DO k=1,dp1
-C            DO j=1,dp1
-C               IF (j.gt.k) then
-C                  dmat(j,k)=0.d0
-C               ELSE
-C                  dmat(j,k)=bi(i,ind(j,k))
-C               END IF
-C            END DO
-C            dmat(k,k)=dmat(k,k)*1.001
-C	 END DO
          DO k=1,dp1
 	    DO j=k,dp1
 	       dmat(k,j)=bi(i,ind(k,j))
 	    END DO
 	    aa(k)=ai(i,k)
 	 END DO
-C	 call dpotri("U",dp1,dmat,dp1,info)
-	 call dposv("U",dp1,1,dmat,dp1,aa,dp1,info)
-C         call invers(dmat,dp1,info)
-         IF (info.gt.0) CYCLE  
-C     just keep the old estimate
-C     now dmat contains inverse of B_i 
 C     now calculate theta as B_i^{-1} A_i
+	 call dposv("U",dp1,1,dmat,dp1,aa,dp1,info)
+C    if info>0 just keep the old estimate
+         IF (info.gt.0) CYCLE  
          DO j=1,dp1
-C            d=0.0d0
-C            DO k=1,dp1
-C               d=d+dmat(j,k)*ai(i,k)  
-C            END DO
-C            theta(i,j)=d
             theta(i,j)=aa(j)
 	 END DO
       END DO

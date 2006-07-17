@@ -103,7 +103,7 @@ The essential parameter in the procedure is \code{qlambda}. This parameter has a
   \item{call }{The arguments of the function call.}
 }
 \references{ 
-\item{ }{Polzehl, J. and Spokoiny, V. (2004a). \emph{Propagation-Separation Approach for Local Likelihood Estimation}, 
+\item{ }{Polzehl, J. and Spokoiny, V. (2006). \emph{Propagation-Separation Approach for Local Likelihood Estimation}, 
 Probab. Theory & Relat. Fields, in print.}
 \item{ }{Belomestny, D. and Spokoiny, V. (2004a). \emph{Local likelihood modeling via stagewise aggregation}, 
 WIAS-Preprint 1000.}
