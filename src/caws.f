@@ -474,7 +474,7 @@ C
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3
       real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0,
-     1        sv1,sv2,spf
+     1        sv1,sv2,spf,z
       hakt2=hakt*hakt
       spf=spmax/(spmax-spmin)
       ih1=hakt
@@ -563,7 +563,13 @@ C  first stochastic term
                         wj=lwght(jw1+jwind2)
                         swj0=swj0+wj*si2(jind)
                         IF (aws) THEN
-                  sij=bii*kldist(model,thetai,theta(jind),bii0)
+C
+C                  sij=bii*kldist(model,thetai,theta(jind),bii0)
+C
+C      gaussian case only
+C
+                           z=(thetai-theta(jind))
+                           sij=bii*z*z
                            IF (sij.gt.spmax) CYCLE
 			   IF (skern.eq.2) THEN
 			      wj=wj*(1.d0-sij)

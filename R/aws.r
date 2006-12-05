@@ -68,6 +68,7 @@ if(lkern==5) {
 #  assume  hmax was given in  FWHM  units (Gaussian kernel will be truncated at 4)
     hmax <- hmax*0.42445*4
     hinit <- 0.42445*4
+    if(qlambda==1&qtau==1) hinit <- hmax
     }
 if(demo&& !graph) graph <- TRUE
 # now check which procedure is appropriate
@@ -554,7 +555,7 @@ awsfamily <- function(family,y,sigma2,shape,scorr,lambda,cpar){
 h0 <- 0
 if(family=="Gaussian") {
   d <- cpar$d
-  if(scorr[1]>0) {
+  if(any(scorr)>0) {
          h0<-numeric(length(scorr))
          for(i in 1:length(h0))
          h0[i]<-geth.gauss(scorr[i])

@@ -1,22 +1,3 @@
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-C
-C
-C          Compute the Kullback-Leibler Distance
-C
-C          Gaussian, Diagonal covariance matrix
-C
-C
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      real*8 function kldistd(thi,thj,n,wght,nwght)
-      implicit logical (a-z)
-      integer n,nwght,i,k,thi(1),thj(1)
-      real*8 z,wght(nwght)
-      kldistd=0.d0
-      i=1
-         z=thi(i)-thj(i)
-         kldistd=z*z
-      RETURN
-      END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC 
 C
 C
@@ -26,9 +7,9 @@ C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine esigmac(y,n,theta,bi,quant,varcoef,mvar)
       implicit logical (a-z)
-      integer n,y(n),theta(n),quant
-      real*8 bi(n),varcoef,mvar
-      integer i,k
+      integer n
+      real*8 bi(n),varcoef,mvar,y(n),theta(n),quant
+      integer i
       real*8 z,bii,sumres,sumwght,wght,res
       sumres=0.d0
       sumwght=0.d0
@@ -48,9 +29,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       END
       subroutine esigmal(y,n,theta,bi,quant,varcoef,mvar)
       implicit logical (a-z)
-      integer n,y(n),theta(n),quant
-      real*8 bi(n),varcoef(2),mvar,res
-      integer i,k
+      integer n
+      real*8 bi(n),varcoef(2),mvar,res,y(n),theta(n),quant
+      integer i
       real*8 z,bii,s0,s1,s2,t0,t1,d,wght,thi,mth
       s0=0.d0
       s1=0.d0
@@ -86,11 +67,11 @@ C    Estimate correlations
 C
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine estcorr1(res,n,scorr)
+      subroutine estcorr1(res,n,n2,n3,scorr)
       implicit logical (a-z)
-      integer n
+      integer n,n2,n3
       real*8 res(n),scorr(1)
-      integer i,j,k,n,m,l
+      integer i
       real*8 vres,z,z1,z2,resij
       z1=0.d0
       z2=0.d0
@@ -102,21 +83,22 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       z2=z2/n
       z1=z1/n
       vres=n/(n-1)*(z2-z1*z1)
-      DO i=1,n1
+      DO i=1,n
          res(i)=res(i)-z1
       END DO
       z=0.d0
-      DO i=1,n1-1
+      DO i=1,n-1
          z=z+res(i)*res(i+1)
       END DO
+      scorr=z/(n-1)/vres
       RETURN
       END
-      subroutine estcorr2(res,n1,n2,scorr)
+      subroutine estcorr2(res,n1,n2,n3,scorr)
       implicit logical (a-z)
-      integer n1,n2
+      integer n1,n2,n3
       real*8 res(n1,n2),scorr(2)
-      integer i,j,k,n,m,l
-      real*8 vres(4),z,z1,z2,resij
+      integer i,j,n
+      real*8 vres,z,z1,z2,resij
       n=n1*n2
       z1=0.d0
       z2=0.d0
@@ -154,9 +136,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine estcorr3(res,n1,n2,n3,scorr)
       implicit logical (a-z)
       integer n1,n2,n3
-      real*8 res(n1,n2),scorr(3)
-      integer i,j,k,n,m,l
-      real*8 vres(4),z,z1,z2,resij
+      real*8 res(n1,n2,n3),scorr(3)
+      integer i,j,k,n
+      real*8 vres,z,z1,z2,resij
       n=n1*n2*n3
       z1=0.d0
       z2=0.d0
