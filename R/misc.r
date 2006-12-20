@@ -1,6 +1,144 @@
 ###########################################################################
 #
-#   nonadaptive 1D -- 3D smoothing on a grid
+#   nonadaptive 1D -- 3D smoothing on a grid (kernel supported on (-1,1))
+#
+###########################################################################
+ckernsm<-function (y, h = 1, lkern="Triangle")
+{
+    extend.y <- function(y,h,d){
+       if(d==1) dim(y)<-c(length(y),1)
+          n <- dim(y)[1]
+	  h <- min(h,n%/%2)
+          nn <- nextn(n+2*h)
+	  yy <- matrix(0,dim(y)[2],nn)
+	  ih0 <- (nn-n)%/%2
+	  ih1 <- nn-ih0-n
+	  ind <- (ih0+1):(ih0+n)
+	  yy[,ind] <- t(y)
+	  yy[,1:ih0] <- t(y[ih0:1,])
+	  yy[,(nn-ih1+1):nn] <- t(y[n:(n-ih1+1),])
+list(yy=t(yy),ind=ind)
+}	
+    grid <- function(d,h) {
+        d0 <- d%/%2 + 1
+        gd <- seq(0, 1, length = d0)
+        if (2 * d0 == d + 1)
+            gd <- c(gd, -gd[d0:2],)
+        else gd <- c(gd, -gd[(d0 - 1):2])
+        gd/2/h*d
+    }
+    dy <- dim(y)
+    if (is.null(dy))
+    dy <- length(y)
+    d <- length(dy)
+    if(length(h)==1) h <- rep(h,d)
+    if(length(h) != d) stop("Incompatible length of bandwidth vector h")
+    if(d==1){
+       z<-extend.y(y,h[1],1)
+       yy <- z$yy
+       dyy <- length(yy)
+       kern <- switch(lkern,Uniform=as.numeric(abs(grid(dyy,h[1]))<1),
+                            Triangle=pmax(1-grid(dyy,h[1])^2,0),
+                            Quadratic=pmax(1-grid(dyy,h[1])^2,0)^2,
+                            Cubic=pmax(1-grid(dyy,h[1])^2,0)^3)/
+               switch(lkern,h[1]*beta(.5,switch(lkern,Uniform=1,
+                                                 Triangle=2,
+                                                 Quadratic=3,
+                                                 Cubic=4)))
+       bi <- sum(kern)
+       yhat<-Re(fft(fft(yy) * fft(kern),inv=TRUE))[z$ind]/dyy/bi
+       bi <- bi*switch(lkern,h[1]*beta(.5,switch(lkern,Uniform=1,
+                                                 Triangle=2,
+                                                 Quadratic=3,
+                                                 Cubic=4)))
+    }
+    if(d==2){
+       z<-extend.y(y,h[1],2)
+       yy <- z$yy
+       dyy1 <- dim(yy)[1]
+       kern1 <- switch(lkern,Uniform=as.numeric(abs(grid(dyy1,h[1]))<1),
+                            Triangle=pmax(1-grid(dyy1,h[1])^2,0),
+                            Quadratic=pmax(1-grid(dyy1,h[1])^2,0)^2,
+                            Cubic=pmax(1-grid(dyy1,h[1])^2,0)^3)/
+               switch(lkern,h[1]*beta(.5,switch(lkern,Uniform=1,
+                                                 Triangle=2,
+                                                 Quadratic=3,
+                                                 Cubic=4)))
+       yhat<-t(Re(mvfft(mvfft(yy) * fft(kern1),inv=TRUE))[z$ind,]/dyy1/sum(kern1))
+       z<-extend.y(yhat,h[2],2)
+       yy <- z$yy
+       dyy2 <- dim(yy)[1]
+       kern2 <- switch(lkern,Uniform=as.numeric(abs(grid(dyy2,h[2]))<1),
+                            Triangle=pmax(1-grid(dyy2,h[2])^2,0),
+                            Quadratic=pmax(1-grid(dyy2,h[2])^2,0)^2,
+                            Cubic=pmax(1-grid(dyy2,h[2])^2,0)^3)/
+               switch(lkern,h[2]*beta(.5,switch(lkern,Uniform=1,
+                                                 Triangle=2,
+                                                 Quadratic=3,
+                                                 Cubic=4)))
+       yhat<-t(Re(mvfft(mvfft(yy) * fft(kern2),inv=TRUE))[z$ind,]/dyy2/sum(kern2))
+       bi <- sum(outer(kern1,kern2))*switch(lkern,h[1]*h[2]*beta(.5,switch(lkern,Uniform=1,
+                                                 Triangle=2,
+                                                 Quadratic=3,
+                                                 Cubic=4))^2)
+    }
+    if(d==3){
+      dim(y) <- c(dy[1],dy[2]*dy[3])
+      z<-extend.y(y,h[1],2)
+      yy <- z$yy
+      dyy1 <- dim(yy)[1]
+      kern1 <- switch(lkern,Uniform=as.numeric(abs(grid(dyy1,h[1]))<1),
+                            Triangle=pmax(1-grid(dyy1,h[1])^2,0),
+                            Quadratic=pmax(1-grid(dyy1,h[1])^2,0)^2,
+                            Cubic=pmax(1-grid(dyy1,h[1])^2,0)^3)/
+               switch(lkern,h[1]*beta(.5,switch(lkern,Uniform=1,
+                                                 Triangle=2,
+                                                 Quadratic=3,
+                                                 Cubic=4)))
+      yhat<-Re(mvfft(mvfft(yy) * fft(kern1),inv=TRUE))[z$ind,]/dyy1/sum(kern1)
+      dim(yhat) <- dy
+      yhat <- aperm(yhat,c(2,1,3))
+      dim(yhat) <- c(dy[2],dy[1]*dy[3])
+      z<-extend.y(yhat,h[2],2)
+      yy <- z$yy
+      dyy2 <- dim(yy)[1]
+      kern2 <- switch(lkern,Uniform=as.numeric(abs(grid(dyy2,h[2]))<1),
+                            Triangle=pmax(1-grid(dyy2,h[2])^2,0),
+                            Quadratic=pmax(1-grid(dyy2,h[2])^2,0)^2,
+                            Cubic=pmax(1-grid(dyy2,h[2])^2,0)^3)/
+               switch(lkern,h[2]*beta(.5,switch(lkern,Uniform=1,
+                                                 Triangle=2,
+                                                 Quadratic=3,
+                                                 Cubic=4)))
+      yhat<-Re(mvfft(mvfft(yy) * fft(kern2),inv=TRUE))[z$ind,]/dyy2/sum(kern2)
+      dim(yhat) <- c(dy[2],dy[1],dy[3])
+      yhat <- aperm(yhat,c(3,2,1))
+      dim(yhat) <- c(dy[3],dy[1]*dy[2])
+      z<-extend.y(yhat,h[3],2)
+      yy <- z$yy
+      dyy3 <- dim(yy)[1]
+      kern3 <- switch(lkern,Uniform=as.numeric(abs(grid(dyy3,h[3]))<1),
+                            Triangle=pmax(1-grid(dyy3,h[3])^2,0),
+                            Quadratic=pmax(1-grid(dyy3,h[3])^2,0)^2,
+                            Cubic=pmax(1-grid(dyy3,h[3])^2,0)^3)/
+               switch(lkern,h[2]*beta(.5,switch(lkern,Uniform=1,
+                                                 Triangle=2,
+                                                 Quadratic=3,
+                                                 Cubic=4)))
+      yhat<-Re(mvfft(mvfft(yy) * fft(kern3),inv=TRUE))[z$ind,]/dyy3/sum(kern3)
+      dim(yhat) <- c(dy[3],dy[1],dy[2])
+      yhat <- aperm(yhat,c(2,3,1))
+      bi <- sum(outer(outer(kern1,kern2),kern3))*switch(lkern,h[1]*h[2]*h[3]*beta(.5,switch(lkern,Uniform=1,
+                                                 Triangle=2,
+                                                 Quadratic=3,
+                                                 Cubic=3))^4)
+      }
+      bi <- array(bi,dim(y))
+      list(theta=yhat,bi=bi)
+}
+###########################################################################
+#
+#   nonadaptive 1D -- 3D smoothing on a grid (Gaussian kernel)
 #
 ###########################################################################
 gkernsm<-function (y, h = 1)
@@ -40,7 +178,7 @@ list(yy=t(yy),ind=ind)
        kern <- dnorm(grid(dyy), 0, 2 * h[1]/dyy)
        bi <- sum(kern)
        yhat<-Re(fft(fft(yy) * fft(kern),inv=TRUE))[z$ind]/dyy/bi
-       bi <- bi/dnorm(1,0,2 * h[1]/dyy)
+       bi <- bi/dnorm(0,0,2 * h[1]/dyy)
     }
     if(d==2){
        z<-extend.y(y,h[1],2)
@@ -53,7 +191,7 @@ list(yy=t(yy),ind=ind)
        dyy2 <- dim(yy)[1]
        kern2 <- dnorm(grid(dyy2), 0, 2 * h[2]/dyy2)
        yhat<-t(Re(mvfft(mvfft(yy) * fft(kern2),inv=TRUE))[z$ind,]/dyy2/sum(kern2))
-       bi <- sum(outer(kern1,kern2))/dnorm(1,0,2 * h[1]/dyy1)/dnorm(1,0,2 * h[2]/dyy2)
+       bi <- sum(outer(kern1,kern2))/dnorm(0,0,2 * h[1]/dyy1)/dnorm(0,0,2 * h[2]/dyy2)
     }
     if(d==3){
       dim(y) <- c(dy[1],dy[2]*dy[3])
@@ -80,7 +218,7 @@ list(yy=t(yy),ind=ind)
       yhat<-Re(mvfft(mvfft(yy) * fft(kern3),inv=TRUE))[z$ind,]/dyy3/sum(kern3)
       dim(yhat) <- c(dy[3],dy[1],dy[2])
       yhat <- aperm(yhat,c(2,3,1))
-      bi <- sum(outer(outer(kern1,kern2),kern3))/dnorm(1,0,2 * h[1]/dyy1)/dnorm(1,0,2 * h[2]/dyy2)/dnorm(1,0,2 * h[3]/dyy3)
+      bi <- sum(outer(outer(kern1,kern2),kern3))/dnorm(0,0,2 * h[1]/dyy1)/dnorm(0,0,2 * h[2]/dyy2)/dnorm(0,0,2 * h[3]/dyy3)
       }
       bi <- array(bi,dim(y))
       list(theta=yhat,bi=bi)

@@ -15,7 +15,10 @@ aws.gaussian2 <- function (y, hmax=4, aws=TRUE, varmodel="Constant",
   ###
   #####################################################################################    
   args <- match.call()
-  bcf <- c(-.4724,1.1969,.22167,.48691,.13731,-1.0648)
+  bcf1 <- c(-.2408,1.9618,.5945,-1.356,-0.4299,0)
+  bcf2 <- c(-.4724,1.1969,.22167,.48691,.13731,-1.0648)
+  bcf3 <- c(-.4719,0.9642,.2291,0,.0,0)
+  bcf <- cbind(bcf1,bcf2,bcf3)
 # coefficients for  bias correction for spatial correlation
   if(!(toupper(varmodel) %in% c("CONSTANT","LINEAR"))) stop("varmodel incorrect")
   nvarpar <- switch(varmodel,Constant=1,Linear=2,1)
@@ -120,9 +123,9 @@ aws.gaussian2 <- function (y, hmax=4, aws=TRUE, varmodel="Constant",
     spcorr <- spchcorr$scorr
     srh <- sqrt(hpre) 
     spcorr <- pmin(.9,spcorr+
-                          bcf[1]/srh+bcf[2]/hpre+
-                          bcf[3]*spcorr/srh+bcf[4]*spcorr/hpre+
-                          bcf[5]*spcorr^2/srh+bcf[6]*spcorr^2/hpre)
+                          bcf[1,d]/srh+bcf[2,d]/hpre+
+                          bcf[3,d]*spcorr/srh+bcf[4,d]*spcorr/hpre+
+                          bcf[5,d]*spcorr^2/srh+bcf[6,d]*spcorr^2/hpre)
     #  bias correction for spatial correlation
     cat("Estimated spatial correlation:",signif(spcorr,2),"\n")
   } else {
@@ -237,9 +240,9 @@ aws.gaussian2 <- function (y, hmax=4, aws=TRUE, varmodel="Constant",
     spcorr <- spchcorr$scorr
     srh <- sqrt(hakt) 
     spcorr <- pmin(.9,spcorr+
-                         bcf[1]/srh+bcf[2]/hakt+
-                         bcf[3]*spcorr/srh+bcf[4]*spcorr/hakt+
-                         bcf[5]*spcorr^2/srh+bcf[6]*spcorr^2/hakt)
+                         bcf[1,d]/srh+bcf[2,d]/hakt+
+                         bcf[3,d]*spcorr/srh+bcf[4,d]*spcorr/hakt+
+                         bcf[5,d]*spcorr^2/srh+bcf[6,d]*spcorr^2/hakt)
       #  bias correction for spatial correlation
       cat("Estimated spatial correlation:",signif(spcorr,2),"\n")
       } 

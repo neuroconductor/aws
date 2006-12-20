@@ -524,7 +524,7 @@ thetanew <- (1-eta)*thetanew + eta * theta
 #
 eta <- rep(0,length(thetanew))
 }
-list(theta=thetanew,bi=bi,bi2=bi2,eta=eta,fix=(eta==1))
+list(theta=thetanew,bi=bi,bi2=bi2,eta=eta,fix=(tobj$fix|eta==1))
 }
 ####################################################################################
 #
