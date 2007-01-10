@@ -304,7 +304,7 @@ C   Perform one iteration in local constant three-variate aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine caws2(y,fix,n1,n2,n3,hakt,lambda,theta,bi,bi2,
-     1                bi0,ai,model,kern,skern,spmin,spmax,lwght,wght)
+     1            bi0,ai,model,kern,skern,spmin,spmax,lwght,wght,sdiff)
 C   
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -324,7 +324,7 @@ C
       integer n1,n2,n3,model,kern,skern
       logical aws,fix(1)
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,wght(2),
-     1       bi2(1),hakt,lwght(1),spmin,spf
+     1       bi2(1),hakt,lwght(1),spmin,spf,sdiff
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3
       real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0,
@@ -341,9 +341,9 @@ C
       ih1=hakt
       if(n3.eq.1) ih3=0
       if(n2.eq.1) ih2=0
-      hakt2eff=ih1*ih1/1.160397
-      if(n3.eq.1) hakt2eff=ih1*ih1/1.25
-      if(n2.eq.1) hakt2eff=ih1*ih1/1.5625
+      hakt2eff=ih1*ih1/1.1604
+      if(n3.eq.1) hakt2eff=ih1*ih1/1.26
+      if(n2.eq.1) hakt2eff=ih1*ih1/1.57
       clw1=ih1+1
       clw2=ih2+1
       clw3=ih3+1
@@ -420,7 +420,8 @@ C  first stochastic term
                         wj=lwght(jw1+jwind2)
                         swj0=swj0+wj
                         IF (aws) THEN
-                  sij=bii*kldist(model,thetai,theta(jind),bii0)
+                           sij=bii*dmax1(kldist(model,thetai,
+     1                             theta(jind),bii0)-sdiff,0.d0)
                            IF (sij.gt.spmax) CYCLE
 			   IF (skern.eq.2) THEN
 			      wj=wj*(1.d0-sij)
@@ -438,13 +439,168 @@ C   new kernel is flat in [0,spmin] and then decays exponentially
                      END DO
                   END DO
                END DO
-               if(heff.lt.hakt2eff) fix(iind)=TRUE
+               if(heff.lt.hakt2eff) fix(iind)=.TRUE.
                ai(iind)=swjy
                bi(iind)=swj
                bi2(iind)=swj2
                bi0(iind)=swj0
                call rchkusr()
             END DO
+         END DO
+      END DO
+      RETURN
+      END
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C   Perform one iteration in local constant three-variate aws (gridded)
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      subroutine caws3(y,fix,n1,n2,hakt,lambda,theta,bi,bi2,bi0,ai,
+     1                model,kern,skern,spmin,spmax,lwght,swght)
+C   
+C   y        observed values of regression function
+C   n1,n2,n3    design dimensions
+C   hakt     actual bandwidth
+C   lambda   lambda or lambda*sigma2 for Gaussian models
+C   theta    estimates from last step   (input)
+C   bi       \sum  Wi   (output)
+C   ai       \sum  Wi Y     (output)
+C   model    specifies the probablilistic model for the KL-Distance
+C   kern     specifies the location kernel
+C   spmax    specifies the truncation point of the stochastic kernel
+C   wght     scaling factor for second and third dimension (larger values shrink)
+C   
+      implicit logical (a-z)
+      external kldist,lkern
+      real*8 kldist,lkern
+      integer n1,n2,n3,model,kern,skern
+      logical aws,fix(1)
+      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,
+     1       bi2(1),hakt,lwght(1),spmin,spf,swght(1)
+      integer ih1,ih2,i1,i2,j1,j2,jw1,jw2,jwind2,
+     1    iind,jind,jind2,clw,dlw,jwind1,
+     2    clw1m1
+      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0,
+     1       heff,hakt2eff
+      hakt2=hakt*hakt
+      spf=spmax/(spmax-spmin)
+      ih1=hakt
+      aws=lambda.lt.1d40
+C
+C   first calculate location weights
+C
+      ih2=hakt
+      hakt2eff=ih2*ih2/1.26
+      if(n2.eq.1) hakt2eff=ih2*ih2/1.563
+      clw=ih2+1
+      dlw=ih2+clw
+      z2=0.d0
+      DO j2=clw-ih2,clw+ih2
+         if(n2.gt.1) THEN
+            z2=(clw-j2)
+            z2=z2*z2
+            ih1=dsqrt(hakt2-z2)
+            jind2=(j2-1)*dlw
+	 ELSE
+	    jind2=0
+	 END IF
+         DO j1=clw-ih1,clw+ih1
+C  first stochastic term
+            jind=j1+jind2
+            z1=clw-j1
+            lwght(jind)=lkern(kern,(z1*z1+z2)/hakt2)
+         END DO
+      END DO
+      call rchkusr()
+      DO i2=1,n2
+         DO i1=1,n1
+	    iind=i1+(i2-1)*n1
+            IF (fix(iind)) CYCLE
+            heff=0.d0
+C    nothing to do, final estimate is already fixed by control 
+            thetai=theta(iind)
+            bii=bi(iind)/lambda
+C   scaling of sij outside the loop
+            bii0=bi0(iind)
+            swj=0.d0
+	    swj2=0.d0
+            swj0=0.d0
+            swjy=0.d0
+            DO jw2=clw-ih2,clw+ih2
+	       j2=jw2-clw+i2
+	       jwind2=(jw2-1)*dlw
+	       if(j2.lt.1.or.j2.gt.n2) THEN
+                  DO jw1=1,dlw
+                     swght(jw1+jwind2)=0.d0
+                  END DO
+                     CYCLE
+               END IF
+	       jind2=(j2-1)*n1
+               z2=(clw-jw2)
+               z2=z2*z2
+               ih1=dsqrt(hakt2-z2)
+               DO jw1=clw-ih1,clw+ih1
+C  first stochastic term
+	          j1=jw1-clw+i1
+	          if(j1.lt.1.or.j1.gt.n1) CYCLE
+                  jind=j1+jind2
+                  z1=(clw-jw1)
+                  z1=z2+z1*z1
+                  jwind1=jw1+jwind2
+                  IF (aws) THEN
+                     sij=bii*kldist(model,thetai,theta(jind),bii0)
+                     IF (sij.gt.spmax) THEN
+                        swght(jwind1)=0.d0
+                     ELSE
+	                IF (skern.eq.2) THEN
+			   swght(jwind1)=lwght(jwind1)*(1.d0-sij)
+		        ELSE
+			   IF (sij.gt.spmin) swght(jwind1)=
+     1                         lwght(jwind1)*dexp(-spf*(sij-spmin))
+			END IF
+                     END IF
+C   if sij <= spmin  this just keeps the location penalty
+C    spmin = 0 corresponds to old choice of K_s 
+C   new kernel is flat in [0,spmin] and then decays exponentially
+                  ELSE
+                     swght(jwind1)=lwght(jwind1)
+                  END IF
+               END DO
+            END DO
+            if(dlw.gt.1) call chkwght2(swght,dlw,clw)
+            DO jw2=clw-ih2,clw+ih2
+	       j2=jw2-clw+i2
+	       if(j2.lt.1.or.j2.gt.n2) CYCLE
+	       jwind2=(jw2-1)*dlw
+	       jind2=(j2-1)*n1
+               z2=(clw-jw2)
+               z2=z2*z2
+               ih1=dsqrt(hakt2-z2)
+               DO jw1=clw-ih1,clw+ih1
+C  first stochastic term
+	          j1=jw1-clw+i1
+	          if(j1.lt.1.or.j1.gt.n1) CYCLE
+                  jind=j1+jind2
+                  z1=(clw-jw1)
+                  z1=z2+z1*z1
+                  wj=swght(jw1+jwind2)
+                  IF(wj.le.0.d0) CYCLE
+                  heff=dmax1(heff,z1)
+                  swj0=swj0+wj
+                  swj=swj+wj
+                  swj2=swj2+wj*wj
+                  swjy=swjy+wj*y(jind)
+               END DO
+            END DO
+C            call dblepr("heff",4,heff,1)
+C            call dblepr("hakt2eff",8,hakt2eff,1)
+C            call dblepr("swght",5,swght,dlw*dlw)
+            if(heff.lt.hakt2eff) fix(iind)=.TRUE.
+            ai(iind)=swjy
+            bi(iind)=swj
+            bi2(iind)=swj2
+            bi0(iind)=swj0
+            call rchkusr()
          END DO
       END DO
       RETURN
@@ -859,3 +1015,41 @@ c
       RETURN
       END
 
+      subroutine chkwght2(sw,dlw,clw)
+      integer dlw
+      real*8 sw(dlw,dlw),w
+      integer clw,i1,i2,j1,j2,k
+      i1=clw
+      i2=clw
+      DO k=1,clw-1
+         j1=i1+k
+         DO j2=i2-k+1,i2+k-1
+            IF(dmax1(sw(j1-1,j2),sw(j1-1,j2-1),sw(j1-1,j2+1)).le.0.d0)
+     1         sw(j1,j2)=0.d0
+         END DO
+         j1=i1-k
+         DO j2=i2-k+1,i2+k-1
+            IF(dmax1(sw(j1+1,j2),sw(j1+1,j2-1),sw(j1+1,j2+1)).le.0.d0)
+     1         sw(j1,j2)=0.d0
+         END DO
+         j2=i2+k
+         DO j2=i2-k+1,i2+k-1
+            IF(dmax1(sw(j1,j2-1),sw(j1-1,j2-1),sw(j1+1,j2-1)).le.0.d0)
+     1         sw(j1,j2)=0.d0
+         END DO
+         j2=i2-k
+         DO j2=i2-k+1,i2+k-1
+            IF(dmax1(sw(j1,j2-1),sw(j1-1,j2-1),sw(j1+1,j2-1)).le.0.d0)
+     1         sw(j1,j2)=0.d0
+         END DO
+         IF(dmax1(sw(i1+k-1,i2+k),sw(i1+k,i2+k-1)).le.0.d0) 
+     1                      sw(i1+k,i2+k)=0.d0 
+         IF(dmax1(sw(i1-k+1,i2+k),sw(i1-k,i2+k-1)).le.0.d0) 
+     1                      sw(i1-k,i2+k)=0.d0 
+         IF(dmax1(sw(i1+k-1,i2-k),sw(i1+k,i2-k+1)).le.0.d0) 
+     1                      sw(i1+k,i2-k)=0.d0 
+         IF(dmax1(sw(i1-k+1,i2-k),sw(i1-k,i2-k+1)).le.0.d0) 
+     1                      sw(i1-k,i2-k)=0.d0 
+      END DO
+      RETURN
+      END

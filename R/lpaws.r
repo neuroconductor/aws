@@ -27,7 +27,8 @@
 #   Local polynomal AWS (Gaussian case on a grid) max. polynomial degree 2  
 #
 ##############################################################################
-lpaws <- function(y,degree=1,hmax=NULL,qlambda=NULL,qtau=NULL,lkern="Triangle",skern="Triangle",
+lpaws <- function(y,degree=1,hmax=NULL,qlambda=NULL,qtau=NULL,lkern="Triangle",
+                  skern="Triangle",
                   aggkern="Uniform",sigma2=NULL,hinit=NULL,hw=NULL,
                   lseq=NULL,u=NULL,graph=FALSE,demo=FALSE,spmin=0,spmax=5)
 { 
@@ -94,7 +95,7 @@ if(d==1){
 #
 #  update theta (memory step)
 #
-updtheta <- function(d,zobj,tobj,cpar,aggkern){
+updtheta <- function(d,zobj,fix,cpar,aggkern,bikm2,bi2km2,theta){
     heta <- cpar$heta
     tau1 <- cpar$tau1
     tau2 <- cpar$tau2
@@ -103,25 +104,30 @@ updtheta <- function(d,zobj,tobj,cpar,aggkern){
     tau <- 2*(tau1+tau2*max(kstar-log(hakt),0))
     bi <- zobj$bi
     bi2 <- zobj$bi2
-    bi0 <- zobj$bi0
     thetanew <- gettheta(d,zobj$ai,bi)
-    theta <- tobj$theta
-    dim(theta)<-dim(thetanew)
-    n<-length(tobj$fix)
-    thetanew[array(tobj$fix,dim(thetanew))] <- theta[rep(tobj$fix,dp1)]
+    n<-length(fix)
+    if(any(fix)) thetanew[array(fix,dim(thetanew))] <- theta[rep(fix,dp1)]
+    if(max(bikm2)<1) heta <- 1e40
+#  we don't have initializations for bikm2 and theta 
     if (hakt>heta) {
-	eta <- rep(pmin(1,Pardist(d,bi0,thetanew-theta)/tau),dp2)
+	eta <- rep(pmin(1,Pardist(d,bikm2,thetanew-theta)/tau),dp2)
     } else {
         eta <- rep(0,n*dp2)
     }
-    if(any(tobj$fix)) eta[rep(tobj$fix,dp2)] <- 1
-    bi <- (1-eta)*bi + eta * tobj$bi
-    bi2 <- (1-eta)*bi2 + eta * tobj$bi2
-    eta <- array(eta[1:n],dim(theta))
-    theta <- (1-eta)*thetanew + eta * theta
+    if(any(fix)) eta[rep(fix,dp2)] <- 1
+    if(any(eta>0)){
+       bi <- (1-eta)*bi + eta * bikm2
+       bi2 <- (1-eta)*bi2 + eta * bi2km2
+       eta <- array(eta[1:n],dim(theta))
+       theta <- (1-eta)*thetanew + eta * theta
+       eta <- eta[1:n]
+       if(d==2) dim(eta) <- dim(theta)[1:2]
+    } else {
+      theta <- thetanew
+    }
     eta <- eta[1:n]
     if(d==2) dim(eta) <- dim(theta)[1:2]
-    list(theta=theta,bi=bi,bi2=bi2,eta=eta,fix=(eta==1))
+    list(theta=theta,bi=bi,bi2=bi2,eta=eta,fix=as.vector(eta==1))
   }
 #
 #          Main function body
@@ -170,15 +176,13 @@ if(is.null(qlambda)) qlambda <-switch(d,
     if (aggkern=="Triangle") tau1 <- 2.5*tau1
     tau2 <- tau1/2
   } else {
-    if (is.null(qtau)) qtau<-switch(d,
-                                    switch( degree+1,.99,.9999999999,.99),
-                                    switch( degree+1,.99,.99,.99))
+    if (is.null(qtau)) qtau<-switch(degree+1,1,.68,.86)
     if (qtau>=1) {
       tau1 <- 1e50 
       heta <- 1e40
     } else {
-      tau1 <- 10*qchisq(qtau,dp2)
-      heta <- degree+3
+      tau1 <- qchisq(qtau,degree+1)^(2/d)
+      heta <- 1.25^((degree+2)/d)
     }
     if (aggkern=="Triangle") tau1 <- 2.5*tau1
     tau2 <- tau1/2
@@ -218,8 +222,14 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
       cpar$tau2 <- cpar$tau2*2 
       sigma2 <- 1/sigma2 #  taking the invers yields simpler formulaes 
     }
-  tobj <- list(bi= rep(1,n*dp2), bi2= rep(1,n*dp2), theta= rep(0,n*dp1), fix=rep(FALSE,n))
+#  tobj <- list(bi= rep(1,n*dp2), bi2= rep(1,n*dp2), theta= rep(0,n*dp1), fix=rep(FALSE,n))
   bi0old <- rep(1,n*dp2)
+  bi <- array(rep(1,n*dp2),c(switch(d,n,dy),dp2))
+  bi2 <- array(rep(0,n*dp2),c(switch(d,n,dy),dp2))
+  bikm1 <- array(rep(1,n*dp2),c(switch(d,n,dy),dp2))
+  bi2km1 <- array(rep(0,n*dp2),c(switch(d,n,dy),dp2))
+  theta <- thetakm1 <- array(rep(0,n*dp1),c(switch(d,n,dy),dp1))
+  fix <- rep(FALSE,n)
   ind <- switch(d,
                 matrix(c(1, 2, 3,
                          2, 3, 4, 
@@ -251,14 +261,14 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
                      .Fortran("awsph1",
 		       as.double(y),
                        as.double(sigma2),
-                       as.logical(tobj$fix),
+                       as.logical(fix),
                        as.integer(n),
                        as.integer(degree),
 		       as.double(hw),
                        hakt=as.double(hakt),
                        as.double(lambda0),
-                       as.double(tobj$theta),
-                       bi=as.double(tobj$bi),
+                       as.double(theta),
+                       bi=as.double(bi),
                        bi2=double(n*dp2),
                        bi0=double(n*dp2),
                        ai=double(n*dp1),
@@ -275,15 +285,15 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
                      .Fortran("awsph2",
 		       as.double(y),
                        as.double(sigma2),
-                       as.logical(tobj$fix),
+                       as.logical(fix),
                        as.integer(n1),
                        as.integer(n2),
                        as.integer(degree),
 		       as.double(hw),
                        hakt=as.double(hakt),
                        as.double(lambda0),
-                       as.double(tobj$theta),
-                       bi=as.double(tobj$bi),
+                       as.double(theta),
+                       bi=as.double(bi),
                        bi2=double(n*dp2),
                        bi0=double(n*dp2),
                        ai=double(n*dp1),
@@ -302,14 +312,14 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
       zobj <- switch(d,
                      .Fortran("awsp1",
 		       as.double(y),
-                       as.logical(tobj$fix),
+                       as.logical(fix),
                        as.integer(n),
                        as.integer(degree),
 		       as.double(hw),
                        hakt=as.double(hakt),
                        as.double(lambda0),
-                       as.double(tobj$theta),
-                       bi=as.double(tobj$bi),
+                       as.double(theta),
+                       bi=as.double(bi),
                        bi2=double(n*dp2),
                        bi0=double(n*dp2),
                        ai=double(n*dp1),
@@ -325,15 +335,15 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt")],
                      .Fortran("awsp2",
 		       as.double(y),
-                       as.logical(tobj$fix),
+                       as.logical(fix),
                        as.integer(n1),
                        as.integer(n2),
                        as.integer(degree),
 		       as.double(hw),
                        hakt=as.double(hakt),
                        as.double(lambda0),
-                       as.double(tobj$theta),
-                       bi=as.double(tobj$bi),
+                       as.double(theta),
+                       bi=as.double(bi),
                        bi2=double(n*dp2),
                        bi0=double(n*dp2),
                        ai=double(n*dp1),
@@ -353,37 +363,54 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
     if (hakt>n^(1/d)/2) zobj$bi0 <- hincr^d*biold
     biold <- zobj$bi0
     dim(zobj$bi0)<-c(switch(d,n,dy),dp2)
-    tobj <- updtheta(d,zobj,tobj,cpar,aggkern)
+    tobj <- updtheta(d,zobj,fix,cpar,aggkern,bikm1,bi2km1,thetakm1)
     rm(zobj)
     gc()
     dim(tobj$theta) <- c(switch(d,n,dy),dp1)
     dim(tobj$bi) <- c(switch(d,n,dy),dp2)
+    dim(tobj$bi2) <- c(switch(d,n,dy),dp2)
     dim(tobj$eta) <- switch(d,NULL,dy)
+     fix <- tobj$fix
+#    if(any(tobj$fix)) {
+       dim(bikm1)<-dim(bi2km1)<-dim(bi)<-dim(bi2) <- c(n,dp2)
+       dim(thetakm1)<-dim(theta) <- c(n,dp1)
+       bikm1[!fix,] <- bi[!fix,]
+       bi2km1[!fix,] <- bi2[!fix,]
+       thetakm1[!fix,] <- theta[!fix,]
+       dim(bikm1)<-dim(bi2km1)<-dim(bi)<-dim(bi2) <- c(switch(d,n,dy),dp2)
+       dim(thetakm1)<-dim(theta) <- c(switch(d,n,dy),dp1)
+#    }
+    bi <- tobj$bi
+    bi2 <- tobj$bi2
+    theta <- tobj$theta
+    eta <- tobj$eta
+    rm(tobj)
+    gc()
     if (graph) {
       if(d==1){
       oldpar<-par(mfrow=c(1,2),mar=c(3,3,3,.25),mgp=c(2,1,0))
       plot(y)
-      lines(tobj$theta[,1],col=2)
+      lines(theta[,1],col=2)
       title("Observed data and estimate")
-      plot(tobj$bi[,1],type="l",ylim=c(0,max(tobj$bi[,1])))
-      lines(tobj$eta*max(tobj$bi[,1]),col=2)
+      plot(bi[,1],type="l",ylim=c(0,max(bi[,1])))
+      lines(eta*max(bi[,1]),col=2)
       title(paste("hakt=",signif(hakt,3),"bi and eta"))
       } else {
       oldpar<-par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
       image(y,xaxt="n",yaxt="n",col=gray((0:255)/255))
       title("Observed Image")
-      image(tobj$theta[,,1],xaxt="n",yaxt="n",col=gray((0:255)/255))
-      title(paste("Reconstruction  h=",signif(hakt,3)," Range ",signif(min(tobj$theta[,,1]),3),"-",signif(max(tobj$theta[,,1]),3)))
-      image(tobj$bi[,,1],xaxt="n",yaxt="n",col=gray((0:255)/255))
-      title(paste("Sum of weights: min=",signif(min(tobj$bi[,,1]),3)," mean=",signif(mean(tobj$bi[,,1]),3)," max=",signif(max(tobj$bi[,,1]),3)))
-      image(tobj$eta,xaxt="n",yaxt="n",col=gray((0:255)/255))
-      title(paste("eta   max=",signif(max(tobj$eta),3)))
+      image(theta[,,1],xaxt="n",yaxt="n",col=gray((0:255)/255))
+      title(paste("Reconstruction  h=",signif(hakt,3)," Range ",signif(min(theta[,,1]),3),"-",signif(max(theta[,,1]),3)))
+      image(bi[,,1],xaxt="n",yaxt="n",col=gray((0:255)/255))
+      title(paste("Sum of weights: min=",signif(min(bi[,,1]),3)," mean=",signif(mean(bi[,,1]),3)," max=",signif(max(bi[,,1]),3)))
+      image(eta,xaxt="n",yaxt="n",col=gray((0:255)/255))
+      title(paste("eta   max=",signif(max(eta),3)))
     }
     par(oldpar)
     }
     if (!is.null(u)) {
-      th <- switch(d,tobj$theta[,1],tobj$theta[,,1])
-       cat("bandwidth: ",signif(hakt,3),"eta==1",sum(tobj$eta==1),"   MSE: ",
+      th <- switch(d,theta[,1],theta[,,1])
+       cat("bandwidth: ",signif(hakt,3),"eta==1",sum(eta==1),"   MSE: ",
           signif(mean((th-u)^2),3),"   MAE: ",signif(mean(abs(th-u)),3),"\n")
       mae<-c(mae,signif(mean(abs(th-u)),3))
     }
@@ -396,16 +423,16 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
   ###                                                                       
   ###            end cases                                                  
   ###                                 
-  ###   component var contains an estimate of Var(tobj$theta) if and aggkern="Uniform", or if qtau1=1 
+  ###   component var contains an estimate of Var(theta) if and aggkern="Uniform", or if qtau1=1 
   ###   
   if (length(sigma2)==n) {
     # heteroskedastic Gaussian case 
-    vartheta <- tobj$bi2/tobj$bi^2
+    vartheta <- bi2/bi^2
   } else {
-    vartheta <- sigma2[1]*tobj$bi2/tobj$bi^2
+    vartheta <- sigma2[1]*bi2/bi^2
   }
-  z <- list(theta=tobj$theta,
-            ni=switch(d,tobj$bi[,1],tobj$bi[,,1]),
+  z <- list(theta=theta,
+            ni=switch(d,bi[,1],bi[,,1]),
 	    sigma2=sigma2,
             var=vartheta,
             hmax=hakt/hincr,
