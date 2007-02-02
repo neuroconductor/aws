@@ -26,8 +26,10 @@ if(ifamily==4) lines(x,-u,col=2, lwd=2)
 hmax <- readline("Maximal bandwidth:\n Press 'Enter' for hmax=250, otherwise provide value of hmax:")
 if(is.na(as.numeric(hmax))) hmax <- 250 else hmax <- as.numeric(hmax)
 if(hmax <= 1) hmax <- 250
+spmin <- readline("Kernel form:\n Press 'Enter' for spmin=0, otherwise provide value of spmin:")
+if(is.na(as.numeric(spmin))) spmin <- 0 else spmin <- pmax(0,pmin(1,as.numeric(spmin)))
 cat("Run aws \n")
-yhat <- aws(y,hmax=hmax,family=family,graph=TRUE)
+yhat <- aws(y,hmax=hmax,family=family,graph=TRUE,spmin=spmin,qtau=1)
 readline("Press ENTER to show results")
 if(ifamily==4) {
 y <- abs(y)

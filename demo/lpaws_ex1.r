@@ -23,12 +23,14 @@ if(!(degree %in% 0:2)) degree <- 2
 hmax <- readline("Maximal bandwidth:\n Press 'Enter' for hmax=300, otherwise provide value of hmax:")
 if(is.na(as.numeric(hmax))) hmax <- 250 else hmax <- as.numeric(hmax)
 if(hmax <= 1) hmax <- 250
+spmin <- readline("Kernel form:\n Press 'Enter' for default, otherwise provide value of spmin:")
+if(is.na(as.numeric(spmin))) spmin <- NULL else spmin <- pmax(0,pmin(1,as.numeric(spmin)))
 qtau <- readline("Memory control(N/Y) :")
 if(qtau %in% c("n","N")) qtau <- 1 else qtau <- NULL
 risk <- readline("Report risks (N/Y):")
 if(risk %in% c("y","Y")) uu <-u else uu <- NULL
 cat("Run aws \n")
-yhat <- lpaws(y,degree=degree,hmax=hmax,graph=TRUE,qtau=qtau,u=uu)
+yhat <- lpaws(y,degree=degree,hmax=hmax,graph=TRUE,qtau=qtau,u=uu,spmin=spmin)
 readline("Press ENTER to show results")
 plot(x,u,type="l",col=2,ylim=range(u,y,yhat$theta[,1]),lwd=2)
 points(x,y)

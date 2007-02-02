@@ -28,9 +28,9 @@
 #
 ##############################################################################
 lpaws <- function(y,degree=1,hmax=NULL,qlambda=NULL,qtau=NULL,lkern="Triangle",
-                  skern="Triangle",
+                  homogen=TRUE,earlystop=TRUE,
                   aggkern="Uniform",sigma2=NULL,hinit=NULL,hw=NULL,
-                  lseq=NULL,u=NULL,graph=FALSE,demo=FALSE,spmin=0,spmax=5)
+                  lseq=NULL,u=NULL,graph=FALSE,demo=FALSE,spmin=.25)
 { 
 #
 #          Auxilary functions
@@ -135,7 +135,6 @@ updtheta <- function(d,zobj,fix,cpar,aggkern,bikm2,bi2km2,theta){
 #    first check arguments and initialize                                 
 #
 args <- match.call()
-if(is.null(spmax)) spmax <- 5
 mae <- NULL
 #
 #     set approriate defaults
@@ -157,10 +156,14 @@ dp2 <- switch( degree+1,1,6,15)
 }
 lkern<-switch(lkern,Triangle=2,Quadratic=3,Cubic=4,Uniform=1,
 	            Gaussian=5,2)
-skern <- switch(skern,"Exp"=1,"Triangle"=2,2)
 if(is.null(qlambda)) qlambda <-switch(d,
                                      switch( degree+1,.98,.92,.92),
                                      switch( degree+1,.96,.75,.92))
+if(earlystop) nfix <- switch(d,
+                             switch(degree+1,2,5,20),
+                             switch(degree+1,2,3,4)) else nfix <- n
+if(is.null(spmin)) spmin <- switch(degree+1,.3,.25,.25)
+if(spmin<0|spmin>1) spmin <- switch(degree+1,.3,.25,.25)
   if (qlambda>=1) {
     # thats stagewise aggregation with kernel specified by aggkern
     if(is.null(qtau)) qtau <- switch(d,
@@ -189,12 +192,7 @@ if(is.null(qlambda)) qlambda <-switch(d,
   }
   cat("tau1",tau1,"\n")
   if (qlambda<1) lambda <- qchisq(qlambda,dp1) else lambda <- 1e50
-if(skern==2) {
    lambda<-lambda*2
-   spmax <- 1
-   } else {
-   if(is.null(spmax)) spmax <- 5
-   }
 cat("Value of lambda",lambda,"\n")
 if(is.null(hinit)) hinit <- 1 
 hincr <- 1.25^(1/d)
@@ -229,6 +227,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
   bikm1 <- array(rep(1,n*dp2),c(switch(d,n,dy),dp2))
   bi2km1 <- array(rep(0,n*dp2),c(switch(d,n,dy),dp2))
   theta <- thetakm1 <- array(rep(0,n*dp1),c(switch(d,n,dy),dp1))
+  hhom <- rep(1,n)
   fix <- rep(FALSE,n)
   ind <- switch(d,
                 matrix(c(1, 2, 3,
@@ -262,10 +261,12 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
 		       as.double(y),
                        as.double(sigma2),
                        as.logical(fix),
+                       as.integer(nfix),
                        as.integer(n),
                        as.integer(degree),
 		       as.double(hw),
                        hakt=as.double(hakt),
+                       hhom=as.double(hhom),
                        as.double(lambda0),
                        as.double(theta),
                        bi=as.double(bi),
@@ -273,9 +274,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
                        bi0=double(n*dp2),
                        ai=double(n*dp1),
                        as.integer(lkern),
-                       as.integer(skern),
                        as.double(spmin),
-                       as.double(spmax),
                        double(twohp1),# array for location weights
                        double(twohp1),# array for general weights
                        double(twohhwp1),# array for smoothed location weights
@@ -298,25 +297,25 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
                        bi0=double(n*dp2),
                        ai=double(n*dp1),
                        as.integer(lkern),
-                       as.integer(skern),
                        as.double(spmin),
-                       as.double(spmax),
                        double(twohp1*twohp1),# array for location weights
                        double(twohp1*twohp1),# array for general weights
                        double(twohhwp1*twohhwp1),# array for smoothed location weights
                        double(twohhwp1*twohhwp1),# array for smoothed general weights
                        as.integer(ind),
-                       PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt")])
+                       PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")])
     } else {
       # all other cases
       zobj <- switch(d,
                      .Fortran("awsp1",
 		       as.double(y),
-                       as.logical(fix),
+                       fix=as.logical(fix),
+                       as.integer(nfix),
                        as.integer(n),
                        as.integer(degree),
 		       as.double(hw),
                        hakt=as.double(hakt),
+                       hhom=as.double(hhom),
                        as.double(lambda0),
                        as.double(theta),
                        bi=as.double(bi),
@@ -324,15 +323,13 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
                        bi0=double(n*dp2),
                        ai=double(n*dp1),
                        as.integer(lkern),
-                       as.integer(skern),
                        as.double(spmin),
-                       as.double(spmax),
                        double(twohp1),# array for location weights
                        double(twohp1),# array for general weights
                        double(twohhwp1),# array for smoothed location weights
                        double(twohhwp1),# array for smoothed general weights
                        as.integer(ind),
-                       PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt")],
+                       PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")],
                      .Fortran("awsp2",
 		       as.double(y),
                        as.logical(fix),
@@ -348,9 +345,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
                        bi0=double(n*dp2),
                        ai=double(n*dp1),
                        as.integer(lkern),
-                       as.integer(skern),
                        as.double(spmin),
-                       as.double(spmax),
                        double(twohp1*twohp1),# array for location weights
                        double(twohp1*twohp1),# array for general weights
                        double(twohhwp1*twohhwp1),# array for smoothed location weights
@@ -363,15 +358,17 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
     if (hakt>n^(1/d)/2) zobj$bi0 <- hincr^d*biold
     biold <- zobj$bi0
     dim(zobj$bi0)<-c(switch(d,n,dy),dp2)
+    if(!homogen) zobj$hhom<-rep(1,n)
     tobj <- updtheta(d,zobj,fix,cpar,aggkern,bikm1,bi2km1,thetakm1)
+    if(!is.null(zobj$hhom)) hhom <- zobj$hhom else hhom<-rep(1,n)
+    fix <- tobj$fix
+    fix[zobj$fix] <- TRUE
     rm(zobj)
     gc()
     dim(tobj$theta) <- c(switch(d,n,dy),dp1)
     dim(tobj$bi) <- c(switch(d,n,dy),dp2)
     dim(tobj$bi2) <- c(switch(d,n,dy),dp2)
     dim(tobj$eta) <- switch(d,NULL,dy)
-     fix <- tobj$fix
-#    if(any(tobj$fix)) {
        dim(bikm1)<-dim(bi2km1)<-dim(bi)<-dim(bi2) <- c(n,dp2)
        dim(thetakm1)<-dim(theta) <- c(n,dp1)
        bikm1[!fix,] <- bi[!fix,]
@@ -379,7 +376,6 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
        thetakm1[!fix,] <- theta[!fix,]
        dim(bikm1)<-dim(bi2km1)<-dim(bi)<-dim(bi2) <- c(switch(d,n,dy),dp2)
        dim(thetakm1)<-dim(theta) <- c(switch(d,n,dy),dp1)
-#    }
     bi <- tobj$bi
     bi2 <- tobj$bi2
     theta <- tobj$theta
@@ -394,7 +390,8 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
       title("Observed data and estimate")
       plot(bi[,1],type="l",ylim=c(0,max(bi[,1])))
       lines(eta*max(bi[,1]),col=2)
-      title(paste("hakt=",signif(hakt,3),"bi and eta"))
+      lines(hhom/max(hhom)*max(bi[,1]),col=3)
+      title(paste("hakt=",signif(hakt,3),"bi,eta and hhom"))
       } else {
       oldpar<-par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
       image(y,xaxt="n",yaxt="n",col=gray((0:255)/255))
@@ -411,7 +408,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
     if (!is.null(u)) {
       th <- switch(d,theta[,1],theta[,,1])
        cat("bandwidth: ",signif(hakt,3),"eta==1",sum(eta==1),"   MSE: ",
-          signif(mean((th-u)^2),3),"   MAE: ",signif(mean(abs(th-u)),3),"\n")
+          signif(mean((th-u)^2),3),"   MAE: ",signif(mean(abs(th-u)),3),"mean hhom",signif(mean(hhom),3),"\n")
       mae<-c(mae,signif(mean(abs(th-u)),3))
     }
     if (demo) readline("Press return")

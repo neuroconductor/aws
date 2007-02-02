@@ -30,7 +30,7 @@
 aws <- function(y,hmax=NULL,qlambda=NULL,qtau=NULL,family="Gaussian",
                 sigma2=NULL,scorr=0,shape=NULL,wghts=NULL,graph=FALSE,demo=FALSE,
 		lkern="Triangle",skern="Triangle",aggkern="Uniform",
-		spmin=0,spmax=5,lseq=NULL,u=NULL,testprop=FALSE)
+		spmin=0,homogen=TRUE,spmax=5,lseq=NULL,u=NULL,testprop=FALSE)
 {
 #
 #    first check arguments and initialize
@@ -85,7 +85,7 @@ hinit<-hinit/wghts[1]
 hmax<-hmax/wghts[1]
 wghts<-(wghts[2:3]/wghts[1])
 tobj<-list(bi= rep(1,n), bi2= rep(1,n), theta= y/shape, fix=rep(FALSE,n))
-zobj<-list(ai=y, bi0= rep(1,n))
+zobj<-list(ai=y, bi0= rep(1,n), hhom=rep(1,n))
 biold<-rep(1,n)
 if(family=="Gaussian"&length(sigma2)==n) vred<-rep(1,n)
 mae<-NULL
@@ -144,6 +144,7 @@ zobj <- .Fortran("caws",as.double(y),
                        as.integer(n2),
                        as.integer(n3),
                        hakt=as.double(hakt),
+                       hhom=as.double(zobj$hhom),
                        as.double(lambda0),
                        as.double(tobj$theta),
                        bi=as.double(tobj$bi),
@@ -157,7 +158,7 @@ zobj <- .Fortran("caws",as.double(y),
 		       as.double(spmax),
 		       double(prod(dlw)),
 		       as.double(wghts),
-		       PACKAGE="aws",DUP=FALSE)[c("bi","bi0","bi2","ai","hakt")]
+		       PACKAGE="aws",DUP=FALSE)[c("bi","bi0","bi2","ai","hakt","hhom")]
 }
 if(family%in%c("Bernoulli","Poisson")) zobj<-regularize(zobj,family)
 dim(zobj$ai)<-dy
@@ -167,6 +168,7 @@ tobj<-updtheta(zobj,tobj,cpar)
 dim(tobj$theta)<-dy
 dim(tobj$bi)<-dy
 dim(tobj$eta)<-dy
+if(!homogen) zobj$hhom<-rep(1,n)
 #
 #  if testprop == TRUE
 #  check alpha in propagation condition (to adjust qlambda and lseq)
@@ -184,7 +186,8 @@ lines(tobj$theta,lwd=2)
 title(paste("Reconstruction  h=",signif(hakt,3)))
 plot(tobj$bi,type="l",ylim=range(0,tobj$bi))
 lines(tobj$eta*max(tobj$bi),col=2)
-title("Sum of weights and eta")
+lines(zobj$hhom/max(zobj$hhom)*max(tobj$bi),col=3)
+title("Sum of weights, eta and hhom")
 } 
 if(d==2){ 
 oldpar<-par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
@@ -219,7 +222,7 @@ if(!is.null(u)) {
    cat("bandwidth: ",signif(hakt,3),"eta==1",sum(tobj$eta==1),"   MSE: ",
                     signif(mean((tobj$theta-u)^2),3),"   MAE: ",
 		    signif(mean(abs(tobj$theta-u)),3)," mean(bi)=",
-		    signif(mean(tobj$bi),3),"\n")
+		    signif(mean(tobj$bi),3),"mean hhom",signif(mean(zobj$hhom),3),"\n")
    mae<-c(mae,signif(mean(abs(tobj$theta-u)),3))
 		    }
 if(demo) readline("Press return")
@@ -275,10 +278,10 @@ z
 #######################################################################################
 setawsdefaults <- function(dy,meany,family,skern,aggkern,qlambda,qtau,lseq,hmax,shape,spmax){
 hinit <- 1
-if(!is.null(qlambda)&&qlambda<.9){
-   cat("Inappropriate value of qlambda, using defaults")
-   qlambda <- NULL
-}
+#if(!is.null(qlambda)&&qlambda<.9){
+#   cat("Inappropriate value of qlambda, using defaults")
+#   qlambda <- NULL
+#}
 #
 #   univariate case
 #
@@ -638,6 +641,7 @@ pobj <- .Fortran("caws",as.double(y),
                        as.integer(cpar$n2),
                        as.integer(cpar$n3),
                        hakt=as.double(hakt),
+                       hhom=as.double(zobj$hhom),
                        as.double(1e40),
                        as.double(tobj$theta),
                        bi=as.double(tobj$bi),
@@ -654,7 +658,8 @@ pobj <- .Fortran("caws",as.double(y),
 		       PACKAGE="aws",DUP=FALSE)[c("bi","ai","hakt")]
 }
 if(family%in%c("Bernoulli","Poisson")) pobj<-regularize(pobj,family)
-ptheta <- array(pobj$ai/pobj$bi,dim(y)) 
+ptheta <- pobj$ai/pobj$bi
+dim(ptheta) <- dim(y) 
 narisk <- sum(abs(ptheta-u))
 if(narisk==0) narisk<-1e10
 propagation <- c(propagation,sum(abs(tobj$theta-ptheta))/narisk)
