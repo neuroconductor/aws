@@ -388,8 +388,8 @@ C
 C   Perform one iteration in local polynomial  aws (gridded), 2D
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine awsp2(y,fix,n1,n2,degr,hw,hakt,lambda,theta,bi,
-     1              bi2,bi0,ai,kern,spmin,lw,w,slw,sw,ind)
+      subroutine awsp2(y,fix,nfix,n1,n2,degr,hw,hakt,hhom,lambda,
+     1              theta,bi,bi2,bi0,ai,kern,spmin,lw,w,slw,sw,ind)
 C   
 C   y        observed values of regression function
 C   fix      logical TRUE fro points where we have nothing to do
@@ -413,21 +413,25 @@ C
       implicit logical (a-z)
       external kldistp,lkern
       real*8 kldistp,lkern
-      integer n1,n2,kern,degr,ind(1)
-      logical aws,fix(1)
+      integer n1,n2,kern,degr,ind(1),nfix
+      logical aws,fix(1),lfix
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmin,
-     1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1)
+     1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),hhom(1)
       integer ih,ih1,i1,i2,j1,j2,k,n,
      1        iind,jind,jind2,jwind,jwind2,dlw,clw,jw1,jw2,
      2        dp1,dp2,ihs,csw,dsw,l,dlw2
       real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
-     1       hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf
+     1       hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf,hhomi,
+     2       hhommax,hfix,az1,hfixmax,hnfix
 C   arrays with variable length are organized as 
 C   theta(n1,n2,dp1)
 C   bi(n1,n2,dp2)
 C   arrays of fixed length correspond to degr=2
 C   first set dimensions for arrays depending on degree
       aws=lambda.lt.1.d20
+      lfix=nfix.gt.(degr+1)
+      hnfix=nfix
+C      hnfix=dmax1(hnfix,.2d0*hakt)
       spf=1.d0/(1.d0-spmin)
       if(degr.eq.0) THEN
          dp1=1
@@ -473,6 +477,10 @@ C  now stochastic term
             iind=i1+(i2-1)*n1
             IF (fix(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
+            hhomi=hhom(iind)
+            hhomi=hhomi*hhomi-1
+            hhommax=hakt2
+            hfixmax=hhomi
             DO k=1,dp2
                bii(k)=bi(iind+(k-1)*n)/lambda
 	    END DO
@@ -502,13 +510,14 @@ C  get directional differences that only depend on i2-j2
 		  jwind=jw1+jwind2
 		  wj=lw(jwind)
                   z1=jw1-clw
+                  az1=z1*z1+z2*z2
 C  get rest of directional differences 
-                  IF(dp1.gt.1) THEN
-		     zz(2)=z1
-		     zz(4)=z1*z1
-		     zz(5)=z1*z2
-                  END IF
-                  IF (aws) THEN
+                  IF (aws.and.az1.gt.hhomi) THEN
+                     IF(dp1.gt.1) THEN
+		        zz(2)=z1
+		        zz(4)=z1*z1
+		        zz(5)=z1*z2
+                     END IF
 		     DO k=1,dp1
 		        thij(k)=theta(jind+(k-1)*n)
 		     END DO
@@ -529,12 +538,19 @@ C
                      END DO
                      sij=kldistp(dp1,thij,bii,ind)
                      IF (sij.le.1.d0) THEN
-		        w(jwind)=wj*(1.d0-sij)
+                        hfixmax=dmax1(hfixmax,az1)
+                        IF (sij.gt.spmin) THEN
+                           w(jwind)=wj*(1.d0-spf*(sij-spmin))
+                           hhommax=dmin1(hhommax,az1)
+                        ELSE 
+                           w(jwind)=wj
+                        END IF
 		     ELSE 
 			w(jwind)=0.d0
+                        hhommax=dmin1(hhommax,az1)
 		     END IF
 		  ELSE
-		     w(jwind)=wj		     
+		     w(jwind)=wj
                   END IF
                END DO
             END DO
@@ -576,6 +592,10 @@ C
 		  jind=j1+jind2
 		  lwj=slw(jwind)
 		  wj=sw(jwind)
+                  IF(wj.lt.0.d0.or.wj.gt.1.d0) THEN
+                     call dblepr("sw",2,sw,dsw*dsw)
+                     stop
+                  END IF
 		  if(lwj.le.0.d0.and.wj.le.0.d0) CYCLE  
 	          IF(dp1.gt.1) THEN
 		     zz(2)=z1
@@ -613,6 +633,10 @@ C
                bi2(iind+(k-1)*n)=swj2(k)
                bi0(iind+(k-1)*n)=swj0(k)
             END DO
+            hhom(iind)=dsqrt(hhommax)
+            IF(lfix.and.hakt-dsqrt(hfixmax).ge.hnfix) THEN
+               fix(iind)=.TRUE.
+            END IF
             call rchkusr()
          END DO
       END DO
@@ -623,8 +647,8 @@ C
 C   Perform one iteration in local polynomial  aws (gridded), 2D, heteroskedastic
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine awsph2(y,si,fix,n1,n2,degr,hw,hakt,lambda,theta,bi,
-     1              bi2,bi0,ai,kern,spmin,lw,w,slw,sw,ind)
+      subroutine awsph2(y,si,fix,nfix,n1,n2,degr,hw,hakt,hhom,lambda,
+     1              theta,bi,bi2,bi0,ai,kern,spmin,lw,w,slw,sw,ind)
 C   
 C   y        observed values of regression function
 C   fix      logical TRUE fro points where we have nothing to do
@@ -648,21 +672,25 @@ C
       implicit logical (a-z)
       external kldistp,lkern
       real*8 kldistp,lkern
-      integer n1,n2,kern,degr,ind(1)
-      logical aws,fix(1)
+      integer n1,n2,kern,degr,ind(1),nfix
+      logical aws,fix(1),lfix
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmin,
-     1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),si(1)
+     1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),si(1),hhom(1)
       integer ih,ih1,i1,i2,j1,j2,k,n,
      1        iind,jind,jind2,jwind,jwind2,dlw,clw,jw1,jw2,
      2        dp1,dp2,ihs,csw,dsw,l,dlw2
       real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
-     1       hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf
+     1       hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf,hhomi,
+     2       hhommax,hfix,az1,hfixmax,hnfix
 C   arrays with variable length are organized as 
 C   theta(n1,n2,dp1)
 C   bi(n1,n2,dp2)
 C   arrays of fixed length correspond to degr=2
 C   first set dimensions for arrays depending on degree
       aws=lambda.lt.1.d20
+      lfix=nfix.gt.(degr+1)
+      hnfix=nfix
+      hnfix=dmax1(hnfix,.2d0*hakt)
       spf=1.d0/(1.d0-spmin)
       if(degr.eq.0) THEN
          dp1=1
@@ -708,6 +736,10 @@ C  now stochastic term
             iind=i1+(i2-1)*n1
             IF (fix(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
+            hhomi=hhom(iind)
+            hhomi=hhomi*hhomi
+            hhommax=hakt2
+            hfixmax=hhomi
             DO k=1,dp2
                bii(k)=bi(iind+(k-1)*n)/lambda
 	    END DO
@@ -738,12 +770,14 @@ C  get directional differences that only depend on i2-j2
 		  wj=lw(jwind)
                   z1=jw1-clw
 C  get rest of directional differences 
-                  IF(dp1.gt.1) THEN
-		     zz(2)=z1
-		     zz(4)=z1*z1
-		     zz(5)=z1*z2
-                  END IF
-                  IF (aws) THEN
+                  az1=z1*z1+z2*z2
+C  get rest of directional differences 
+                  IF (aws.and.az1.ge.hhomi) THEN
+                     IF(dp1.gt.1) THEN
+		        zz(2)=z1
+		        zz(4)=z1*z1
+		        zz(5)=z1*z2
+                     END IF
 		     DO k=1,dp1
 		        thij(k)=theta(jind+(k-1)*n)
 		     END DO
@@ -764,9 +798,16 @@ C
                      END DO
                      sij=kldistp(dp1,thij,bii,ind)
                      IF (sij.le.1.d0) THEN
-		        w(jwind)=wj*(1.d0-sij)
+                        hfixmax=dmax1(hfixmax,az1)
+                        IF (sij.gt.spmin) THEN
+                           w(jwind)=wj*(1.d0-spf*(sij-spmin))
+                           hhommax=dmin1(hhommax,az1)
+                        ELSE 
+                           w(jwind)=wj
+                        END IF
 		     ELSE 
 			w(jwind)=0.d0
+                        hhommax=dmin1(hhommax,az1)
 		     END IF
 		  ELSE
 		     w(jwind)=wj		     
@@ -848,6 +889,10 @@ C
                bi2(iind+(k-1)*n)=swj2(k)
                bi0(iind+(k-1)*n)=swj0(k)
             END DO
+            hhom(iind)=dsqrt(hhommax)
+            IF(lfix.and.hakt-dsqrt(hfixmax).ge.hnfix) THEN
+               fix(iind)=.TRUE.
+            END IF
             call rchkusr()
          END DO
       END DO

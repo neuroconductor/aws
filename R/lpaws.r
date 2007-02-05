@@ -260,7 +260,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
                      .Fortran("awsph1",
 		       as.double(y),
                        as.double(sigma2),
-                       as.logical(fix),
+                       fix=as.logical(fix),
                        as.integer(nfix),
                        as.integer(n),
                        as.integer(degree),
@@ -280,16 +280,18 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
                        double(twohhwp1),# array for smoothed location weights
                        double(twohhwp1),# array for smoothed general weights
                        as.integer(ind),
-                       PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt")],
+                       PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")],
                      .Fortran("awsph2",
 		       as.double(y),
                        as.double(sigma2),
-                       as.logical(fix),
+                       fix=as.logical(fix),
+                       as.integer(nfix),
                        as.integer(n1),
                        as.integer(n2),
                        as.integer(degree),
 		       as.double(hw),
                        hakt=as.double(hakt),
+                       hhom=as.double(hhom),
                        as.double(lambda0),
                        as.double(theta),
                        bi=as.double(bi),
@@ -332,12 +334,14 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")],
                      .Fortran("awsp2",
 		       as.double(y),
-                       as.logical(fix),
+                       fix=as.logical(fix),
+                       as.integer(nfix),
                        as.integer(n1),
                        as.integer(n2),
                        as.integer(degree),
 		       as.double(hw),
                        hakt=as.double(hakt),
+                       hhom=as.double(hhom),
                        as.double(lambda0),
                        as.double(theta),
                        bi=as.double(bi),
@@ -351,7 +355,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
                        double(twohhwp1*twohhwp1),# array for smoothed location weights
                        double(twohhwp1*twohhwp1),# array for smoothed general weights
                        as.integer(ind),
-                       PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt")])
+                       PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")])
     }
     gc()
     dim(zobj$ai) <- c(switch(d,n,dy),dp1)
@@ -407,7 +411,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
     }
     if (!is.null(u)) {
       th <- switch(d,theta[,1],theta[,,1])
-       cat("bandwidth: ",signif(hakt,3),"eta==1",sum(eta==1),"   MSE: ",
+       cat("bandwidth: ",signif(hakt,3),"eta==1",sum(fix),"   MSE: ",
           signif(mean((th-u)^2),3),"   MAE: ",signif(mean(abs(th-u)),3),"mean hhom",signif(mean(hhom),3),"\n")
       mae<-c(mae,signif(mean(abs(th-u)),3))
     }

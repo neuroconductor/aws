@@ -25,15 +25,17 @@ if(!(degree %in% 0:2)) degree <- 2
 hmax <- readline("Maximal bandwidth:\n Press 'Enter' for hmax=15, otherwise provide value of hmax:")
 if(is.na(as.numeric(hmax))) hmax <- 15 else hmax <- as.numeric(hmax)
 if(hmax <= 1) hmax <- 15
+spmin <- readline("Kernel form:\n Press 'Enter' for default, otherwise provide value of spmin:")
+if(is.na(as.numeric(spmin))) spmin <- NULL else spmin <- pmax(0,pmin(1,as.numeric(spmin)))
 qtau <- readline("Memory control(N/Y) :")
 if(qtau %in% c("n","N")) qtau <- 1 else qtau <- NULL
 risk <- readline("Report risks (N/Y):")
 if(risk %in% c("y","Y")) u <-im0 else u <- NULL
 cat("Run aws \n")
 if(k<25) {
-yhat <- lpaws(y,degree=degree,hmax=hmax,graph=TRUE,qtau=qtau,u=u)
+yhat <- lpaws(y,degree=degree,hmax=hmax,graph=TRUE,qtau=qtau,u=u,spmin=spmin)
 } else {
-yhat <- lpaws(y,degree=degree,hmax=hmax,graph=TRUE,qtau=qtau,sigma2=sigma^2,u=u)
+yhat <- lpaws(y,degree=degree,hmax=hmax,graph=TRUE,qtau=qtau,sigma2=sigma^2,u=u,spmin=spmin)
 }
 readline("Press ENTER to show results")
 oldpar <- par(mfrow=c(2,2),mar=c(1,1,2,.25),mgp=c(2,1,0))
