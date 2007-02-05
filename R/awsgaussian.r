@@ -29,8 +29,8 @@
 #       
 aws.gaussian <- function(y,hmax=NULL,hpre=NULL,qlambda=NULL,qtau=NULL,varmodel="Constant",
                 varpar=NULL,varprop=.1,scorr=0,wghts=NULL,graph=FALSE,demo=FALSE,
-		lkern="Triangle",skern="Triangle",aggkern="Uniform",
-		spmin=0,spmax=5,lseq=NULL,u=NULL)
+		lkern="Triangle",aggkern="Uniform",
+		spmin=0,lseq=NULL,u=NULL)
 {
 #
 #    first check arguments and initialize
@@ -44,8 +44,7 @@ if(!(varmodel %in% c("Constant","Linear","Quadratic"))) stop("Model for variance
 #
 lkern<-switch(lkern,Triangle=2,Quadratic=3,Cubic=4,Uniform=1,
 	            Gaussian=5,2)
-skern <- switch(skern,"Exp"=1,"Triangle"=2,2)
-cpar<-setawsdefaults(dy,mean(y),"Gaussian",skern,aggkern,qlambda,qtau,lseq,hmax,1,spmax)
+cpar<-setawsdefaults(dy,mean(y),"Gaussian",aggkern,qlambda,qtau,lseq,hmax,1)
 lambda <- cpar$lambda
 hmax <- cpar$hmax
 lseq <- cpar$lseq
@@ -54,7 +53,6 @@ d <- cpar$d
 cpar$heta <- 20^(1/d)
 hinit <- cpar$hinit
 hincr <- cpar$hincr
-spmax <- cpar$spmax
 n<-length(y)
 # 
 #   family dependent transformations 
@@ -113,9 +111,7 @@ hobj <- .Fortran("caws",as.double(y),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
-                       as.integer(skern),
                        as.double(spmin),
-		       as.double(spmax),
 		       double(prod(dlw)),
 		       as.double(wghts),
 		       PACKAGE="aws",DUP=FALSE)[c("bi","ai")]
@@ -149,9 +145,7 @@ zobj <- .Fortran("cgaws",as.double(y),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
-                       as.integer(skern),
 	               as.double(spmin),
-		       as.double(spmax),
 		       double(prod(dlw)),
 		       as.double(wghts),
 		       PACKAGE="aws",DUP=FALSE)[c("bi","bi0","bi2","vred","ai","gi","hakt")]
@@ -261,8 +255,8 @@ z
 ###############################################################################################
 aws.segment <- function(y,hmax=NULL,hpre=NULL,qlambda=NULL,sigma2=NULL,varmodel="Constant",
                         varpar=NULL,varprop=.1,scorr=0,wghts=NULL,graph=FALSE,demo=FALSE,
-                        lkern="Triangle",skern="Triangle",aggkern="Uniform",
-                        spmin=0,spmax=5,lseq=NULL,u=NULL,nlevels=2,levels=NULL,swghts=NULL,rhoseq=NULL,
+                        lkern="Triangle",aggkern="Uniform",
+                        spmin=0,lseq=NULL,u=NULL,nlevels=2,levels=NULL,swghts=NULL,rhoseq=NULL,
                         rho=.95,cluster=FALSE) {
 #
 #    first check arguments and initialize
@@ -277,9 +271,8 @@ aws.segment <- function(y,hmax=NULL,hpre=NULL,qlambda=NULL,sigma2=NULL,varmodel=
 #
   lkern<-switch(lkern,Triangle=2,Quadratic=3,Cubic=4,Uniform=1,
                 Gaussian=5,2)
-  skern <- switch(skern,"Exp"=1,"Triangle"=2,2)
   if(is.null(swghts)) swghts<-rep(1/nlevels,nlevels)
-  cpar<-setawsdefaults(dy,mean(y),"Gaussian",skern,aggkern,qlambda,1,lseq,hmax,1,spmax)
+  cpar<-setawsdefaults(dy,mean(y),"Gaussian",aggkern,qlambda,1,lseq,hmax,1)
   lambda <- cpar$lambda
   hmax <- cpar$hmax
   lseq <- cpar$lseq
@@ -289,7 +282,6 @@ aws.segment <- function(y,hmax=NULL,hpre=NULL,qlambda=NULL,sigma2=NULL,varmodel=
 #hinit <- cpar$hinit
   hinit <- 1
   hincr <- cpar$hincr
-  spmax <- cpar$spmax
   n<-length(y)
 # 
 #   family dependent transformations 
@@ -348,9 +340,7 @@ aws.segment <- function(y,hmax=NULL,hpre=NULL,qlambda=NULL,sigma2=NULL,varmodel=
                    ai=as.double(zobj$ai),
                    as.integer(cpar$mcode),
                    as.integer(lkern),
-                   as.integer(skern),
                    as.double(spmin),
-                   as.double(spmax),
                    double(prod(dlw)),
                    as.double(wghts),
                    PACKAGE="aws",DUP=FALSE)[c("bi","ai")]
@@ -385,9 +375,7 @@ aws.segment <- function(y,hmax=NULL,hpre=NULL,qlambda=NULL,sigma2=NULL,varmodel=
                      ai=as.double(zobj$ai),
                      as.integer(cpar$mcode),
                      as.integer(lkern),
-                     as.integer(skern),
                      as.double(spmin),
-                     as.double(spmax),
                      double(prod(dlw)),
                      as.double(wghts),
                      PACKAGE="aws",DUP=FALSE)[c("bi","bi0","bi2","vred","ai","gi","hakt")]

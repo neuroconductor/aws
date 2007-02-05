@@ -60,7 +60,7 @@ C   for anisotropic 2D situations
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine cawsa2D(y,fix,n1,n2,hakt,lambda,theta,bi,bi2,bi0,ai,
-     1       phi,ani,model,kern,skern,spmin,spmax,lwght,wght)
+     1       phi,ani,model,kern,spmin,lwght,wght)
 C   
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -71,22 +71,21 @@ C   bi       \sum  Wi   (output)
 C   ai       \sum  Wi Y     (output)
 C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
-C   spmax    specifies the truncation point of the stochastic kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C   
       implicit logical (a-z)
       external kldist,anisowgt
       real*8 kldist,anisowgt
-      integer n1,n2,model,kern,skern
+      integer n1,n2,model,kern
       logical aws,fix(1)
       real*8 y(n1,n2),theta(n1,n2),bi(n1,n2),bi0(n1,n2),ai(n1,n2),
-     1       lambda,spmax,wght,bi2(n1,n2),phi(n1,n2),ani(n1,n2),hakt,
+     1       lambda,wght,bi2(n1,n2),phi(n1,n2),ani(n1,n2),hakt,
      2       lwght(1),spmin,spf
       integer ih1,i1,i2,j1,j2,ij1,ij2,j2a,j2e
       real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,wj,hakt2,bii0,
      1        anii,phii,h1,a2,th1,th2,ymin,ymax
       hakt2=hakt*hakt
-      spf=spmax/(spmax-spmin)
+      spf=1.d0/(1.d0-spmin)
       ih1=hakt
       aws=lambda.lt.1d40
 C
@@ -126,12 +125,8 @@ C      get location wghts
                   swj0=swj0+wj
                   IF (aws) THEN
                      sij=bii*kldist(model,thetai,theta(ij1,ij2),bii0)
-                     IF (sij.gt.spmax) CYCLE
-	             IF (skern.eq.2) THEN
-			wj=wj*(1.d0-sij)
-		     ELSE
-		        IF (sij.gt.spmin) wj=wj*dexp(-spf*(sij-spmin))
-		     ENDIF
+                     IF (sij.gt.1.d0) CYCLE
+	             wj=wj*(1.d0-sij)
 C   if sij <= spmin  this just keeps the location penalty
 C    spmin = 0 corresponds to old choice of K_s 
 C   new kernel is flat in [0,spmin] and then decays exponentially

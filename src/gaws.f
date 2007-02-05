@@ -3,7 +3,7 @@ C
 C   Perform nonadaptiv local constant smoothing
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine gaws0(y,n1,n2,n3,hakt,bi,bi0,thnew,kern,lw,zext) 
+      subroutine gaws0(y,n1,n2,n3,hakt,bi,bi0,thnew,kern,lw,zext)
 C   
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -12,7 +12,6 @@ C   theta    estimates from last step   (input)
 C   bi       \sum  Wi   (output)
 C   thnew       \sum  Wi Y     (output)
 C   kern     specifies the location kernel
-C   spmax    specifies the truncation point of the stochastic kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C   
       implicit logical (a-z)
@@ -110,8 +109,8 @@ C   Perform one iteration in local constant three-variate aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine gvaws(y,n1,n2,n3,vcoef,nvpar,meanvar,
-     1                   hakt,lambda,theta,bi,bi0,thnew,kern,skern,
-     2                   spmin,spmax,zext,lw)
+     1                   hakt,lambda,theta,bi,bi0,thnew,kern,
+     2                   spmin,zext,lw)
 C   
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -121,15 +120,14 @@ C   theta    estimates from last step   (input)
 C   bi       \sum  Wi   (output)
 C   thnew       \sum  Wi Y     (output)
 C   kern     specifies the location kernel
-C   spmax    specifies the truncation point of the stochastic kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C   
       implicit logical (a-z)
       external kldistgc,lkern
       real*8 kldistgc,lkern
-      integer n1,n2,n3,kern,skern,nvpar
+      integer n1,n2,n3,kern,nvpar
       logical aws
-      real*8 bi(1),lambda,spmax,spmin,hakt,lw(1),zext,bi0,
+      real*8 bi(1),lambda,spmin,hakt,lw(1),zext,bi0,
      2       vcoef(nvpar),meanvar,y(1),theta(1),thnew(1)
       integer ih,ih1,ih3,ih2,i1,i2,i3,j1,j2,j3,n,
      1        iind,jind,jind2,jwind2,jind3,jwind3,dlw,clw,dlw3,clw3,
@@ -140,7 +138,7 @@ C  s2i, s2ii temporay stor sigma^2_i and its inverse (nneded for KL-distance)
 C  maximaum dv = 4
       hakt2=hakt*hakt
       zext2=zext*zext
-      spf=spmax/(spmax-spmin)
+      spf=1.d0/(1.d0-spmin)
       ih=hakt
       dlw=2*ih+1
       clw=ih+1
@@ -219,14 +217,8 @@ C  Now fill estimated Covariancematrix in pixel i
 		        wj=lw(jw1+jwind2)
                         IF (aws) THEN
                            sij=bii*thij*thij*s2i
-                           IF (sij.gt.spmax) CYCLE
-		           IF (skern.eq.1) THEN
-C  skern == "Triangle"
-                               wj=wj*(1.d0-sij)
-		           ELSE
-C  skern == "Exp"
-		        IF (sij.gt.spmin) wj=wj*dexp(-spf*(sij-spmin))
-		           END IF
+                           IF (sij.gt.1.d0) CYCLE
+                           wj=wj*(1.d0-sij)
                         END IF
                         swj=swj+wj
                         swjy=swjy+wj*y(jind)

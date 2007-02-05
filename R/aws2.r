@@ -29,8 +29,8 @@
 #       
 aws3 <- function(y,hmax=NULL,qlambda=NULL,family="Gaussian",
                 sigma2=NULL,scorr=0,shape=NULL,wghts=NULL,graph=FALSE,demo=FALSE,
-		lkern="Triangle",skern="Triangle",aggkern="Uniform",
-		spmin=0,spmax=5,lseq=NULL,u=NULL,testprop=FALSE)
+		lkern="Triangle",aggkern="Uniform",
+		spmin=0,lseq=NULL,u=NULL,testprop=FALSE)
 {
 #
 #    first check arguments and initialize
@@ -44,8 +44,7 @@ if(length(dy)>2) stop("This version of AWS for more than 2 dimensional grids is 
 qtau <- 1
 lkern<-switch(lkern,Triangle=2,Quadratic=3,Cubic=4,Uniform=1,
 	            Gaussian=5,2)
-skern <- switch(skern,"Exp"=1,"Triangle"=2,2)
-cpar<-setawsdefaults(dy,mean(y),family,skern,aggkern,qlambda,qtau,lseq,hmax,shape,spmax)
+cpar<-setawsdefaults(dy,mean(y),family,aggkern,qlambda,qtau,lseq,hmax,shape)
 lambda <- cpar$lambda
 hmax <- cpar$hmax
 lseq <- cpar$lseq
@@ -53,7 +52,6 @@ shape <- cpar$shape
 d <- cpar$d
 hinit <- cpar$hinit
 hincr <- cpar$hincr
-spmax <- cpar$spmax
 n<-length(y)
 # 
 #   family dependent transformations that depend on the value of family
@@ -98,7 +96,7 @@ if(testprop) {
 #  prepare to  check for alpha in propagation condition (to adjust qlambda and lseq)
 #
        if(is.null(u)) u <- 0
-       cpar <- c(cpar, list(n1=n1,n2=n2,n3=n3,n=n1*n2*n3,lkern=lkern,skern=skern,wghts=wghts,spmin=spmin,spmax=spmax,family=family,u=u))
+       cpar <- c(cpar, list(n1=n1,n2=n2,n3=n3,n=n1*n2*n3,lkern=lkern,wghts=wghts,spmin=spmin,family=family,u=u))
        propagation <- NULL
     } 
 #
@@ -128,9 +126,7 @@ zobj <- .Fortran("chaws",as.double(y),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
-                       as.integer(skern),
 	               as.double(spmin),
-		       as.double(spmax),
 		       double(prod(dlw)),
 		       as.double(wghts),
 		       PACKAGE="aws",DUP=FALSE)[c("bi","bi0","bi2","vred","ai","hakt")]
@@ -150,9 +146,7 @@ zobj <- .Fortran("caws3",as.double(y),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
-                       as.integer(skern),
                        as.double(spmin),
-		       as.double(spmax),
 		       double(prod(dlw)),
 		       double(prod(dlw)),
 		       PACKAGE="aws",DUP=FALSE)[c("fix","bi","bi0","bi2","ai","hakt")]
@@ -290,8 +284,8 @@ z
 #       
 aws2 <- function(y,hmax=NULL,qlambda=NULL,family="Gaussian",
                 sigma2=NULL,scorr=0,shape=NULL,wghts=NULL,graph=FALSE,demo=FALSE,
-		lkern="Triangle",skern="Triangle",aggkern="Uniform",
-		spmin=0,spmax=5,lseq=NULL,u=NULL,testprop=FALSE,segdiff=0)
+		lkern="Triangle",aggkern="Uniform",
+		spmin=0,lseq=NULL,u=NULL,testprop=FALSE,segdiff=0)
 {
 #
 #    first check arguments and initialize
@@ -305,8 +299,7 @@ if(length(dy)>3) stop("AWS for more than 3 dimensional grids is not implemented"
 qtau <- 1
 lkern<-switch(lkern,Triangle=2,Quadratic=3,Cubic=4,Uniform=1,
 	            Gaussian=5,2)
-skern <- switch(skern,"Exp"=1,"Triangle"=2,2)
-cpar<-setawsdefaults(dy,mean(y),family,skern,aggkern,qlambda,qtau,lseq,hmax,shape,spmax)
+cpar<-setawsdefaults(dy,mean(y),family,aggkern,qlambda,qtau,lseq,hmax,shape)
 lambda <- cpar$lambda
 hmax <- cpar$hmax
 lseq <- cpar$lseq
@@ -314,7 +307,6 @@ shape <- cpar$shape
 d <- cpar$d
 hinit <- cpar$hinit
 hincr <- cpar$hincr
-spmax <- cpar$spmax
 n<-length(y)
 # 
 #   family dependent transformations that depend on the value of family
@@ -360,7 +352,7 @@ if(testprop) {
 #  prepare to  check for alpha in propagation condition (to adjust qlambda and lseq)
 #
        if(is.null(u)) u <- 0
-       cpar <- c(cpar, list(n1=n1,n2=n2,n3=n3,n=n1*n2*n3,lkern=lkern,skern=skern,wghts=wghts,spmin=spmin,spmax=spmax,family=family,u=u))
+       cpar <- c(cpar, list(n1=n1,n2=n2,n3=n3,n=n1*n2*n3,lkern=lkern,wghts=wghts,spmin=spmin,family=family,u=u))
        propagation <- NULL
     } 
 #
@@ -391,9 +383,7 @@ zobj <- .Fortran("chaws",as.double(y),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
-                       as.integer(skern),
 	               as.double(spmin),
-		       as.double(spmax),
 		       double(prod(dlw)),
 		       as.double(wghts),
 		       PACKAGE="aws",DUP=FALSE)[c("bi","bi0","bi2","vred","ai","hakt")]
@@ -414,9 +404,7 @@ zobj <- .Fortran("caws2",as.double(y),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
-                       as.integer(skern),
                        as.double(spmin),
-		       as.double(spmax),
 		       double(prod(dlw)),
 		       as.double(wghts),
                        as.double(segdiff),

@@ -162,7 +162,7 @@ C   Perform one iteration in local constant three-variate aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine caws(y,fix,n1,n2,n3,hakt,hhom,lambda,theta,bi,bi2,
-     1                bi0,ai,model,kern,skern,spmin,spmax,lwght,wght)
+     1                bi0,ai,model,kern,spmin,lwght,wght)
 C   
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -173,21 +173,20 @@ C   bi       \sum  Wi   (output)
 C   ai       \sum  Wi Y     (output)
 C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
-C   spmax    specifies the truncation point of the stochastic kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C   
       implicit logical (a-z)
       external kldist,lkern
       real*8 kldist,lkern
-      integer n1,n2,n3,model,kern,skern
+      integer n1,n2,n3,model,kern
       logical aws,fix(1)
-      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,wght(2),
+      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,wght(2),
      1       bi2(1),hakt,lwght(1),spmin,spf,hhom(1),hhomi,hhommax
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3
       real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0
       hakt2=hakt*hakt
-      spf=spmax/(spmax-spmin)
+      spf=1.d0/(1.d0-spmin)
       ih1=hakt
       aws=lambda.lt.1d40
 C
@@ -277,21 +276,14 @@ C  first stochastic term
                         z1=z2+z1*z1
                         IF (aws.and.z1.ge.hhomi) THEN
                   sij=bii*kldist(model,thetai,theta(jind),bii0)
-                           IF (sij.gt.spmax) THEN
+                           IF (sij.gt.1.d0) THEN
                               hhommax=dmin1(hhommax,z1)
                               CYCLE
                            END IF
-			   IF (skern.eq.2) THEN
 			      IF (sij.gt.spmin) THEN
 			         wj=wj*(1.d0-spf*(sij-spmin))
                                  hhommax=dmin1(hhommax,z1)
                               END IF
-			   ELSE
-			      IF (sij.gt.spmin) THEN
-                                 wj=wj*dexp(-spf*(sij-spmin))
-                                 hhommax=dmin1(hhommax,z1)
-                              END IF
-			   ENDIF
 C   if sij <= spmin  this just keeps the location penalty
 C    spmin = 0 corresponds to old choice of K_s 
 C   new kernel is flat in [0,spmin] and then decays exponentially
@@ -319,7 +311,7 @@ C   Perform one iteration in local constant three-variate aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine caws2(y,fix,n1,n2,n3,hakt,lambda,theta,bi,bi2,
-     1            bi0,ai,model,kern,skern,spmin,spmax,lwght,wght,sdiff)
+     1            bi0,ai,model,kern,spmin,lwght,wght,sdiff)
 C   
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -330,22 +322,21 @@ C   bi       \sum  Wi   (output)
 C   ai       \sum  Wi Y     (output)
 C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
-C   spmax    specifies the truncation point of the stochastic kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C   
       implicit logical (a-z)
       external kldist,lkern
       real*8 kldist,lkern
-      integer n1,n2,n3,model,kern,skern
+      integer n1,n2,n3,model,kern
       logical aws,fix(1)
-      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,wght(2),
+      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,wght(2),
      1       bi2(1),hakt,lwght(1),spmin,spf,sdiff
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3
       real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0,
      1       heff,hakt2eff
       hakt2=hakt*hakt
-      spf=spmax/(spmax-spmin)
+      spf=1.d0/(1.d0-spmin)
       ih1=hakt
       aws=lambda.lt.1d40
 C
@@ -437,12 +428,8 @@ C  first stochastic term
                         IF (aws) THEN
                            sij=bii*dmax1(kldist(model,thetai,
      1                             theta(jind),bii0)-sdiff,0.d0)
-                           IF (sij.gt.spmax) CYCLE
-			   IF (skern.eq.2) THEN
+                           IF (sij.gt.1.d0) CYCLE
 			      wj=wj*(1.d0-sij)
-			   ELSE
-			IF (sij.gt.spmin) wj=wj*dexp(-spf*(sij-spmin))
-			   ENDIF
 C   if sij <= spmin  this just keeps the location penalty
 C    spmin = 0 corresponds to old choice of K_s 
 C   new kernel is flat in [0,spmin] and then decays exponentially
@@ -471,7 +458,7 @@ C   Perform one iteration in local constant three-variate aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine caws3(y,fix,n1,n2,hakt,lambda,theta,bi,bi2,bi0,ai,
-     1                model,kern,skern,spmin,spmax,lwght,swght)
+     1                model,kern,spmin,lwght,swght)
 C   
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -482,15 +469,14 @@ C   bi       \sum  Wi   (output)
 C   ai       \sum  Wi Y     (output)
 C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
-C   spmax    specifies the truncation point of the stochastic kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C   
       implicit logical (a-z)
       external kldist,lkern
       real*8 kldist,lkern
-      integer n1,n2,n3,model,kern,skern
+      integer n1,n2,n3,model,kern
       logical aws,fix(1)
-      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,
+      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,
      1       bi2(1),hakt,lwght(1),spmin,spf,swght(1)
       integer ih1,ih2,i1,i2,j1,j2,jw1,jw2,jwind2,
      1    iind,jind,jind2,clw,dlw,jwind1,
@@ -498,7 +484,7 @@ C
       real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0,
      1       heff,hakt2eff
       hakt2=hakt*hakt
-      spf=spmax/(spmax-spmin)
+      spf=1.d0/(1.d0-spmin)
       ih1=hakt
       aws=lambda.lt.1d40
 C
@@ -564,15 +550,10 @@ C  first stochastic term
                   jwind1=jw1+jwind2
                   IF (aws) THEN
                      sij=bii*kldist(model,thetai,theta(jind),bii0)
-                     IF (sij.gt.spmax) THEN
+                     IF (sij.gt.1.d0) THEN
                         swght(jwind1)=0.d0
                      ELSE
-	                IF (skern.eq.2) THEN
-			   swght(jwind1)=lwght(jwind1)*(1.d0-sij)
-		        ELSE
-			   IF (sij.gt.spmin) swght(jwind1)=
-     1                         lwght(jwind1)*dexp(-spf*(sij-spmin))
-			END IF
+			swght(jwind1)=lwght(jwind1)*(1.d0-sij)
                      END IF
 C   if sij <= spmin  this just keeps the location penalty
 C    spmin = 0 corresponds to old choice of K_s 
@@ -626,7 +607,7 @@ C   Perform one iteration in local constant three-variate aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine chaws(y,fix,si2,n1,n2,n3,hakt,lambda,theta,bi,bi2,
-     1           bi0,vred,ai,model,kern,skern,spmin,spmax,lwght,wght)
+     1           bi0,vred,ai,model,kern,spmin,lwght,wght)
 C   
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -637,22 +618,21 @@ C   bi       \sum  Wi   (output)
 C   ai       \sum  Wi Y     (output)
 C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
-C   spmax    specifies the truncation point of the stochastic kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C   
       implicit logical (a-z)
       external kldist,lkern
       real*8 kldist,lkern
-      integer n1,n2,n3,model,kern,skern
+      integer n1,n2,n3,model,kern
       logical aws,fix(1)
-      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,wght(2),
+      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,wght(2),
      1       bi2(1),hakt,lwght(1),si2(1),vred(1),spmin
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3
       real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0,
      1        sv1,sv2,spf
       hakt2=hakt*hakt
-      spf=spmax/(spmax-spmin)
+      spf=1.d0/(1.d0-spmin)
       ih1=hakt
       aws=lambda.lt.1d40
 C
@@ -740,12 +720,8 @@ C  first stochastic term
                         swj0=swj0+wj*si2(jind)
                         IF (aws) THEN
                   sij=bii*kldist(model,thetai,theta(jind),bii0)
-                           IF (sij.gt.spmax) CYCLE
-			   IF (skern.eq.2) THEN
-			      wj=wj*(1.d0-sij)
-			   ELSE
-			IF (sij.gt.spmin) wj=wj*dexp(-spf*(sij-spmin))
-			   ENDIF
+                           IF (sij.gt.1.d0) CYCLE
+			   wj=wj*(1.d0-sij)
                         END IF
 			sv1=sv1+wj
 			sv2=sv2+wj*wj
@@ -772,7 +748,7 @@ C   Perform one iteration in local constant three-variate aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine cgaws(y,fix,si2,n1,n2,n3,hakt,lambda,theta,bi,bi2,
-     1        bi0,gi,vred,ai,model,kern,skern,spmin,spmax,lwght,wght)
+     1        bi0,gi,vred,ai,model,kern,spmin,lwght,wght)
 C   
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -783,22 +759,21 @@ C   bi       \sum  Wi   (output)
 C   ai       \sum  Wi Y     (output)
 C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
-C   spmax    specifies the truncation point of the stochastic kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C   
       implicit logical (a-z)
       external kldist,lkern
       real*8 kldist,lkern
-      integer n1,n2,n3,model,kern,skern
+      integer n1,n2,n3,model,kern
       logical aws,fix(1)
-      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmax,wght(2),
+      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,wght(2),
      1       bi2(1),hakt,lwght(1),si2(1),vred(1),spmin,gi(1)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3
       real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0,
      1        sv1,sv2,spf,z
       hakt2=hakt*hakt
-      spf=spmax/(spmax-spmin)
+      spf=1.d0/(1.d0-spmin)
       ih1=hakt
       aws=lambda.lt.1d40
 C
@@ -892,12 +867,8 @@ C      gaussian case only
 C
                            z=(thetai-theta(jind))
                            sij=bii*z*z
-                           IF (sij.gt.spmax) CYCLE
-			   IF (skern.eq.2) THEN
-			      wj=wj*(1.d0-sij)
-			   ELSE
-			IF (sij.gt.spmin) wj=wj*dexp(-spf*(sij-spmin))
-			   ENDIF
+                           IF (sij.gt.1.d0) CYCLE
+			   wj=wj*(1.d0-sij)
                         END IF
 			sv1=sv1+wj
 			sv2=sv2+wj*wj

@@ -9,13 +9,15 @@ models, i.e. regression with additive "Gaussian" errors, a homoskedastic
 or heteroskedastic model is used depending on the content of \code{sigma2}
 }
 \usage{
-aws(y, qlambda = NULL, qtau = NULL, family = "Gaussian", lkern = "Triangle", skern="Exp", 
-aggkern = "Uniform", sigma2 = NULL, shape = NULL, hinit = NULL, hincr = NULL, hmax = NULL, 
-lseq = NULL, heta = NULL, eta0 = NULL, u = NULL, graph = FALSE, demo = FALSE, wghts = NULL)
+aws(y,hmax=NULL,qlambda=NULL,qtau=NULL,family="Gaussian",
+                sigma2=NULL,scorr=0,shape=NULL,wghts=NULL,graph=FALSE,demo=FALSE,
+		lkern="Triangle",aggkern="Uniform",
+		spmin=0,homogen=TRUE,lseq=NULL,u=NULL,testprop=FALSE )
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{y}{ \code{y} contains the observed response data. \code{dim(y)} determines the dimensionality and extend of the grid design.}
+  \item{hmax}{ \code{hmax} specifies the maximal bandwidth. Defaults to \code{hmax=250, 12, 5} for \code{dd=1, 2, 3}, respectively.}
   \item{qlambda}{ \code{qlambda} is the main smoothing parameter. It determines the scaling parameter \code{\lambda} in the statistical penalty
   (see description of the algorithm in the references) as \code{qchisq(qlambda,1)}. \code{qlambda=1} disables adaptation, i.e. the 
   resulting estimate is a kernel estimate using the largest inspected bandwidth less or equal to \code{hmax}.
@@ -30,32 +32,33 @@ lseq = NULL, heta = NULL, eta0 = NULL, u = NULL, graph = FALSE, demo = FALSE, wg
    are "Bernoulli", "Poisson", "Exponential", "Volatility" and "Variance". \code{family="Volatility"} specifies a Gaussian distribution with
    expectation 0 and unknown variance. \code{family="Volatility"} specifies that \code{p*y/theta} is distributed as \code{\Chi^2} with \code{p=shape}
    degrees of freedom.}
-  \item{lkern}{ \code{lkern} specifies the location kernel. Defaults to "Triangle", other choices are "Quadratic", "Cubic" and "Uniform".
-    Note that the location kernel is applied to \code{(x-x_j)^2/h^2}, i.e. the use of "Triangle" corresponds to the Epanechnicov kernel 
-    nonparametric kernel regression.}
-  \item{skern}{ \code{skern} specifies the kernel \eqn{K_s}. Defaults to "Exp", the altenative choice is "Triangle".}
-   \item{aggkern}{\code{aggkern} specifies the kernel for the statistical panalty in stagewise aggregation. Defaults to "Uniform", the alternative choice is
-   "Triangle"}
   \item{sigma2}{\code{sigma2} allows to specify the variance in case of \code{family="Gaussian"}. Not used if \code{family!="Gaussian"}.
    Defaults to \code{NULL}. In this case a homoskedastic variance estimate is generated. If \code{length(sigma2)==length(y)} then \code{sigma2}
    is assumed to contain the pointwise variance of \code{y} and a heteroscedastic variance model is used.}
-  \item{shape}{\code{shape} allows to specify additional parameters if \code{family!="Gaussian"}, e.g. for degrees of freedom in \code{family="Variance"} }
-  \item{hinit}{\code{hinit} specifies the initial bandwidth. Defaults to \code{hinit=1}.}
-  \item{hincr}{\code{hincr} specifies the factor used to increase the size of local neigborhoods after each iteration. The bandwidth is increased by
-   a factor \code{hincr^(1/dd)} with \code{dd} specifying the dimensionality of the grid. Defaults to \code{hincr=1.25}  }
-  \item{hmax}{ \code{hmax} specifies the maximal bandwidth. Defaults to \code{hmax=250, 12, 5} for \code{dd=1, 2, 3}, respectively.}
-  \item{lseq}{ \code{lseq} allows to increase the value of the scaling parameter \code{\lambda} for the first \code{length(lseq)} iteration steps by
-  the factor specified in \code{lseq}. Defaults to NULL. In this case a default sequence is used that fulfils the propagation condition. }
-  \item{heta}{ \code{heta} specifies the minimal bandwidth to use with stagewise aggregation.  }
-  \item{eta0}{ \code{eta0} minimal mixing coefficient in stagewise aggregation, defaults to 0 in case of \code{family="Gaussian"} and values
-   larger than 0 otherwise to avoid problems at the boundary of the parameter space.}
-  \item{u}{\code{u} allows to specify the true parameter. This is only used to test the algorithm and to select the smoothing parameters 
-    \code{qlambda} and \code{qtau} by a propagation condition. If \code{u} is specified MSE and MAE of the estimates are 
-    printed for each iteration step.}
-  \item{graph}{If  \code{graph=TRUE} intermediate results are illustrated after each iteration step. Defaults to \code{graph=FALSE}. }
-  \item{demo}{ If \code{demo=TRUE} the function pauses after each iteration. Defaults to \code{demo=FALSE}. }
+  \item{scorr}{The vector \code{scorr} allows to specify a first order correlations of the noise for each coordinate direction,
+    defaults to 0 (no correlation). }
+  \item{shape}{Allows to specify an additional shape parameter for certain family models. Currently only used for family="Variance", that is \code{\Chi}-Square distributed observations
+  with \code{shape} degrees of freedom. }
   \item{wghts}{ \code{wghts} specifies the  diagonal elements of a weight matrix to adjust for different distances between grid-points
   in different coordinate directions, i.e. allows to define a more appropriate metric in the design space. }
+  \item{graph}{If  \code{graph=TRUE} intermediate results are illustrated after each iteration step. Defaults to \code{graph=FALSE}. }
+  \item{demo}{ If \code{demo=TRUE} the function pauses after each iteration. Defaults to \code{demo=FALSE}. }
+  \item{lkern}{ \code{lkern} specifies the location kernel. Defaults to "Triangle", other choices are "Quadratic", "Cubic" and "Uniform".
+    Note that the location kernel is applied to \code{(x-x_j)^2/h^2}, i.e. the use of "Triangle" corresponds to the Epanechnicov kernel 
+    nonparametric kernel regression.}
+  \item{aggkern}{ \code{aggkern} specifies the kernel \eqn{K_{agg}} used in the adaptive control step if \code{qtau<1} Defaults to "Uniform", the alternative choice is
+   "Triangle"}
+  \item{spmin}{Specifies the size of a plateau of the stochastic kernel.}
+  \item{homogen}{If \code{homogen==TRUE} the algorithm tries to identify, in each point and each iteration, a sphere of maximal radius, such that
+     all statistical penalties are less then \code{spmin} (the value specifying the plateau of the stochastic kernel). The statistical penalty
+     is set to 0 for all points \code{j} within the sphere centered in point \code{i} for the following iteration.  }
+  \item{lseq}{ \code{lseq} allows to increase the value of the scaling parameter \code{\lambda} for the first \code{length(lseq)} iteration steps by
+  the factor specified in \code{lseq}. Defaults to NULL. In this case a default sequence is used that fulfils the propagation condition. }
+  \item{u}{\code{u} allows to specify the true parameter. This is only used to test the algorithm and to select the smoothing parameters 
+    \code{qlambda} and \code{qtau} by a propagation condition. If \code{u} is specified MSE and MAE of the estimates are 
+    printed for each iteration step.
+  \item{testprop}{If set this provides diagnostics for testing the propagation condition. The values of \code{y} should correspond to the specified
+   family and a global model. }
 }
 \details{The function implements the propagation separation approach to 
 nonparametric smoothing (formerly introduced as Adaptive weights smoothing) 
@@ -114,7 +117,7 @@ WIAS-Preprint 1000.}
 \author{ Joerg Polzehl, \email{polzehl@wias-berlin.de}, 
 \url{http://www.wias-berlin.de/project-areas/stat/projects/adaptive-image-processing.html}}
 ##\note{}
-\seealso{See Also  \code{\link{paws}}, \code{\link{vaws}}}
+\seealso{See Also  \code{\link{lpaws}}}
 \examples{
 require(aws)
 #

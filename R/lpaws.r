@@ -30,7 +30,7 @@
 lpaws <- function(y,degree=1,hmax=NULL,qlambda=NULL,qtau=NULL,lkern="Triangle",
                   homogen=TRUE,earlystop=TRUE,
                   aggkern="Uniform",sigma2=NULL,hinit=NULL,hw=NULL,
-                  lseq=NULL,u=NULL,graph=FALSE,demo=FALSE,spmin=.25)
+                  lseq=NULL,u=NULL,graph=FALSE,demo=FALSE,spmin=NULL)
 { 
 #
 #          Auxilary functions
@@ -157,12 +157,17 @@ dp2 <- switch( degree+1,1,6,15)
 lkern<-switch(lkern,Triangle=2,Quadratic=3,Cubic=4,Uniform=1,
 	            Gaussian=5,2)
 if(is.null(qlambda)) qlambda <-switch(d,
-                                     switch( degree+1,.98,.92,.92),
-                                     switch( degree+1,.96,.75,.92))
+                                     switch( degree+1,.98,.94,.96),
+                                     switch( degree+1,.96,.87,.965))
+#
+#  defaults for degree=1,2 correspond to alpha=0.1
+#
 if(earlystop) nfix <- switch(d,
-                             switch(degree+1,2,5,20),
-                             switch(degree+1,2,3,4)) else nfix <- n
-if(is.null(spmin)) spmin <- switch(degree+1,.3,.25,.25)
+                             switch(degree+1,2,10,50),
+                             switch(degree+1,2,2,2)) else nfix <- n
+if(is.null(spmin)) spmin <- switch(d,
+                                   switch(degree+1,.3,.25,.25),
+                                   switch(degree+1,.3,.3,.3))
 if(spmin<0|spmin>1) spmin <- switch(degree+1,.3,.25,.25)
   if (qlambda>=1) {
     # thats stagewise aggregation with kernel specified by aggkern

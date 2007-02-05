@@ -1,7 +1,7 @@
 aws.irreg <- function(y,x,d=2,hmax=NULL,hpre=NULL,qlambda=NULL,qtau=NULL,varmodel="Constant",
                 sigma2=NULL,varprop=.1,graph=FALSE,
-		lkern="Triangle",skern="Triangle",aggkern="Uniform",
-		spmin=0,spmax=5,lseq=NULL,nbins=100,henv=NULL)
+		lkern="Triangle",aggkern="Uniform",
+		spmin=0,lseq=NULL,nbins=100,henv=NULL)
 {
 #
 #    first check arguments and initialize
@@ -51,8 +51,7 @@ if(d==2) dy<-dim(yy)<-dim(sigma2)<-c(nbins,nbins)
 #
 lkern<-switch(lkern,Triangle=2,Quadratic=3,Cubic=4,Uniform=1,
 	            Gaussian=5,2)
-skern <- switch(skern,"Exp"=1,"Triangle"=2,2)
-cpar<-setawsdefaults(dim(yy),mean(y),"Gaussian",skern,aggkern,qlambda,qtau,lseq,hmax,1,spmax)
+cpar<-setawsdefaults(dim(yy),mean(y),"Gaussian",aggkern,qlambda,qtau,lseq,hmax,1)
 lambda <- 2*cpar$lambda # Gaussian case
 cpar$tau1 <- cpar$tau1*2 
 cpar$tau2 <- cpar$tau2*2 
@@ -62,7 +61,6 @@ shape <- cpar$shape
 cpar$heta <- 20^(1/d)
 hinit <- cpar$hinit
 hincr <- cpar$hincr
-spmax <- cpar$spmax
 cpar$heta <- 1e10
 if(lkern==5) {
 #  assume  hmax was given in  FWHM  units (Gaussian kernel will be truncated at 4)
@@ -105,9 +103,7 @@ hobj <- .Fortran("cawsmask",as.double(yy),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
-                       as.integer(skern),
                        as.double(spmin),
-		       as.double(spmax),
 		       double(prod(dlw)),
 		       as.double(wghts),
 		       PACKAGE="aws",DUP=FALSE)[c("bi","ai")]
@@ -141,9 +137,7 @@ zobj <- .Fortran("cgawsmas",as.double(yy),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
-                       as.integer(skern),
 	               as.double(spmin),
-		       as.double(spmax),
 		       double(prod(dlw)),
 		       as.double(wghts),
 		       PACKAGE="aws",DUP=FALSE)[c("bi","bi0","bi2","vred","ai","hakt")]

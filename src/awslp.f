@@ -36,7 +36,7 @@ C
      2        dp1,dp2,ihs,csw,dsw,l
       real*8 bii(5),sij,swj(5),swj2(5),swj0(5),swjy(5),z1,wj,
      1       hakt2,thij(3),thi(3),zz(5),lwj,yj,hs2,hs,z,cc,spf,hhomi,
-     2       hhommax,hfix,az1,hfixmax,hnfix
+     2       hhommax,hfix,az1,hfixmax,hnfix,ssij,spmax
 C   arrays with variable length are organized as 
 C   theta(n,dp1)
 C   bi(n,dp2)
@@ -46,7 +46,8 @@ C   first set dimensions for arrays depending on degree
       lfix=nfix.gt.(degr+1)
       hnfix=nfix
       hnfix=dmax1(hnfix,.2d0*hakt)
-      spf=1.d0/(1.d0-spmin)
+      spmax=degr+1
+      spf=1.d0/(spmax-spmin)
       if(degr.eq.0) THEN
          dp1=1
 	 dp2=1
@@ -114,10 +115,13 @@ C
                   thij(k)=thi(k)-thij(k)
                END DO
                sij=kldistp(dp1,thij,bii,ind)
-               IF (sij.le.1.d0) THEN
+               IF (sij.le.spmax) THEN
                   hfixmax=dmax1(hfixmax,az1)
                   IF (sij.gt.spmin) THEN
-		      w(jw1)=wj*(1.d0-spf*(sij-spmin))
+                      ssij=spf*(sij-spmin)
+                      if(degr.eq.1) ssij=ssij*ssij
+                      if(degr.eq.2) ssij=ssij*ssij*ssij
+		      w(jw1)=wj*(1.d0-ssij)
                       hhommax=dmin1(hhommax,az1)
                   ELSE 
                      w(jw1)=wj
@@ -429,9 +433,8 @@ C   bi(n1,n2,dp2)
 C   arrays of fixed length correspond to degr=2
 C   first set dimensions for arrays depending on degree
       aws=lambda.lt.1.d20
-      lfix=nfix.gt.(degr+1)
-      hnfix=nfix
-C      hnfix=dmax1(hnfix,.2d0*hakt)
+      lfix=nfix.gt.1
+      hnfix=dmax1(1.5,6.d0+degr-hakt)
       spf=1.d0/(1.d0-spmin)
       if(degr.eq.0) THEN
          dp1=1
@@ -688,9 +691,8 @@ C   bi(n1,n2,dp2)
 C   arrays of fixed length correspond to degr=2
 C   first set dimensions for arrays depending on degree
       aws=lambda.lt.1.d20
-      lfix=nfix.gt.(degr+1)
-      hnfix=nfix
-      hnfix=dmax1(hnfix,.2d0*hakt)
+      lfix=nfix.gt.1
+      hnfix=dmax1(1.5,6.d0+degr-hakt)
       spf=1.d0/(1.d0-spmin)
       if(degr.eq.0) THEN
          dp1=1

@@ -1,6 +1,6 @@
 aws.gaussian2 <- function (y, hmax=4, aws=TRUE, varmodel="Constant",
                       ladjust=1.0 , scorr=TRUE, lkern="Triangle", 
-                      skern="Triangle", demo=FALSE, graph=FALSE, zext=1) {
+                      demo=FALSE, graph=FALSE, zext=1) {
 
   #
   #          Auxilary functions
@@ -47,10 +47,6 @@ aws.gaussian2 <- function (y, hmax=4, aws=TRUE, varmodel="Constant",
                   Cubic=4,
                   Uniform=1,
                   2)
-  skern <- switch(skern,
-                  Triangle=1,
-                  Exp=2,
-                  1)
   if (is.null(hmax)) hmax <- 4
   if (qlambda<1) lambda <- ladjust*2*qchisq(qlambda,1) else lambda <- 1e50
   #
@@ -58,16 +54,7 @@ aws.gaussian2 <- function (y, hmax=4, aws=TRUE, varmodel="Constant",
   #
   sigma2 <- IQRdiff(y)^2
   cat("Estimated variance (assuming independence): ", signif(sigma2,4),"\n")
-  if (skern==1) {
-    # set the support of the statistical kernel to (0,2) for skern==1, set spmin and spmax
     lambda <- 2*lambda
-    spmin <- 0
-    spmax <- 1
-  } else {
-    #   set cut off point in K_{st}(x) = exp(-x) I_{x<spmax}
-    spmin <- 0
-    spmax <- 3  
-  }
   #     now set hinit and hincr if not provided
   if(aws) hinit <- 1 else {
     cat("No adaptation method specified. Calculate kernel estimate with bandwidth hmax.\n")
@@ -184,9 +171,7 @@ aws.gaussian2 <- function (y, hmax=4, aws=TRUE, varmodel="Constant",
                       bi0=as.double(bi0),# just take a scalar here
                       theta=double(n),
                       as.integer(lkern),
-                      as.integer(skern),
                       as.double(spmin),		       
-                      as.double(spmax),
                       as.double(zext),
                       double(twohp1*twohp1*twohp3),# array for location weights
                       DUP=FALSE,

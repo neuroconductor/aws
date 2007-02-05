@@ -29,8 +29,8 @@
 #       
 aws <- function(y,hmax=NULL,qlambda=NULL,qtau=NULL,family="Gaussian",
                 sigma2=NULL,scorr=0,shape=NULL,wghts=NULL,graph=FALSE,demo=FALSE,
-		lkern="Triangle",skern="Triangle",aggkern="Uniform",
-		spmin=0,homogen=TRUE,spmax=5,lseq=NULL,u=NULL,testprop=FALSE)
+		lkern="Triangle",aggkern="Uniform",
+		spmin=0,homogen=TRUE,lseq=NULL,u=NULL,testprop=FALSE)
 {
 #
 #    first check arguments and initialize
@@ -43,8 +43,7 @@ if(length(dy)>3) stop("AWS for more than 3 dimensional grids is not implemented"
 #
 lkern<-switch(lkern,Triangle=2,Quadratic=3,Cubic=4,Uniform=1,
 	            Gaussian=5,2)
-skern <- switch(skern,"Exp"=1,"Triangle"=2,2)
-cpar<-setawsdefaults(dy,mean(y),family,skern,aggkern,qlambda,qtau,lseq,hmax,shape,spmax)
+cpar<-setawsdefaults(dy,mean(y),family,aggkern,qlambda,qtau,lseq,hmax,shape)
 lambda <- cpar$lambda
 hmax <- cpar$hmax
 lseq <- cpar$lseq
@@ -52,7 +51,6 @@ shape <- cpar$shape
 d <- cpar$d
 hinit <- cpar$hinit
 hincr <- cpar$hincr
-spmax <- cpar$spmax
 n<-length(y)
 # 
 #   family dependent transformations that depend on the value of family
@@ -98,7 +96,7 @@ if(testprop) {
 #  prepare to  check for alpha in propagation condition (to adjust qlambda and lseq)
 #
        if(is.null(u)) u <- 0
-       cpar <- c(cpar, list(n1=n1,n2=n2,n3=n3,n=n1*n2*n3,lkern=lkern,skern=skern,wghts=wghts,spmin=spmin,spmax=spmax,family=family,u=u))
+       cpar <- c(cpar, list(n1=n1,n2=n2,n3=n3,n=n1*n2*n3,lkern=lkern,wghts=wghts,spmin=spmin,family=family,u=u))
        propagation <- NULL
     } 
 #
@@ -129,9 +127,7 @@ zobj <- .Fortran("chaws",as.double(y),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
-                       as.integer(skern),
 	               as.double(spmin),
-		       as.double(spmax),
 		       double(prod(dlw)),
 		       as.double(wghts),
 		       PACKAGE="aws",DUP=FALSE)[c("bi","bi0","bi2","vred","ai","hakt")]
@@ -153,9 +149,7 @@ zobj <- .Fortran("caws",as.double(y),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
-                       as.integer(skern),
                        as.double(spmin),
-		       as.double(spmax),
 		       double(prod(dlw)),
 		       as.double(wghts),
 		       PACKAGE="aws",DUP=FALSE)[c("bi","bi0","bi2","ai","hakt","hhom")]
@@ -276,7 +270,7 @@ z
 # see script aws_propagation.r
 #
 #######################################################################################
-setawsdefaults <- function(dy,meany,family,skern,aggkern,qlambda,qtau,lseq,hmax,shape,spmax){
+setawsdefaults <- function(dy,meany,family,aggkern,qlambda,qtau,lseq,hmax,shape){
 hinit <- 1
 #if(!is.null(qlambda)&&qlambda<.9){
 #   cat("Inappropriate value of qlambda, using defaults")
@@ -287,23 +281,14 @@ hinit <- 1
 #
 if(is.null(dy)){ 
       d<-1
-      if(is.null(qlambda)) qlambda <- switch(skern,
-                                             switch(family,
-                                                   Gaussian=.992,
-					           Bernoulli=.985,
-					           Exponential=.985,
-					           Poisson=.981,
-                                                   Volatility=.985,
-					           Variance=.985,
-					           .992),
-					     switch(family,
+      if(is.null(qlambda)) qlambda <- switch(family,
                                                     Gaussian=.98,
 					            Bernoulli=.97,
 					            Exponential=.965,
 					            Poisson=.965,
                                                     Volatility=.965,
 					            Variance=.965,
-					            .97))
+					            .97)
       if(is.null(lseq)) lseq<-switch(family,
                                      Gaussian=1.5,
 				     Bernoulli=1,
@@ -315,23 +300,14 @@ if(is.null(dy)){
      }
 if(length(dy)==2) {
      d<-2
-     if(is.null(qlambda)) qlambda <- switch(skern,
-                                            switch(family,   
-                                                   Gaussian=.992,
-					           Bernoulli=.99,
-					           Exponential=.99,
-					           Poisson=.99,
-                                                   Volatility=.99,
-					           Variance=.99,
-					           .992),
-                                            switch(family,   
+     if(is.null(qlambda)) qlambda <-  switch(family,   
                                                    Gaussian=.97,
 					           Bernoulli=.965,
 					           Exponential=.965,
 					           Poisson=.965,
                                                    Volatility=.965,
 					           Variance=.965,
-					           .97))
+					           .97)
      if(is.null(lseq)) lseq<-switch(family,
                                     Gaussian=c(1.8,1.3,1.2,1.2,1.1,1.1,1.1),
 				    Bernoulli=1,
@@ -343,23 +319,14 @@ if(length(dy)==2) {
 	}
 if(length(dy)==3){
      d<-3
-     if(is.null(qlambda)) qlambda <- switch(skern,
-                                            switch(family,   
-                                                   Gaussian=.995,
-					           Bernoulli=.995,
-					           Exponential=.995,
-					           Poisson=.995,
-                                                   Volatility=.995,
-					           Variance=.995,
-					           .995),
-                                            switch(family,   
+     if(is.null(qlambda)) qlambda <- switch(family,   
                                                    Gaussian=.97,
 					           Bernoulli=.97,
 					           Exponential=.975,
 					           Poisson=.965,
                                                    Volatility=.975,
 					           Variance=.975,
-					           .97))
+					           .97)
      if(is.null(lseq)) lseq<-switch(family,
                                     Gaussian=c(1.9,1.5,1.3,1.3,1.3,1.3,rep(1.1,8)),
 				    Bernoulli=1,
@@ -453,19 +420,14 @@ mcode <- switch(family,
 		Variance=5,
 		-1)
 if(mcode < 0) stop(paste("specified family ",family," not yet implemented"))
-if(skern==2) {
    lambda<-lambda*1.8
-   spmax <- 1
-   } else {
-   if(is.null(spmax)) spmax <- 5
-   }
 if(is.null(shape)) shape<-1
 steps <- as.integer(log(hmax/hinit)/log(hincr))
 lseq <- c(lseq,rep(1,steps))[1:steps]
 if(qlambda<1) 
 cat("Running PS with lambda=",signif(lambda,3)," hmax=",hmax," number of iterations=",steps," memory step",if(qtau>=1) "OFF" else "ON","\n")
 else cat("Sequence tau_k:",signif((tau1+tau2*pmax(kstar-log(hincr^(1:steps)),0)),3),"\n")
-list(heta=heta,tau1=tau1,tau2=tau2,lambda=lambda,lseq=lseq,hmax=hmax,d=d,mcode=mcode,shape=shape,aggkern=aggkern,hinit=hinit,kstar=kstar,hincr=hincr,spmax=spmax)
+list(heta=heta,tau1=tau1,tau2=tau2,lambda=lambda,lseq=lseq,hmax=hmax,d=d,mcode=mcode,shape=shape,aggkern=aggkern,hinit=hinit,kstar=kstar,hincr=hincr)
 }
 #######################################################################################
 #
@@ -627,9 +589,7 @@ pobj <- .Fortran("chaws",as.double(y),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(cpar$lkern),
-                       as.integer(cpar$skern),
 	               as.double(cpar$spmin),
-		       as.double(cpar$spmax),
 		       double(prod(dlw)),
 		       as.double(cpar$wghts),
 		       PACKAGE="aws",DUP=FALSE)[c("bi","ai","hakt")]
@@ -650,9 +610,7 @@ pobj <- .Fortran("caws",as.double(y),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(cpar$lkern),
-                       as.integer(cpar$skern),
                        as.double(cpar$spmin),
-		       as.double(cpar$spmax),
 		       double(prod(dlw)),
 		       as.double(cpar$wghts),
 		       PACKAGE="aws",DUP=FALSE)[c("bi","ai","hakt")]
