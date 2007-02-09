@@ -184,7 +184,8 @@ C
      1       bi2(1),hakt,lwght(1),spmin,spf,hhom(1),hhomi,hhommax
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3
-      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0
+      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0,
+     1       hmax2
       hakt2=hakt*hakt
       spf=1.d0/(1.d0-spmin)
       ih1=hakt
@@ -228,6 +229,7 @@ C  first stochastic term
                jind=j1+jind2
                z1=clw1-j1
                lwght(jind)=lkern(kern,(z1*z1+z2)/hakt2)
+               if(lwght(jind).gt.0.d0) hmax2=dmax1(hmax2,z2+z1*z1)
             END DO
          END DO
       END DO
@@ -238,7 +240,7 @@ C  first stochastic term
 	       iind=i1+(i2-1)*n1+(i3-1)*n1*n2
                hhomi=hhom(iind)
                hhomi=hhomi*hhomi
-               hhommax=hakt2
+               hhommax=hmax2
                IF (fix(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
                thetai=theta(iind)
@@ -284,9 +286,6 @@ C  first stochastic term
 			         wj=wj*(1.d0-spf*(sij-spmin))
                                  hhommax=dmin1(hhommax,z1)
                               END IF
-C   if sij <= spmin  this just keeps the location penalty
-C    spmin = 0 corresponds to old choice of K_s 
-C   new kernel is flat in [0,spmin] and then decays exponentially
                         END IF
                         swj=swj+wj
                         swj2=swj2+wj*wj

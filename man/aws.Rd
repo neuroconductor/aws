@@ -56,7 +56,7 @@ aws(y,hmax=NULL,qlambda=NULL,qtau=NULL,family="Gaussian",
   the factor specified in \code{lseq}. Defaults to NULL. In this case a default sequence is used that fulfils the propagation condition. }
   \item{u}{\code{u} allows to specify the true parameter. This is only used to test the algorithm and to select the smoothing parameters 
     \code{qlambda} and \code{qtau} by a propagation condition. If \code{u} is specified MSE and MAE of the estimates are 
-    printed for each iteration step.
+    printed for each iteration step.}
   \item{testprop}{If set this provides diagnostics for testing the propagation condition. The values of \code{y} should correspond to the specified
    family and a global model. }
 }

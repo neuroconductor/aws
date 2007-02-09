@@ -3,6 +3,239 @@ C
 C   Perform one iteration in local polynomial  aws (gridded) !D
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      subroutine awsp1b(y,fix,nfix,n,degr,hw,hakt,hhom,lambda,theta,
+     1        bi,bi2,bi0,ai,kern,spmin,lw,w,slw,sw,ind)
+C   
+C   y        observed values of regression function
+C   fix      logical TRUE fro points where we have nothing to do
+C   n1,n2    design dimensions
+C   degr     degree of polynomials 0,1 or 2
+C   hw       bandwidth used to smooth weights
+C   hakt     actual bandwidth in aws
+C   lambda   lambda or lambda*sigma2 for Gaussian models
+C   theta    estimates from last step   (input)
+C   bi       Matrix Bi dim(n1,n2,dp2)
+C   bi2      Matrix Bi dim(n1,n2,dp2) (with wij^2 instead of wij)
+C   bi0      Matrix Bi0 dim(n1,n2,dp2) (with location weights only)
+C   ai       \sum  Wi Y     (output) dim(n1,n2,dp1)
+C   kern     specifies the location kernel
+C   lw       array of location weights dim(dlw,dlw) dlw=2*ih+1
+C   w        array of weights dim(dlw,dlw)
+C   sw       array of "smoothed" weights dim(dls,dls) dls=2*(ih+ihw)+1
+C   
+C   temporary arrays set for maximum degree 2
+C
+      implicit logical (a-z)
+      external kldistp,lkern
+      real*8 kldistp,lkern
+      integer n,kern,degr,ind(1),nfix
+      logical aws,fix(1),lfix
+      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmin,
+     1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),hhom(n,2)
+      integer ih,j1,k,iind,jind,dlw,clw,jw1,
+     2        dp1,dp2,ihs,csw,dsw,l
+      real*8 bii(5),sij,swj(5),swj2(5),swj0(5),swjy(5),z1,wj,
+     1       hakt2,thij(3),thi(3),zz(5),lwj,yj,hs2,hs,z,cc,spf,
+     2       hhommax,hhommin,hfix,az1,hfixmax,hnfix,ssij,spmax,
+     3       hhomimin,hhomimax
+C   arrays with variable length are organized as 
+C   theta(n,dp1)
+C   bi(n,dp2)
+C   arrays of fixed length correspond to degr=2
+C   first set dimensions for arrays depending on degree
+      aws=lambda.lt.1.d20
+      lfix=nfix.gt.(degr+1)
+      hnfix=nfix
+      hnfix=dmax1(hnfix,.2d0*hakt)
+      spmax=degr+1
+      spf=1.d0/(spmax-spmin)
+      if(degr.eq.0) THEN
+         dp1=1
+	 dp2=1
+      ELSE IF (degr.eq.1) THEN
+         dp1=2
+	 dp2=3
+      ELSE 
+         dp1=3
+	 dp2=5
+      END IF
+      hakt2=hakt*hakt
+      ih=hakt
+      dlw=2*ih+1
+      clw=ih+1
+      hs=hakt+hw
+      hs2=hs*hs
+      ihs=hs
+      dsw=2*ihs+1
+      csw=ihs+1
+C   compute location weights first
+      DO j1=1,dlw
+         z1=clw-j1
+         lw(j1)=lkern(kern,z1*z1/hakt2)
+      END DO
+      cc=0.0d0
+      call smwghts1(lw,hakt,hw,slw,dlw,dsw,cc)
+C  now stochastic term
+      zz(1)=1.d0
+      DO iind=1,n
+         IF (fix(iind)) CYCLE
+C    nothing to do, final estimate is already fixed by control 
+         hhomimin=hhom(iind,1)
+         hhomimax=hhom(iind,2)
+         hhommax=hakt
+         hhommin=hakt
+         hfixmax=dmax1(hhomimin,hhomimax)
+         DO k=1,dp1
+            thi(k)=theta(iind+(k-1)*n)
+	 END DO
+         DO k=1,dp2
+            bii(k)=bi(iind+(k-1)*n)/lambda
+	 END DO
+C   scaling of sij outside the loop
+         DO jw1=1,dlw
+            w(jw1)=0.d0
+	    jind=jw1-clw+iind
+	    if(jind.lt.1.or.jind.gt.n) CYCLE
+            wj=lw(jw1)
+            z1=jw1-clw
+            zz(2)=z1
+            zz(3)=z1*z1
+            az1=dabs(z1)
+            IF (aws.and.(z1.le.-hhomimin.or.z1.ge.hhomimax)) THEN
+	       DO k=1,dp1
+	          thij(k)=theta(jind+(k-1)*n)
+               END DO
+               thij(1)=thij(1)-thij(2)*z1
+               IF (dp1.gt.2) THEN
+                  thij(1)=thij(1)+thij(3)*zz(3)
+                  thij(2)=thij(2)-2.d0*thij(3)*z1
+               END IF
+C  
+C           get difference of thetas
+C
+               DO k=1,dp1
+                  thij(k)=thi(k)-thij(k)
+               END DO
+               sij=kldistp(dp1,thij,bii,ind)
+               IF (sij.le.spmax) THEN
+                  hfixmax=dmax1(hfixmax,az1)
+                  IF (sij.gt.spmin) THEN
+                      ssij=1.d0-spf*(sij-spmin)
+		      w(jw1)=wj*ssij
+                      if(z1.gt.0) THEN
+                         hhommax=dmin1(hhommax,az1)
+                      ELSE
+                         hhommin=dmin1(hhommin,az1)
+                      END IF
+                  ELSE 
+                     w(jw1)=wj
+                  END IF
+	       ELSE 
+		  w(jw1)=0.d0
+                  if(z1.gt.0) THEN
+                     hhommax=dmin1(hhommax,az1)
+                  ELSE
+                     hhommin=dmin1(hhommin,az1)
+                  END IF
+	       END IF
+	    ELSE
+               w(jw1)=wj
+            END IF
+         END DO
+C
+C      Smooth the weights
+C   
+         z=0.d0
+	 DO jw1=1,dlw
+	    if(jw1.eq.clw) CYCLE
+               z=z+w(jw1)
+         END DO
+	 z=(2.d0-z/2.d0)*hw-1+z/2.d0
+	 z=dmax1(.1d0,dmin1(z,hw))
+	 cc=dmin1(z-1.d0,1.d0/hakt)
+         call smwghts1(w,hakt,z,sw,dlw,dsw,cc)
+         DO k=1,dp2
+            swj(k)=0.d0
+            swj2(k)=0.d0
+            swj0(k)=0.d0
+         END DO
+         DO k=1,dp1
+               swjy(k)=0.d0
+         END DO
+         DO jw1=csw,dsw
+	    j1=jw1-csw+iind
+	    if(j1.lt.1.or.j1.gt.n) CYCLE
+	    z1=jw1-csw
+	    lwj=slw(jw1)
+	    wj=sw(jw1)
+	    if(lwj.le.0.d0.and.wj.le.0.d0) CYCLE  
+	    zz(2)=z1
+	    zz(3)=z1*z1
+	    IF(dp1.gt.2) THEN
+	       zz(4)=z1*zz(3)
+	       zz(5)=z1*zz(4)
+	    END IF
+	    DO k=1,dp2
+               swj0(k)=swj0(k)+lwj*zz(k)
+	    END DO
+	    if(wj.le.0.d0) CYCLE  
+	    DO k=1,dp2
+               swj(k)=swj(k)+wj*zz(k)
+               swj2(k)=swj2(k)+wj*wj*zz(k)
+	    END DO
+	    yj=y(j1)
+	    DO l=1,dp1
+               swjy(l)=swjy(l)+wj*zz(l)*yj
+	    END DO
+         END DO
+         DO jw1=1,csw-1
+	    j1=jw1-csw+iind
+	    if(j1.lt.1.or.j1.gt.n) CYCLE
+	    z1=jw1-csw
+	    lwj=slw(jw1)
+	    wj=sw(jw1)
+	    if(lwj.le.0.d0.and.wj.le.0.d0) CYCLE  
+	    zz(2)=z1
+	    zz(3)=z1*z1
+	    IF(dp1.gt.2) THEN
+	       zz(4)=z1*zz(3)
+	       zz(5)=z1*zz(4)
+	    END IF
+	    DO k=1,dp2
+               swj0(k)=swj0(k)+lwj*zz(k)
+	    END DO
+	    if(wj.le.0.d0) CYCLE  
+	    DO k=1,dp2
+               swj(k)=swj(k)+wj*zz(k)
+               swj2(k)=swj2(k)+wj*wj*zz(k)
+	    END DO
+	    yj=y(j1)
+	    DO l=1,dp1
+               swjy(l)=swjy(l)+wj*zz(l)*yj
+	    END DO
+         END DO
+         DO k=1,dp1
+            ai(iind+(k-1)*n)=swjy(k)
+         END DO
+         DO k=1,dp2
+            bi(iind+(k-1)*n)=swj(k)
+            bi2(iind+(k-1)*n)=swj2(k)
+            bi0(iind+(k-1)*n)=swj0(k)
+         END DO
+         hhom(iind,1)=hhommin
+         hhom(iind,2)=hhommax
+         if(lfix.and.hakt-hfixmax.ge.hnfix) THEN
+            fix(iind)=.TRUE.
+         END IF
+         call rchkusr()
+      END DO
+      RETURN
+      END
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C   Perform one iteration in local polynomial  aws (gridded) !D
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine awsp1(y,fix,nfix,n,degr,hw,hakt,hhom,lambda,theta,bi,
      1        bi2,bi0,ai,kern,spmin,lw,w,slw,sw,ind)
 C   
@@ -118,10 +351,11 @@ C
                IF (sij.le.spmax) THEN
                   hfixmax=dmax1(hfixmax,az1)
                   IF (sij.gt.spmin) THEN
-                      ssij=spf*(sij-spmin)
-                      if(degr.eq.1) ssij=ssij*ssij
-                      if(degr.eq.2) ssij=ssij*ssij*ssij
-		      w(jw1)=wj*(1.d0-ssij)
+                      ssij=1.d0-spf*(sij-spmin)
+C                      if(degr.eq.1) ssij=ssij*ssij
+C                      if(degr.eq.2) ssij=ssij*ssij*ssij
+C		      w(jw1)=wj*(1.d0-ssij)
+		      w(jw1)=wj*ssij
                       hhommax=dmin1(hhommax,az1)
                   ELSE 
                      w(jw1)=wj
@@ -154,7 +388,33 @@ C
          DO k=1,dp1
                swjy(k)=0.d0
          END DO
-         DO jw1=1,dsw
+         DO jw1=csw,dsw
+	    j1=jw1-csw+iind
+	    if(j1.lt.1.or.j1.gt.n) CYCLE
+	    z1=jw1-csw
+	    lwj=slw(jw1)
+	    wj=sw(jw1)
+	    if(lwj.le.0.d0.and.wj.le.0.d0) CYCLE  
+	    zz(2)=z1
+	    zz(3)=z1*z1
+	    IF(dp1.gt.2) THEN
+	       zz(4)=z1*zz(3)
+	       zz(5)=z1*zz(4)
+	    END IF
+	    DO k=1,dp2
+               swj0(k)=swj0(k)+lwj*zz(k)
+	    END DO
+	    if(wj.le.0.d0) CYCLE  
+	    DO k=1,dp2
+               swj(k)=swj(k)+wj*zz(k)
+               swj2(k)=swj2(k)+wj*wj*zz(k)
+	    END DO
+	    yj=y(j1)
+	    DO l=1,dp1
+               swjy(l)=swjy(l)+wj*zz(l)*yj
+	    END DO
+         END DO
+         DO jw1=1,csw-1
 	    j1=jw1-csw+iind
 	    if(j1.lt.1.or.j1.gt.n) CYCLE
 	    z1=jw1-csw
@@ -1158,6 +1418,60 @@ C    if info>0 just keep the old estimate
          IF (info.gt.0) CYCLE  
          DO j=1,dp1
             theta(i,j)=aa(j)
+	 END DO
+      END DO
+      RETURN
+      END      
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C      Generate estimates from ai and bi (univariate case)
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      subroutine mpaws1(n,dp1,dp2,ai,bi,theta,dmat,ind)
+C    
+C     n          number of design points
+C     dp1        number of parameters  (p+1)
+C     dp2        number of components in bi  (1,6,15)
+C     ai         \sum \Psi^T Wi^k Y       
+C     bi         \sum \Psi^T Wi^k \Psi    
+C     theta      new parameter estimate
+C     dmat       working arrays
+C     restricted to dp2<=20
+      implicit logical (a-z)
+      integer n,dp1,dp2
+      real*8 ai(n,dp1),bi(n,dp2),theta(n,dp1),dmat(dp1,dp1)
+      integer i,j,k,info,ind(dp1,dp1),iii
+      real*8 d,aa(3),h,cii(5)
+      DO i=1,n
+         cii(1)=1.d0
+         h=bi(i,1)
+         if(dp1.gt.1) THEN
+            DO k=2,dp2
+               cii(k)=cii(k-1)*h
+            END DO
+         END IF
+         DO k=1,dp1
+	    DO j=k,dp1
+               iii=ind(k,j)
+	       dmat(k,j)=bi(i,iii)/cii(iii)
+	    END DO
+	    aa(k)=ai(i,k)/cii(k)
+	 END DO
+C     now calculate theta as B_i^{-1} A_i
+	 call dposv("U",dp1,1,dmat,dp1,aa,dp1,info)
+C    if info>0 just keep the old estimate
+         IF (info.gt.0) THEN
+            call intpr("i",1,i,1)
+            call dblepr("h",1,h,1)
+            call dblepr("cii",3,cii,dp2)
+            DO k=1,dp2 
+               call dblepr("bi(i,k)",7,bi(i,k),1)
+            END DO
+            STOP
+            CYCLE
+         END IF  
+         DO j=1,dp1
+            theta(i,j)=aa(j)/cii(j)
 	 END DO
       END DO
       RETURN

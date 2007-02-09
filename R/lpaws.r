@@ -67,6 +67,15 @@ if(d==1){
    ind <- matrix(c(1, 2, 3,
                    2, 3, 4,
                    3, 4, 5),3,3)[1:dp1,1:dp1]
+   theta <- .Fortran("mpaws1",
+                  as.integer(n),
+                  as.integer(dp1),
+                  as.integer(dp2),
+                  as.double(ai),
+                  as.double(bi),
+                  theta=double(dp1*n),
+                  double(dp1*dp1),
+                  as.integer(ind),PACKAGE="aws")$theta
 }  else {
    n1 <- dim(ai)[1]
    n2 <- dim(ai)[2]
@@ -79,7 +88,6 @@ if(d==1){
                    4, 7, 8,11,12,13,
                    5, 8, 9,12,13,14,
                    6, 9,10,13,14,15),6,6)[1:dp1,1:dp1]
-} 
    theta <- .Fortran("mpaws2",
                   as.integer(n),
                   as.integer(dp1),
@@ -89,6 +97,7 @@ if(d==1){
                   theta=double(dp1*n),
                   double(dp1*dp1),
                   as.integer(ind),PACKAGE="aws")$theta
+} 
    dim(theta) <- switch(d,c(n,dp1),c(n1,n2,dp1))
    theta
 }
@@ -232,7 +241,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
   bikm1 <- array(rep(1,n*dp2),c(switch(d,n,dy),dp2))
   bi2km1 <- array(rep(0,n*dp2),c(switch(d,n,dy),dp2))
   theta <- thetakm1 <- array(rep(0,n*dp1),c(switch(d,n,dy),dp1))
-  hhom <- rep(1,n)
+  hhom <- switch(d,rep(1,2*n),rep(1,n))
   fix <- rep(FALSE,n)
   ind <- switch(d,
                 matrix(c(1, 2, 3,
@@ -314,7 +323,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
     } else {
       # all other cases
       zobj <- switch(d,
-                     .Fortran("awsp1",
+                     .Fortran("awsp1b",
 		       as.double(y),
                        fix=as.logical(fix),
                        as.integer(nfix),
@@ -364,12 +373,13 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
     }
     gc()
     dim(zobj$ai) <- c(switch(d,n,dy),dp1)
+    dim(zobj$bi) <- c(switch(d,n,dy),dp2)
     if (hakt>n^(1/d)/2) zobj$bi0 <- hincr^d*biold
     biold <- zobj$bi0
     dim(zobj$bi0)<-c(switch(d,n,dy),dp2)
-    if(!homogen) zobj$hhom<-rep(1,n)
+    if(!homogen) zobj$hhom<- switch(d,rep(1,2*n),rep(1,n))
     tobj <- updtheta(d,zobj,fix,cpar,aggkern,bikm1,bi2km1,thetakm1)
-    if(!is.null(zobj$hhom)) hhom <- zobj$hhom else hhom<-rep(1,n)
+    if(!is.null(zobj$hhom)) hhom <- zobj$hhom else switch(d,rep(1,2*n),rep(1,n))
     fix <- tobj$fix
     fix[zobj$fix] <- TRUE
     rm(zobj)
@@ -399,7 +409,8 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,kstar=kstar)
       title("Observed data and estimate")
       plot(bi[,1],type="l",ylim=c(0,max(bi[,1])))
       lines(eta*max(bi[,1]),col=2)
-      lines(hhom/max(hhom)*max(bi[,1]),col=3)
+      lines(hhom[1:n]/max(hhom)*max(bi[,1]),col=3)
+      lines(hhom[n+(1:n)]/max(hhom)*max(bi[,1]),col=4)
       title(paste("hakt=",signif(hakt,3),"bi,eta and hhom"))
       } else {
       oldpar<-par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))

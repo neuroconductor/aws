@@ -336,6 +336,7 @@ if(length(dy)==3){
 				    Variance=11,
 				    c(1.9,1.5,1.3,1.3,1.3,1.3,rep(1.1,8)))
 }
+if(is.null(hmax)) hmax <- switch(d,250,12,5)
 if(qlambda<1) lambda <- qchisq(qlambda,1) else lambda <- 1e50
 hincr <- 1.25^(1/d)
 #
@@ -409,7 +410,6 @@ tau2<-tau1/2
 #
 #   set maximal bandwidth
 #
-if(is.null(hmax)) hmax <- switch(d,250,12,5)
 # uses a maximum of about 500, 450 and 520  points, respectively.
 mcode <- switch(family,
                 Gaussian=1,
