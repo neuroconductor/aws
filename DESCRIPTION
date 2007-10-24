@@ -12,7 +12,7 @@ Description: The library contains R-functions implementing the
      and 
      J. Polzehl and V. Spokoiny (2004) Spatially adaptive regression estimation: Propagation-separation approach,
      WIAS-Preprint 998.
-License: GPL version 2 or newer
+License: GPL (>=2)
      This library is Copyright (C) 2005 Weierstrass Institute for 
                                    Applied Analysis and Stochastics.
 URL: http://wias-berlin.de/project-areas/stat/projects/adaptive-image-processing.html
