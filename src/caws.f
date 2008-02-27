@@ -81,20 +81,20 @@ C        Bernoulli
          eta=0.5d0/bi0
          thij=(1.d0-eta)*thj+eta*thi
          tthi=(1.d0-thi)
-         IF (thi.gt.1.d-10) kldist=kldist+thi*dlog(thi/thij)
-         IF (tthi.gt.1.d-10) kldist=kldist+tthi*dlog(tthi/(1.d0-thij))
+         IF (thi.gt.1.d-10) kldist=kldist+thi*log(thi/thij)
+         IF (tthi.gt.1.d-10) kldist=kldist+tthi*log(tthi/(1.d0-thij))
       ELSE IF (model.eq.3) THEN
 C        Poisson
          kldist=0.d0
          eta=0.5d0/bi0
          thij=(1.d0-eta)*thj+eta*thi
-         IF (thi.gt.1.d-10) kldist=thi*dlog(thi/thij)-thi+thij
+         IF (thi.gt.1.d-10) kldist=thi*log(thi/thij)-thi+thij
       ELSE IF (model.eq.4) THEN
 C        Exponential
-         kldist=thi/thj-1.d0-dlog(thi/thj)
+         kldist=thi/thj-1.d0-log(thi/thj)
       ELSE IF (model.eq.5) THEN
 C        Exponential
-         kldist=thi/thj-1.d0-dlog(thi/thj)
+         kldist=thi/thj-1.d0-log(thi/thj)
       ELSE
 C        use Gaussian
          z=thi-thj
@@ -131,7 +131,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          z=1.d0-xsq
          lkern=z*z*z
       ELSE IF (kern.eq.5) THEN
-         lkern=dexp(-xsq*8.d0)
+         lkern=exp(-xsq*8.d0)
       ELSE
 C        use Epanechnikov
          lkern=1.d0-xsq
@@ -152,8 +152,157 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       ELSE IF (x.gt.xmax) THEN
          skern=0.d0
       ELSE
-         skern=dexp(-spf*(x-xmin))
+         skern=exp(-spf*(x-xmin))
       ENDIF
+      RETURN
+      END
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C   Perform one iteration in local constant three-variate aws (gridded)
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      subroutine cawsw(y,fix,n1,n2,n3,hakt,hhom,lambda,theta,bi,bi2,
+     1                bi0,ai,model,kern,spmin,lwght,wght,n,w)
+C   
+C   y        observed values of regression function
+C   n1,n2,n3    design dimensions
+C   hakt     actual bandwidth
+C   lambda   lambda or lambda*sigma2 for Gaussian models
+C   theta    estimates from last step   (input)
+C   bi       \sum  Wi   (output)
+C   ai       \sum  Wi Y     (output)
+C   model    specifies the probablilistic model for the KL-Distance
+C   kern     specifies the location kernel
+C   wght     scaling factor for second and third dimension (larger values shrink)
+C   
+      implicit logical (a-z)
+      external kldist,lkern
+      real*8 kldist,lkern
+      integer n1,n2,n3,model,kern,n
+      logical aws,fix(1)
+      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,wght(2),
+     1       bi2(1),hakt,lwght(1),spmin,spf,hhom(1),hhomi,hhommax
+      integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
+     1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3
+      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0,
+     1       hmax2,w(n,n)
+      hakt2=hakt*hakt
+      spf=1.d0/(1.d0-spmin)
+      ih1=hakt
+      aws=lambda.lt.1d40
+C
+C   first calculate location weights
+C
+      ih3=hakt/wght(2)
+      ih2=hakt/wght(1)
+      ih1=hakt
+      if(n3.eq.1) ih3=0
+      if(n2.eq.1) ih2=0
+      clw1=ih1+1
+      clw2=ih2+1
+      clw3=ih3+1
+      dlw1=ih1+clw1
+      dlw2=ih2+clw2
+      dlw3=ih3+clw3
+      z2=0.d0
+      z3=0.d0
+      DO j3=1,dlw3
+         if(n3.gt.1) THEN
+            z3=(clw3-j3)*wght(2)
+            z3=z3*z3
+            ih2=sqrt(hakt2-z3)/wght(1)
+            jind3=(j3-1)*dlw1*dlw2
+	 ELSE
+	    jind3=0
+	 END IF
+         DO j2=clw2-ih2,clw2+ih2
+            if(n2.gt.1) THEN
+               z2=(clw2-j2)*wght(1)
+               z2=z3+z2*z2
+               ih1=sqrt(hakt2-z2)
+               jind2=jind3+(j2-1)*dlw1
+	    ELSE
+	       jind2=0
+	    END IF
+            DO j1=clw1-ih1,clw1+ih1
+C  first stochastic term
+               jind=j1+jind2
+               z1=clw1-j1
+               lwght(jind)=lkern(kern,(z1*z1+z2)/hakt2)
+               if(lwght(jind).gt.0.d0) hmax2=max(hmax2,z2+z1*z1)
+            END DO
+         END DO
+      END DO
+      call rchkusr()
+      DO i3=1,n3
+         DO i2=1,n2
+             DO i1=1,n1
+	       iind=i1+(i2-1)*n1+(i3-1)*n1*n2
+               hhomi=hhom(iind)
+               hhomi=hhomi*hhomi
+               hhommax=hmax2
+               IF (fix(iind)) CYCLE
+C    nothing to do, final estimate is already fixed by control 
+               thetai=theta(iind)
+               bii=bi(iind)/lambda
+C   scaling of sij outside the loop
+               bii0=bi0(iind)
+               swj=0.d0
+	       swj2=0.d0
+               swj0=0.d0
+               swjy=0.d0
+               DO jw3=1,dlw3
+	          j3=jw3-clw3+i3
+	          if(j3.lt.1.or.j3.gt.n3) CYCLE
+		  jwind3=(jw3-1)*dlw1*dlw2
+	          jind3=(j3-1)*n1*n2
+                  z3=(clw3-jw3)*wght(2)
+                  z3=z3*z3
+                  if(n2.gt.1) ih2=sqrt(hakt2-z3)/wght(1)
+                  DO jw2=clw2-ih2,clw2+ih2
+	             j2=jw2-clw2+i2
+	             if(j2.lt.1.or.j2.gt.n2) CYCLE
+		     jwind2=jwind3+(jw2-1)*dlw1
+	             jind2=(j2-1)*n1+jind3
+                     z2=(clw2-jw2)*wght(1)
+                     z2=z3+z2*z2
+                     ih1=sqrt(hakt2-z2)
+                     DO jw1=clw1-ih1,clw1+ih1
+C  first stochastic term
+	                j1=jw1-clw1+i1
+	                if(j1.lt.1.or.j1.gt.n1) CYCLE
+                        jind=j1+jind2
+                        wj=lwght(jw1+jwind2)
+                        swj0=swj0+wj
+                        z1=(clw1-jw1)
+                        z1=z2+z1*z1
+                        IF (aws.and.z1.ge.hhomi) THEN
+                  sij=bii*kldist(model,thetai,theta(jind),bii0)
+                           IF (sij.gt.1.d0) THEN
+                              hhommax=min(hhommax,z1)
+                              CYCLE
+                           END IF
+			      IF (sij.gt.spmin) THEN
+			         wj=wj*(1.d0-spf*(sij-spmin))
+                                 hhommax=min(hhommax,z1)
+                              END IF
+                        END IF
+                        swj=swj+wj
+                        swj2=swj2+wj*wj
+                        swjy=swjy+wj*y(jind)
+                        w(iind,jind)=wj
+                     END DO
+                  END DO
+               END DO
+               ai(iind)=swjy
+               bi(iind)=swj
+               bi2(iind)=swj2
+               bi0(iind)=swj0
+               hhom(iind)=sqrt(hhommax)
+               call rchkusr()
+            END DO
+         END DO
+      END DO
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -210,7 +359,7 @@ C
          if(n3.gt.1) THEN
             z3=(clw3-j3)*wght(2)
             z3=z3*z3
-            ih2=dsqrt(hakt2-z3)/wght(1)
+            ih2=sqrt(hakt2-z3)/wght(1)
             jind3=(j3-1)*dlw1*dlw2
 	 ELSE
 	    jind3=0
@@ -219,7 +368,7 @@ C
             if(n2.gt.1) THEN
                z2=(clw2-j2)*wght(1)
                z2=z3+z2*z2
-               ih1=dsqrt(hakt2-z2)
+               ih1=sqrt(hakt2-z2)
                jind2=jind3+(j2-1)*dlw1
 	    ELSE
 	       jind2=0
@@ -229,7 +378,7 @@ C  first stochastic term
                jind=j1+jind2
                z1=clw1-j1
                lwght(jind)=lkern(kern,(z1*z1+z2)/hakt2)
-               if(lwght(jind).gt.0.d0) hmax2=dmax1(hmax2,z2+z1*z1)
+               if(lwght(jind).gt.0.d0) hmax2=max(hmax2,z2+z1*z1)
             END DO
          END DO
       END DO
@@ -258,7 +407,7 @@ C   scaling of sij outside the loop
 	          jind3=(j3-1)*n1*n2
                   z3=(clw3-jw3)*wght(2)
                   z3=z3*z3
-                  if(n2.gt.1) ih2=dsqrt(hakt2-z3)/wght(1)
+                  if(n2.gt.1) ih2=sqrt(hakt2-z3)/wght(1)
                   DO jw2=clw2-ih2,clw2+ih2
 	             j2=jw2-clw2+i2
 	             if(j2.lt.1.or.j2.gt.n2) CYCLE
@@ -266,7 +415,7 @@ C   scaling of sij outside the loop
 	             jind2=(j2-1)*n1+jind3
                      z2=(clw2-jw2)*wght(1)
                      z2=z3+z2*z2
-                     ih1=dsqrt(hakt2-z2)
+                     ih1=sqrt(hakt2-z2)
                      DO jw1=clw1-ih1,clw1+ih1
 C  first stochastic term
 	                j1=jw1-clw1+i1
@@ -279,12 +428,12 @@ C  first stochastic term
                         IF (aws.and.z1.ge.hhomi) THEN
                   sij=bii*kldist(model,thetai,theta(jind),bii0)
                            IF (sij.gt.1.d0) THEN
-                              hhommax=dmin1(hhommax,z1)
+                              hhommax=min(hhommax,z1)
                               CYCLE
                            END IF
 			      IF (sij.gt.spmin) THEN
 			         wj=wj*(1.d0-spf*(sij-spmin))
-                                 hhommax=dmin1(hhommax,z1)
+                                 hhommax=min(hhommax,z1)
                               END IF
                         END IF
                         swj=swj+wj
@@ -297,7 +446,7 @@ C  first stochastic term
                bi(iind)=swj
                bi2(iind)=swj2
                bi0(iind)=swj0
-               hhom(iind)=dsqrt(hhommax)
+               hhom(iind)=sqrt(hhommax)
                call rchkusr()
             END DO
          END DO
@@ -361,7 +510,7 @@ C
          if(n3.gt.1) THEN
             z3=(clw3-j3)*wght(2)
             z3=z3*z3
-            ih2=dsqrt(hakt2-z3)/wght(1)
+            ih2=sqrt(hakt2-z3)/wght(1)
             jind3=(j3-1)*dlw1*dlw2
 	 ELSE
 	    jind3=0
@@ -370,7 +519,7 @@ C
             if(n2.gt.1) THEN
                z2=(clw2-j2)*wght(1)
                z2=z3+z2*z2
-               ih1=dsqrt(hakt2-z2)
+               ih1=sqrt(hakt2-z2)
                jind2=jind3+(j2-1)*dlw1
 	    ELSE
 	       jind2=0
@@ -406,7 +555,7 @@ C   scaling of sij outside the loop
 	          jind3=(j3-1)*n1*n2
                   z3=(clw3-jw3)*wght(2)
                   z3=z3*z3
-                  if(n2.gt.1) ih2=dsqrt(hakt2-z3)/wght(1)
+                  if(n2.gt.1) ih2=sqrt(hakt2-z3)/wght(1)
                   DO jw2=clw2-ih2,clw2+ih2
 	             j2=jw2-clw2+i2
 	             if(j2.lt.1.or.j2.gt.n2) CYCLE
@@ -414,7 +563,7 @@ C   scaling of sij outside the loop
 	             jind2=(j2-1)*n1+jind3
                      z2=(clw2-jw2)*wght(1)
                      z2=z3+z2*z2
-                     ih1=dsqrt(hakt2-z2)
+                     ih1=sqrt(hakt2-z2)
                      DO jw1=clw1-ih1,clw1+ih1
 C  first stochastic term
 	                j1=jw1-clw1+i1
@@ -425,15 +574,15 @@ C  first stochastic term
                         wj=lwght(jw1+jwind2)
                         swj0=swj0+wj
                         IF (aws) THEN
-                           sij=bii*dmax1(kldist(model,thetai,
-     1                             theta(jind),bii0)-sdiff,0.d0)
+                           sij=bii*dim(kldist(model,thetai,
+     1                             theta(jind),bii0),sdiff)
                            IF (sij.gt.1.d0) CYCLE
 			      wj=wj*(1.d0-sij)
 C   if sij <= spmin  this just keeps the location penalty
 C    spmin = 0 corresponds to old choice of K_s 
 C   new kernel is flat in [0,spmin] and then decays exponentially
                         END IF
-                        heff=dmax1(heff,z1)
+                        heff=max(heff,z1)
                         swj=swj+wj
                         swj2=swj2+wj*wj
                         swjy=swjy+wj*y(jind)
@@ -473,14 +622,13 @@ C
       implicit logical (a-z)
       external kldist,lkern
       real*8 kldist,lkern
-      integer n1,n2,n3,model,kern
+      integer n1,n2,model,kern
       logical aws,fix(1)
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,
      1       bi2(1),hakt,lwght(1),spmin,spf,swght(1)
       integer ih1,ih2,i1,i2,j1,j2,jw1,jw2,jwind2,
-     1    iind,jind,jind2,clw,dlw,jwind1,
-     2    clw1m1
-      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0,
+     1    iind,jind,jind2,clw,dlw,jwind1
+      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,wj,hakt2,bii0,
      1       heff,hakt2eff
       hakt2=hakt*hakt
       spf=1.d0/(1.d0-spmin)
@@ -499,7 +647,7 @@ C
          if(n2.gt.1) THEN
             z2=(clw-j2)
             z2=z2*z2
-            ih1=dsqrt(hakt2-z2)
+            ih1=sqrt(hakt2-z2)
             jind2=(j2-1)*dlw
 	 ELSE
 	    jind2=0
@@ -538,7 +686,7 @@ C   scaling of sij outside the loop
 	       jind2=(j2-1)*n1
                z2=(clw-jw2)
                z2=z2*z2
-               ih1=dsqrt(hakt2-z2)
+               ih1=sqrt(hakt2-z2)
                DO jw1=clw-ih1,clw+ih1
 C  first stochastic term
 	          j1=jw1-clw+i1
@@ -570,7 +718,7 @@ C   new kernel is flat in [0,spmin] and then decays exponentially
 	       jind2=(j2-1)*n1
                z2=(clw-jw2)
                z2=z2*z2
-               ih1=dsqrt(hakt2-z2)
+               ih1=sqrt(hakt2-z2)
                DO jw1=clw-ih1,clw+ih1
 C  first stochastic term
 	          j1=jw1-clw+i1
@@ -580,7 +728,7 @@ C  first stochastic term
                   z1=z2+z1*z1
                   wj=swght(jw1+jwind2)
                   IF(wj.le.0.d0) CYCLE
-                  heff=dmax1(heff,z1)
+                  heff=max(heff,z1)
                   swj0=swj0+wj
                   swj=swj+wj
                   swj2=swj2+wj*wj
@@ -654,7 +802,7 @@ C
          if(n3.gt.1) THEN
             z3=(clw3-j3)*wght(2)
             z3=z3*z3
-            ih2=dsqrt(hakt2-z3)/wght(1)
+            ih2=sqrt(hakt2-z3)/wght(1)
             jind3=(j3-1)*dlw1*dlw2
 	 ELSE
 	    jind3=0
@@ -663,7 +811,7 @@ C
             if(n2.gt.1) THEN
                z2=(clw2-j2)*wght(1)
                z2=z3+z2*z2
-               ih1=dsqrt(hakt2-z2)
+               ih1=sqrt(hakt2-z2)
                jind2=jind3+(j2-1)*dlw1
 	    ELSE
 	       jind2=0
@@ -700,7 +848,7 @@ C   scaling of sij outside the loop
 	          jind3=(j3-1)*n1*n2
                   z3=(clw3-jw3)*wght(2)
                   z3=z3*z3
-                  if(n2.gt.1) ih2=dsqrt(hakt2-z3)/wght(1)
+                  if(n2.gt.1) ih2=sqrt(hakt2-z3)/wght(1)
 		  jwind3=(jw3-1)*dlw1*dlw2
                   DO jw2=clw2-ih2,clw2+ih2
 	             j2=jw2-clw2+i2
@@ -708,7 +856,7 @@ C   scaling of sij outside the loop
 	             jind2=(j2-1)*n1+jind3
                      z2=(clw2-jw2)*wght(1)
                      z2=z3+z2*z2
-                     ih1=dsqrt(hakt2-z2)
+                     ih1=sqrt(hakt2-z2)
 		     jwind2=jwind3+(jw2-1)*dlw1
                      DO jw1=clw1-ih1,clw1+ih1
 C  first stochastic term
@@ -763,7 +911,7 @@ C
       implicit logical (a-z)
       external kldist,lkern
       real*8 kldist,lkern
-      integer n1,n2,n3,model,kern
+      integer n1,n2,n3,kern,model
       logical aws,fix(1)
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,wght(2),
      1       bi2(1),hakt,lwght(1),si2(1),vred(1),spmin,gi(1)
@@ -795,7 +943,7 @@ C
          if(n3.gt.1) THEN
             z3=(clw3-j3)*wght(2)
             z3=z3*z3
-            ih2=dsqrt(hakt2-z3)/wght(1)
+            ih2=sqrt(hakt2-z3)/wght(1)
             jind3=(j3-1)*dlw1*dlw2
 	 ELSE
 	    jind3=0
@@ -804,7 +952,7 @@ C
             if(n2.gt.1) THEN
                z2=(clw2-j2)*wght(1)
                z2=z3+z2*z2
-               ih1=dsqrt(hakt2-z2)
+               ih1=sqrt(hakt2-z2)
                jind2=jind3+(j2-1)*dlw1
 	    ELSE
 	       jind2=0
@@ -841,7 +989,7 @@ C   scaling of sij outside the loop
 	          jind3=(j3-1)*n1*n2
                   z3=(clw3-jw3)*wght(2)
                   z3=z3*z3
-                  if(n2.gt.1) ih2=dsqrt(hakt2-z3)/wght(1)
+                  if(n2.gt.1) ih2=sqrt(hakt2-z3)/wght(1)
 		  jwind3=(jw3-1)*dlw1*dlw2
                   DO jw2=clw2-ih2,clw2+ih2
 	             j2=jw2-clw2+i2
@@ -849,7 +997,7 @@ C   scaling of sij outside the loop
 	             jind2=(j2-1)*n1+jind3
                      z2=(clw2-jw2)*wght(1)
                      z2=z3+z2*z2
-                     ih1=dsqrt(hakt2-z2)
+                     ih1=sqrt(hakt2-z2)
 		     jwind2=jwind3+(jw2-1)*dlw1
                      DO jw1=clw1-ih1,clw1+ih1
 C  first stochastic term
@@ -912,7 +1060,7 @@ c        a       invers produces the upper half of inverse(a) .
 c
 c     subroutines and functions
 c
-c     fortran dsqrt
+c     fortran sqrt
 c
       subroutine invers(a, n, info)
       integer n,info
@@ -945,7 +1093,7 @@ c
          s = a(j,j) - s
 c     .....exit
          IF (s .le. 1.d-100) RETURN
-         a(j,j) = dsqrt(s)
+         a(j,j) = sqrt(s)
       END DO
       info = 0
 c
@@ -1002,38 +1150,38 @@ c
 
       subroutine chkwght2(sw,dlw,clw)
       integer dlw
-      real*8 sw(dlw,dlw),w
+      real*8 sw(dlw,dlw)
       integer clw,i1,i2,j1,j2,k
       i1=clw
       i2=clw
       DO k=1,clw-1
          j1=i1+k
          DO j2=i2-k+1,i2+k-1
-            IF(dmax1(sw(j1-1,j2),sw(j1-1,j2-1),sw(j1-1,j2+1)).le.0.d0)
+            IF(max(sw(j1-1,j2),sw(j1-1,j2-1),sw(j1-1,j2+1)).le.0.d0)
      1         sw(j1,j2)=0.d0
          END DO
          j1=i1-k
          DO j2=i2-k+1,i2+k-1
-            IF(dmax1(sw(j1+1,j2),sw(j1+1,j2-1),sw(j1+1,j2+1)).le.0.d0)
+            IF(max(sw(j1+1,j2),sw(j1+1,j2-1),sw(j1+1,j2+1)).le.0.d0)
      1         sw(j1,j2)=0.d0
          END DO
          j2=i2+k
          DO j2=i2-k+1,i2+k-1
-            IF(dmax1(sw(j1,j2-1),sw(j1-1,j2-1),sw(j1+1,j2-1)).le.0.d0)
+            IF(max(sw(j1,j2-1),sw(j1-1,j2-1),sw(j1+1,j2-1)).le.0.d0)
      1         sw(j1,j2)=0.d0
          END DO
          j2=i2-k
          DO j2=i2-k+1,i2+k-1
-            IF(dmax1(sw(j1,j2-1),sw(j1-1,j2-1),sw(j1+1,j2-1)).le.0.d0)
+            IF(max(sw(j1,j2-1),sw(j1-1,j2-1),sw(j1+1,j2-1)).le.0.d0)
      1         sw(j1,j2)=0.d0
          END DO
-         IF(dmax1(sw(i1+k-1,i2+k),sw(i1+k,i2+k-1)).le.0.d0) 
+         IF(max(sw(i1+k-1,i2+k),sw(i1+k,i2+k-1)).le.0.d0) 
      1                      sw(i1+k,i2+k)=0.d0 
-         IF(dmax1(sw(i1-k+1,i2+k),sw(i1-k,i2+k-1)).le.0.d0) 
+         IF(max(sw(i1-k+1,i2+k),sw(i1-k,i2+k-1)).le.0.d0) 
      1                      sw(i1-k,i2+k)=0.d0 
-         IF(dmax1(sw(i1+k-1,i2-k),sw(i1+k,i2-k+1)).le.0.d0) 
+         IF(max(sw(i1+k-1,i2-k),sw(i1+k,i2-k+1)).le.0.d0) 
      1                      sw(i1+k,i2-k)=0.d0 
-         IF(dmax1(sw(i1-k+1,i2-k),sw(i1-k,i2-k+1)).le.0.d0) 
+         IF(max(sw(i1-k+1,i2-k),sw(i1-k,i2-k+1)).le.0.d0) 
      1                      sw(i1-k,i2-k)=0.d0 
       END DO
       RETURN

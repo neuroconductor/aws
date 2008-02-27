@@ -44,12 +44,12 @@ C   compute location weights first
       DO j3=1,dlw3
          z3=clw3-j3
          z3=z3*z3*zext2
-         ih2=dsqrt(hakt2-z3)
+         ih2=sqrt(hakt2-z3)
          jind3=(j3-1)*dlw*dlw3
          DO j2=clw-ih2,clw+ih2
             z2=clw-j2
             z2=z2*z2+z3
-            ih1=dsqrt(hakt2-z2)
+            ih1=sqrt(hakt2-z2)
             jind2=jind3+(j2-1)*dlw
             DO j1=clw-ih1,clw+ih1
 C  first stochastic term
@@ -75,7 +75,7 @@ C   scaling of sij outside the loop
 	          if(j3.lt.1.or.j3.gt.n3) CYCLE
                   z3=clw3-jw3
                   z3=z3*z3
-                  ih2=dsqrt(hakt2-z3)
+                  ih2=sqrt(hakt2-z3)
 	          jind3=(j3-1)*n1*n2
                   jwind3=(jw3-1)*dlw*dlw3
                   DO jw2=clw-ih2,clw+ih2
@@ -84,7 +84,7 @@ C   scaling of sij outside the loop
 	             jind2=(j2-1)*n1+jind3
                      jwind2=jwind3+(jw2-1)*dlw
                      z2=clw-jw2
-                     ih1=dsqrt(hakt2-z2*z2-z3)
+                     ih1=sqrt(hakt2-z2*z2-z3)
                      DO jw1=clw-ih1,clw+ih1
 		        j1=jw1-clw+i1
 	                if(j1.lt.1.or.j1.gt.n1) CYCLE
@@ -157,12 +157,12 @@ C   compute location weights first
       DO j3=1,dlw3
          z3=clw3-j3
          z3=z3*z3*zext2
-         ih2=dsqrt(hakt2-z3)
+         ih2=sqrt(hakt2-z3)
          jind3=(j3-1)*dlw*dlw3
          DO j2=clw-ih2,clw+ih2
             z2=clw-j2
             z2=z2*z2+z3
-            ih1=dsqrt(hakt2-z2)
+            ih1=sqrt(hakt2-z2)
             jind2=jind3+(j2-1)*dlw
             DO j1=clw-ih1,clw+ih1
 C  first stochastic term
@@ -191,7 +191,7 @@ C   scaling of sij outside the loop
                if(nvpar.gt.1) THEN 
                   si = si + vcoef(2) * thi
                END IF
-               s2i = 1.d0/dmax1(si,0.1*meanvar)
+               s2i = 1.d0/max(si,0.1*meanvar)
 C set small variances to  0.1 * mean variance
 C  Now fill estimated Covariancematrix in pixel i
                DO jw3=1,dlw3  
@@ -199,7 +199,7 @@ C  Now fill estimated Covariancematrix in pixel i
 	          if(j3.lt.1.or.j3.gt.n3) CYCLE
                   z3=clw3-jw3
                   z3=z3*z3*zext2
-                  ih2=dsqrt(hakt2-z3)
+                  ih2=sqrt(hakt2-z3)
 	          jind3=(j3-1)*n1*n2
                   jwind3=(jw3-1)*dlw*dlw3
                   DO jw2=clw-ih2,clw+ih2
@@ -208,7 +208,7 @@ C  Now fill estimated Covariancematrix in pixel i
 	             jind2=(j2-1)*n1+jind3
                      jwind2=jwind3+(jw2-1)*dlw
                      z2=clw-jw2
-                     ih1=dsqrt(hakt2-z2*z2-z3)
+                     ih1=sqrt(hakt2-z2*z2-z3)
                      DO jw1=clw-ih1,clw+ih1
 		        j1=jw1-clw+i1
 	                if(j1.lt.1.or.j1.gt.n1) CYCLE

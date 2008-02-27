@@ -2,4 +2,5 @@ useDynLib(aws)
 export(aws,aws.gaussian,aws.segment,aws.irreg,aws.irreg2D,lpaws,glmaws,glmawsold)
 export(aws.gaussian2,aws2,aws3)
 #export(ckernsm,gkernsm,ckernsm2,parallel)
-
+export(hiraws1D,hiraws1D2,index2D,awswghts)
+export(awsflow2,awsflow)

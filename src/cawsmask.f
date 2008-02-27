@@ -46,7 +46,7 @@ C
          if(n2.gt.1) THEN
             z2=(clw2-j2)*wght
             z2=z2*z2
-            ih1=dsqrt(hakt2-z2)
+            ih1=sqrt(hakt2-z2)
             jind2=(j2-1)*dlw1
 	 ELSE
 	    jind2=0
@@ -80,7 +80,7 @@ C   scaling of sij outside the loop
 	       jind2=(j2-1)*n1
                z2=(clw2-jw2)*wght
                z2=z2*z2
-               ih1=dsqrt(hakt2-z2)
+               ih1=sqrt(hakt2-z2)
                DO jw1=clw1-ih1,clw1+ih1
 C  first stochastic term
 	          j1=jw1-clw1+i1
@@ -160,7 +160,7 @@ C
             if(n2.gt.1) THEN
                z2=(clw2-j2)*wght
                z2=z2*z2
-               ih1=dsqrt(hakt2-z2)
+               ih1=sqrt(hakt2-z2)
                jind2=(j2-1)*dlw1
 	    ELSE
 	       jind2=0
@@ -195,7 +195,7 @@ C   scaling of sij outside the loop
 	             jind2=(j2-1)*n1
                      z2=(clw2-jw2)*wght
                      z2=z2*z2
-                     ih1=dsqrt(hakt2-z2)
+                     ih1=sqrt(hakt2-z2)
 		     jwind2=(jw2-1)*dlw1
                      DO jw1=clw1-ih1,clw1+ih1
 C  first stochastic term

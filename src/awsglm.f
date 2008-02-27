@@ -51,7 +51,7 @@ C
 C   Regularization for Poisson and Bernoulli
 C
       IF(mfamily.eq.3) THEN
-         bcorr=0.25d0*dp1/dsqrt(h)
+         bcorr=0.25d0*dp1/sqrt(h)
          DO i=1,n
 	    if(y(i).gt.0.5d0) THEN
 	        y(i)=y(i)-bcorr
@@ -60,7 +60,7 @@ C
 	    END IF
 	 END DO
       ELSE IF(mfamily.eq.2) THEN
-         bcorr=1d0/dsqrt(h)
+         bcorr=1d0/sqrt(h)
          DO i=1,n
 	    y(i)=y(i)+bcorr
 	 END DO
@@ -71,8 +71,8 @@ C        loop over design points, initialization
 C    nothing to do, final estimate is already fixed by control 
 	 lambda=lam
          ih=h
-         ja=max0(1,i-ih)
-         je=min0(n,i+ih)
+         ja=max(1,i-ih)
+         je=min(n,i+ih)
          ha=h
          ha2=ha*ha
          IF (aws) THEN
@@ -161,8 +161,8 @@ C
 C   Regularization for Poisson and Bernoulli
 C
       IF(mfamily.eq.3) THEN
-C         bcorr=0.5d0/dexp(dlog(h)/dp1)
-         bcorr=0.25d0*dp1/dsqrt(h)
+C         bcorr=0.5d0/exp(dlog(h)/dp1)
+         bcorr=0.25d0*dp1/sqrt(h)
          DO i=1,n
 	    if(y(i).gt.0.5d0) THEN
 	        y(i)=y(i)-bcorr
@@ -172,7 +172,7 @@ C         bcorr=0.5d0/dexp(dlog(h)/dp1)
 	 END DO
       ELSE IF(mfamily.eq.2) THEN
 C         bcorr=1.d0/h
-         bcorr=dmin1(0.1d0,dp1/h)
+         bcorr=min(0.1d0,dp1/h)
          DO i=1,n
 	    if(y(i).eq.0) y(i)=y(i)+bcorr
 	 END DO
@@ -183,8 +183,8 @@ C        loop over design points, initialization
 C    nothing to do, final estimate is already fixed by control 
 	 lambda=lam
          ih=h
-         ja=max0(1,i-ih)
-         je=min0(n,i+ih)
+         ja=max(1,i-ih)
+         je=min(n,i+ih)
          ja0=ja
          je0=je
          ha=h
@@ -264,17 +264,13 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       DO k=ja,je
          d=d+wghts(k)
       END DO
-C      d=(hw-d)*hw
-C      d=dmax1(.1d0,dmin1(d,hw))
-C      cc=dmin1(d-1.d0,1.d0/dsqrt(hakt))
-C      cc=dmin1(d-1.d0,1.d0)
-      d=dmax1((hw-d),0.d0)
-      cc=dmin1(d/hw,1.d0)   
+      d=dim(hw,d)
+      cc=min(d/hw,1.d0)   
       IF(cc.gt.0.d0) THEN
          d2=d*d
          ih=d-1.d0
-	 jan=max0(1,ja-ih)
-	 jen=min0(je+ih,n)
+	 jan=max(1,ja-ih)
+	 jen=min(je+ih,n)
 	 DO j=jan,jen
 	    work(j)=0.d0
 	 END DO
@@ -290,7 +286,7 @@ C      cc=dmin1(d-1.d0,1.d0)
 	 maxwght=work(i)
 C   scale such that wghts(i)=1
          DO j=jan,jen
-            wghts(j)=dmin1(work(j)/maxwght,1.d0)
+            wghts(j)=min(work(j)/maxwght,1.d0)
          END DO
 	 ja=jan
 	 je=jen
@@ -420,7 +416,7 @@ C     now we have everything to compute  w_{ij}
 C       
             IF (sij.le.spmax) THEN
                if(skern.eq.1) then
-               wij=wij0*dexp(-sij)
+               wij=wij0*exp(-sij)
                else
                wij=wij0*(1.d0-sij/spmax)
                endif
@@ -465,7 +461,7 @@ C  Gaussian case
          ENDDO 
       ELSE IF (mfamily.eq.2) THEN
 C  Poisson case
-         IF (dabs(psith).gt.1.d2) THEN
+         IF (abs(psith).gt.1.d2) THEN
 	    info=1 
 	    return
 	 END IF
@@ -473,7 +469,7 @@ C  Poisson case
              z1=psith-5.d0
              z1=148.4132*(1.d0+z1*(1.d0+.5d0*z1*(1.d0+z1/3.d0)))
          ELSE  
-             z1=dexp(psith)
+             z1=exp(psith)
          ENDIF
          IF(wij.gt.0.d0) ymz1=y-z1
          DO i=1,dp2
@@ -487,7 +483,7 @@ C  Poisson case
          ENDDO 
       ELSE IF (mfamily.eq.3) THEN
 C  Bernoulli case
-         IF (dabs(psith).gt.3.6d1) THEN
+         IF (abs(psith).gt.3.6d1) THEN
 	    info=1 
 	    return
 	 END IF
@@ -498,7 +494,7 @@ C         ELSE  IF (psith.lt.-1.d1) THEN
 C             z1=1.d1-psith
 C            z1=1.d0/22026.47d0/(1.d0+z1*(1.d0+.5d0*z1*(1.d0+z1/3.d0)))
 C         ELSE 
-            z2=dexp(-psith)
+            z2=exp(-psith)
 C	 END IF
          z1=1.d0/(1.d0+z2)
          z2=z1/(1.d0+1.d0/z2)
@@ -649,7 +645,7 @@ C      implicit logical(a-z)
                d=d+dmat(1,k)*dmat(1,j)*bi2(j+k-1,i)
             END DO
          END DO
-         d=dsqrt(d)*1.96
+         d=sqrt(d)*1.96
          conf(1,i)=theta(i)-d
          conf(2,i)=theta(i)+d
       END DO

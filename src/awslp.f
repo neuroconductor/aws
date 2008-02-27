@@ -36,7 +36,7 @@ C
      2        dp1,dp2,ihs,csw,dsw,l
       real*8 bii(5),sij,swj(5),swj2(5),swj0(5),swjy(5),z1,wj,
      1       hakt2,thij(3),thi(3),zz(5),lwj,yj,hs2,hs,z,cc,spf,
-     2       hhommax,hhommin,hfix,az1,hfixmax,hnfix,ssij,spmax,
+     2       hhommax,hhommin,az1,hfixmax,hnfix,ssij,spmax,
      3       hhomimin,hhomimax
 C   arrays with variable length are organized as 
 C   theta(n,dp1)
@@ -46,7 +46,7 @@ C   first set dimensions for arrays depending on degree
       aws=lambda.lt.1.d20
       lfix=nfix.gt.(degr+1)
       hnfix=nfix
-      hnfix=dmax1(hnfix,.2d0*hakt)
+      hnfix=max(hnfix,.2d0*hakt)
       spmax=degr+1
       spf=1.d0/(spmax-spmin)
       if(degr.eq.0) THEN
@@ -84,7 +84,7 @@ C    nothing to do, final estimate is already fixed by control
          hhomimax=hhom(iind,2)
          hhommax=hakt
          hhommin=hakt
-         hfixmax=dmax1(hhomimin,hhomimax)
+         hfixmax=max(hhomimin,hhomimax)
          DO k=1,dp1
             thi(k)=theta(iind+(k-1)*n)
 	 END DO
@@ -100,7 +100,7 @@ C   scaling of sij outside the loop
             z1=jw1-clw
             zz(2)=z1
             zz(3)=z1*z1
-            az1=dabs(z1)
+            az1=abs(z1)
             IF (aws.and.(z1.le.-hhomimin.or.z1.ge.hhomimax)) THEN
 	       DO k=1,dp1
 	          thij(k)=theta(jind+(k-1)*n)
@@ -118,14 +118,14 @@ C
                END DO
                sij=kldistp(dp1,thij,bii,ind)
                IF (sij.le.spmax) THEN
-                  hfixmax=dmax1(hfixmax,az1)
+                  hfixmax=max(hfixmax,az1)
                   IF (sij.gt.spmin) THEN
                       ssij=1.d0-spf*(sij-spmin)
 		      w(jw1)=wj*ssij
                       if(z1.gt.0) THEN
-                         hhommax=dmin1(hhommax,az1)
+                         hhommax=min(hhommax,az1)
                       ELSE
-                         hhommin=dmin1(hhommin,az1)
+                         hhommin=min(hhommin,az1)
                       END IF
                   ELSE 
                      w(jw1)=wj
@@ -133,9 +133,9 @@ C
 	       ELSE 
 		  w(jw1)=0.d0
                   if(z1.gt.0) THEN
-                     hhommax=dmin1(hhommax,az1)
+                     hhommax=min(hhommax,az1)
                   ELSE
-                     hhommin=dmin1(hhommin,az1)
+                     hhommin=min(hhommin,az1)
                   END IF
 	       END IF
 	    ELSE
@@ -151,8 +151,8 @@ C
                z=z+w(jw1)
          END DO
 	 z=(2.d0-z/2.d0)*hw-1+z/2.d0
-	 z=dmax1(.1d0,dmin1(z,hw))
-	 cc=dmin1(z-1.d0,1.d0/hakt)
+	 z=max(.1d0,min(z,hw))
+	 cc=min(z-1.d0,1.d0/hakt)
          call smwghts1(w,hakt,z,sw,dlw,dsw,cc)
          DO k=1,dp2
             swj(k)=0.d0
@@ -269,7 +269,7 @@ C
      2        dp1,dp2,ihs,csw,dsw,l
       real*8 bii(5),sij,swj(5),swj2(5),swj0(5),swjy(5),z1,wj,
      1       hakt2,thij(3),thi(3),zz(5),lwj,yj,hs2,hs,z,cc,spf,hhomi,
-     2       hhommax,hfix,az1,hfixmax,hnfix,ssij,spmax
+     2       hhommax,az1,hfixmax,hnfix,ssij,spmax
 C   arrays with variable length are organized as 
 C   theta(n,dp1)
 C   bi(n,dp2)
@@ -278,7 +278,7 @@ C   first set dimensions for arrays depending on degree
       aws=lambda.lt.1.d20
       lfix=nfix.gt.(degr+1)
       hnfix=nfix
-      hnfix=dmax1(hnfix,.2d0*hakt)
+      hnfix=max(hnfix,.2d0*hakt)
       spmax=degr+1
       spf=1.d0/(spmax-spmin)
       if(degr.eq.0) THEN
@@ -331,7 +331,7 @@ C   scaling of sij outside the loop
             z1=jw1-clw
             zz(2)=z1
             zz(3)=z1*z1
-            az1=dabs(z1)
+            az1=abs(z1)
             IF (aws.and.az1.ge.hhomi) THEN
 	       DO k=1,dp1
 	          thij(k)=theta(jind+(k-1)*n)
@@ -349,20 +349,20 @@ C
                END DO
                sij=kldistp(dp1,thij,bii,ind)
                IF (sij.le.spmax) THEN
-                  hfixmax=dmax1(hfixmax,az1)
+                  hfixmax=max(hfixmax,az1)
                   IF (sij.gt.spmin) THEN
                       ssij=1.d0-spf*(sij-spmin)
 C                      if(degr.eq.1) ssij=ssij*ssij
 C                      if(degr.eq.2) ssij=ssij*ssij*ssij
 C		      w(jw1)=wj*(1.d0-ssij)
 		      w(jw1)=wj*ssij
-                      hhommax=dmin1(hhommax,az1)
+                      hhommax=min(hhommax,az1)
                   ELSE 
                      w(jw1)=wj
                   END IF
 	       ELSE 
 		  w(jw1)=0.d0
-                  hhommax=dmin1(hhommax,az1)
+                  hhommax=min(hhommax,az1)
 	       END IF
 	    ELSE
                w(jw1)=wj
@@ -377,8 +377,8 @@ C
                z=z+w(jw1)
          END DO
 	 z=(2.d0-z/2.d0)*hw-1+z/2.d0
-	 z=dmax1(.1d0,dmin1(z,hw))
-	 cc=dmin1(z-1.d0,1.d0/hakt)
+	 z=max(.1d0,min(z,hw))
+	 cc=min(z-1.d0,1.d0/hakt)
          call smwghts1(w,hakt,z,sw,dlw,dsw,cc)
          DO k=1,dp2
             swj(k)=0.d0
@@ -494,7 +494,7 @@ C
      2        dp1,dp2,ihs,csw,dsw,l
       real*8 bii(5),sij,swj(5),swj2(5),swj0(5),swjy(5),z1,wj,
      1       hakt2,thij(3),thi(3),zz(5),lwj,yj,hs2,hs,z,cc,spf,hhomi,
-     2       hhommax,hfix,az1,hfixmax,hnfix
+     2       hhommax,az1,hfixmax,hnfix
 C   arrays with variable length are organized as 
 C   theta(n,dp1)
 C   bi(n,dp2)
@@ -552,7 +552,7 @@ C   scaling of sij outside the loop
             z1=jw1-clw
             zz(2)=z1
             zz(3)=z1*z1
-            az1=dabs(z1)
+            az1=abs(z1)
             IF (aws.and.az1.ge.hhomi) THEN
 	       DO k=1,dp1
 	          thij(k)=theta(jind+(k-1)*n)
@@ -570,16 +570,16 @@ C
                END DO
                sij=kldistp(dp1,thij,bii,ind)
                IF (sij.le.1.d0) THEN
-                  hfixmax=dmax1(hfixmax,az1)
+                  hfixmax=max(hfixmax,az1)
                   IF (sij.gt.spmin) THEN
 		      w(jw1)=wj*(1.d0-spf*(sij-spmin))
-                      hhommax=dmin1(hhommax,az1)
+                      hhommax=min(hhommax,az1)
                   ELSE 
                      w(jw1)=wj
                   END IF
 	       ELSE 
 		  w(jw1)=0.d0
-                  hhommax=dmin1(hhommax,az1)
+                  hhommax=min(hhommax,az1)
 	       END IF
 	    ELSE
                w(jw1)=wj     
@@ -594,8 +594,8 @@ C
                z=z+w(jw1)
          END DO
 	 z=(2.d0-z/2.d0)*hw-1+z/2.d0
-	 z=dmax1(.1d0,dmin1(z,hw))
-	 cc=dmin1(z-1.d0,1.d0/hakt)
+	 z=max(.1d0,min(z,hw))
+	 cc=min(z-1.d0,1.d0/hakt)
          call smwghts1(w,hakt,z,sw,dlw,dsw,cc)
          DO k=1,dp2
             swj(k)=0.d0
@@ -686,7 +686,7 @@ C
      2        dp1,dp2,ihs,csw,dsw,l,dlw2
       real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
      1       hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf,hhomi,
-     2       hhommax,hfix,az1,hfixmax,hnfix
+     2       hhommax,az1,hfixmax,hnfix
 C   arrays with variable length are organized as 
 C   theta(n1,n2,dp1)
 C   bi(n1,n2,dp2)
@@ -694,7 +694,7 @@ C   arrays of fixed length correspond to degr=2
 C   first set dimensions for arrays depending on degree
       aws=lambda.lt.1.d20
       lfix=nfix.gt.1
-      hnfix=dmax1(1.5,6.d0+degr-hakt)
+      hnfix=max(1.5,6.d0+degr-hakt)
       spf=1.d0/(1.d0-spmin)
       if(degr.eq.0) THEN
          dp1=1
@@ -721,7 +721,7 @@ C   compute location weights first  sum in slw
       DO j2=1,dlw
          z2=j2-clw
          z2=z2*z2
-         ih1=dsqrt(hakt2-z2)
+         ih1=sqrt(hakt2-z2)
          jind2=(j2-1)*dlw
          DO j1=clw-ih1,clw+ih1
 C  first stochastic term
@@ -765,7 +765,7 @@ C  get directional differences that only depend on i2-j2
                   zz(3)=z2
 	          zz(6)=z2*z2
                END IF
-               ih1=dsqrt(hakt2-z2*z2)
+               ih1=sqrt(hakt2-z2*z2)
                DO jw1=clw-ih1,clw+ih1
 		  j1=jw1-clw+i1
 	          if(j1.lt.1.or.j1.gt.n1) CYCLE
@@ -801,16 +801,16 @@ C
                      END DO
                      sij=kldistp(dp1,thij,bii,ind)
                      IF (sij.le.1.d0) THEN
-                        hfixmax=dmax1(hfixmax,az1)
+                        hfixmax=max(hfixmax,az1)
                         IF (sij.gt.spmin) THEN
                            w(jwind)=wj*(1.d0-spf*(sij-spmin))
-                           hhommax=dmin1(hhommax,az1)
+                           hhommax=min(hhommax,az1)
                         ELSE 
                            w(jwind)=wj
                         END IF
 		     ELSE 
 			w(jwind)=0.d0
-                        hhommax=dmin1(hhommax,az1)
+                        hhommax=min(hhommax,az1)
 		     END IF
 		  ELSE
 		     w(jwind)=wj
@@ -821,8 +821,8 @@ C
 C      Smooth the weights
 C   
             call testwgh2(w,dlw,dp1,hw,z)
-	    z=dmax1(.1d0,dmin1(z,hw))
-	    cc=dmin1(z-1.d0,1.d0/hakt2)
+	    z=max(.1d0,min(z,hw))
+	    cc=min(z-1.d0,1.d0/hakt2)
 	    call smwghts2(w,hakt,z,sw,dlw,dsw,cc)
             DO k=1,dp2
                swj(k)=0.d0
@@ -846,7 +846,7 @@ C
 		  zz(10)=z2*zz(6)
 		  zz(15)=z2*zz(10)  
 	       END IF
-               ih1=dsqrt(hs2-z2*z2)
+               ih1=sqrt(hs2-z2*z2)
                DO jw1=csw-ih1,csw+ih1
 		  j1=jw1-csw+i1
 	          if(j1.lt.1.or.j1.gt.n1) CYCLE
@@ -896,8 +896,8 @@ C
                bi2(iind+(k-1)*n)=swj2(k)
                bi0(iind+(k-1)*n)=swj0(k)
             END DO
-            hhom(iind)=dsqrt(hhommax)
-            IF(lfix.and.hakt-dsqrt(hfixmax).ge.hnfix) THEN
+            hhom(iind)=sqrt(hhommax)
+            IF(lfix.and.hakt-sqrt(hfixmax).ge.hnfix) THEN
                fix(iind)=.TRUE.
             END IF
             call rchkusr()
@@ -944,7 +944,7 @@ C
      2        dp1,dp2,ihs,csw,dsw,l,dlw2
       real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
      1       hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf,hhomi,
-     2       hhommax,hfix,az1,hfixmax,hnfix
+     2       hhommax,az1,hfixmax,hnfix
 C   arrays with variable length are organized as 
 C   theta(n1,n2,dp1)
 C   bi(n1,n2,dp2)
@@ -952,7 +952,7 @@ C   arrays of fixed length correspond to degr=2
 C   first set dimensions for arrays depending on degree
       aws=lambda.lt.1.d20
       lfix=nfix.gt.1
-      hnfix=dmax1(1.5,6.d0+degr-hakt)
+      hnfix=max(1.5,6.d0+degr-hakt)
       spf=1.d0/(1.d0-spmin)
       if(degr.eq.0) THEN
          dp1=1
@@ -979,7 +979,7 @@ C   compute location weights first  sum in slw
       DO j2=1,dlw
          z2=j2-clw
          z2=z2*z2
-         ih1=dsqrt(hakt2-z2)
+         ih1=sqrt(hakt2-z2)
          jind2=(j2-1)*dlw
          DO j1=clw-ih1,clw+ih1
 C  first stochastic term
@@ -1023,7 +1023,7 @@ C  get directional differences that only depend on i2-j2
                   zz(3)=z2
 	          zz(6)=z2*z2
                END IF
-               ih1=dsqrt(hakt2-z2*z2)
+               ih1=sqrt(hakt2-z2*z2)
                DO jw1=clw-ih1,clw+ih1
 		  j1=jw1-clw+i1
 	          if(j1.lt.1.or.j1.gt.n1) CYCLE
@@ -1060,16 +1060,16 @@ C
                      END DO
                      sij=kldistp(dp1,thij,bii,ind)
                      IF (sij.le.1.d0) THEN
-                        hfixmax=dmax1(hfixmax,az1)
+                        hfixmax=max(hfixmax,az1)
                         IF (sij.gt.spmin) THEN
                            w(jwind)=wj*(1.d0-spf*(sij-spmin))
-                           hhommax=dmin1(hhommax,az1)
+                           hhommax=min(hhommax,az1)
                         ELSE 
                            w(jwind)=wj
                         END IF
 		     ELSE 
 			w(jwind)=0.d0
-                        hhommax=dmin1(hhommax,az1)
+                        hhommax=min(hhommax,az1)
 		     END IF
 		  ELSE
 		     w(jwind)=wj		     
@@ -1080,8 +1080,8 @@ C
 C      Smooth the weights
 C   
             call testwgh2(w,dlw,dp1,hw,z)
-	    z=dmax1(.1d0,dmin1(z,hw))
-	    cc=dmin1(z-1.d0,1.d0/hakt2)
+	    z=max(.1d0,min(z,hw))
+	    cc=min(z-1.d0,1.d0/hakt2)
 	    call smwghts2(w,hakt,z,sw,dlw,dsw,cc)
             DO k=1,dp2
                swj(k)=0.d0
@@ -1105,7 +1105,7 @@ C
 		  zz(10)=z2*zz(6)
 		  zz(15)=z2*zz(10)  
 	       END IF
-               ih1=dsqrt(hs2-z2*z2)
+               ih1=sqrt(hs2-z2*z2)
                DO jw1=csw-ih1,csw+ih1
 		  j1=jw1-csw+i1
 	          if(j1.lt.1.or.j1.gt.n1) CYCLE
@@ -1151,8 +1151,8 @@ C
                bi2(iind+(k-1)*n)=swj2(k)
                bi0(iind+(k-1)*n)=swj0(k)
             END DO
-            hhom(iind)=dsqrt(hhommax)
-            IF(lfix.and.hakt-dsqrt(hfixmax).ge.hnfix) THEN
+            hhom(iind)=sqrt(hhommax)
+            IF(lfix.and.hakt-sqrt(hfixmax).ge.hnfix) THEN
                fix(iind)=.TRUE.
             END IF
             call rchkusr()
@@ -1222,8 +1222,8 @@ C
          DO i1=1,dsw
 	    z1=i1-csw
 	    i10=i1-cdiff
-	    ja1=max0(i1-2*cdiff,1)
-	    je1=min0(i1,dw)
+	    ja1=max(i1-2*cdiff,1)
+	    je1=min(i1,dw)
             z=0.d0
 	    z0=0.d0
 	    DO j1=ja1,je1
@@ -1235,7 +1235,7 @@ C
 	        z=z+ww*w(j1)
             END DO
 	    sw(i1)=z
-	    zmax=dmax1(zmax,z)
+	    zmax=max(zmax,z)
          END DO
          DO i1=1,dsw
 	    sw(i1)=sw(i1)/zmax
@@ -1282,9 +1282,9 @@ C
          DO i1=1,dsw
 	    z1=i1-csw
 	    i10=i1-cdiff
-	    ja1=max0(i1-2*cdiff,1)
-	    je1=min0(i1,dw)
-	    id=dsqrt(hsw2-z1*z1)
+	    ja1=max(i1-2*cdiff,1)
+	    je1=min(i1,dw)
+	    id=sqrt(hsw2-z1*z1)
 	    if(csw-id.lt.1) CYCLE
             DO i2=csw-id,csw+id
 	    i20=i2-cdiff
@@ -1294,9 +1294,9 @@ C
 	          z1=(i10-j1)
 	          z1=z1*z1
 	          if(hw2-z1.lt.0.d0) CYCLE
-	          jd=dsqrt(hw2-z1)
-	          ja2=max0(i20-jd,1)
-	          je2=min0(i20+jd,dw)
+	          jd=sqrt(hw2-z1)
+	          ja2=max(i20-jd,1)
+	          je2=min(i20+jd,dw)
 	          DO j2=ja2,je2
 	             z2=(i20-j2)
 		     ww=(1.d0-(z1+z2*z2)/hw2)
@@ -1305,7 +1305,7 @@ C
                   END DO
 	       END DO
 	       sw(i1,i2)=z
-	       zmax=dmax1(zmax,z)
+	       zmax=max(zmax,z)
             END DO
          END DO
          DO i1=1,dsw
@@ -1404,7 +1404,7 @@ C     restricted to dp2<=20
       integer n,dp1,dp2
       real*8 ai(n,dp1),bi(n,dp2),theta(n,dp1),dmat(dp1,dp1)
       integer i,j,k,info,ind(dp1,dp1)
-      real*8 d,aa(20)
+      real*8 aa(20)
       DO i=1,n
          DO k=1,dp1
 	    DO j=k,dp1
@@ -1441,7 +1441,7 @@ C     restricted to dp2<=20
       integer n,dp1,dp2
       real*8 ai(n,dp1),bi(n,dp2),theta(n,dp1),dmat(dp1,dp1)
       integer i,j,k,info,ind(dp1,dp1),iii
-      real*8 d,aa(3),h,cii(5)
+      real*8 aa(3),h,cii(5)
       DO i=1,n
          cii(1)=1.d0
          h=bi(i,1)

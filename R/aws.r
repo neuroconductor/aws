@@ -30,7 +30,7 @@
 aws <- function(y,hmax=NULL,qlambda=NULL,qtau=NULL,family="Gaussian",
                 sigma2=NULL,scorr=0,shape=NULL,wghts=NULL,graph=FALSE,demo=FALSE,
 		lkern="Triangle",aggkern="Uniform",
-		spmin=0,homogen=TRUE,lseq=NULL,u=NULL,testprop=FALSE)
+		spmin=0.25,homogen=TRUE,lseq=NULL,u=NULL,testprop=FALSE)
 {
 #
 #    first check arguments and initialize
@@ -282,7 +282,7 @@ hinit <- 1
 if(is.null(dy)){ 
       d<-1
       if(is.null(qlambda)) qlambda <- switch(family,
-                                                    Gaussian=.98,
+                                                    Gaussian=.968,# alpha=0.025 for spmin=0.25
 					            Bernoulli=.97,
 					            Exponential=.965,
 					            Poisson=.965,
@@ -290,7 +290,7 @@ if(is.null(dy)){
 					            Variance=.965,
 					            .97)
       if(is.null(lseq)) lseq<-switch(family,
-                                     Gaussian=1.5,
+                                     Gaussian=c(1.7,.8,0.7,1.15,.95,1,1,1,1,1,1,1,1,1.05,1.1,1.05,1),
 				     Bernoulli=1,
 				     Exponential=3.9,
 				     Poisson=1,
@@ -301,7 +301,7 @@ if(is.null(dy)){
 if(length(dy)==2) {
      d<-2
      if(is.null(qlambda)) qlambda <-  switch(family,   
-                                                   Gaussian=.97,
+                                                   Gaussian=.94, # alpha=0.15 for spmin=0.25
 					           Bernoulli=.965,
 					           Exponential=.965,
 					           Poisson=.965,
@@ -309,7 +309,7 @@ if(length(dy)==2) {
 					           Variance=.965,
 					           .97)
      if(is.null(lseq)) lseq<-switch(family,
-                                    Gaussian=c(1.8,1.3,1.2,1.2,1.1,1.1,1.1),
+                                    Gaussian=c(1,.88,0.75,0.95,.8,.75,0.85,1,0.86,0.86,0.95,.925,.9,0.925,0.925,0.95,1),
 				    Bernoulli=1,
 				    Exponential=4.8,
 				    Poisson=1,
@@ -319,8 +319,8 @@ if(length(dy)==2) {
 	}
 if(length(dy)==3){
      d<-3
-     if(is.null(qlambda)) qlambda <- switch(family,   
-                                                   Gaussian=.97,
+     if(is.null(qlambda)) qlambda <- switch(family,
+                                                   Gaussian=.92,# alpha=0.2 for spmin=0.25
 					           Bernoulli=.97,
 					           Exponential=.975,
 					           Poisson=.965,
@@ -328,7 +328,7 @@ if(length(dy)==3){
 					           Variance=.975,
 					           .97)
      if(is.null(lseq)) lseq<-switch(family,
-                                    Gaussian=c(1.9,1.5,1.3,1.3,1.3,1.3,rep(1.1,8)),
+                                    Gaussian=c(1.,1.,0.83,0.83,1.,1.05,0.86,0.86,0.86,0.86,0.86,1.,1.,0.86,0.9,0.95,1),
 				    Bernoulli=1,
 				    Exponential=4.7,
 				    Poisson=1,
