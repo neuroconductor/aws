@@ -1,6 +1,6 @@
 Package: aws
-Version: 1.5-1
-Date: 2008-02-27
+Version: 1.6
+Date: 2008-07-24
 Title: Adaptive Weights Smoothing
 Author: Joerg Polzehl <polzehl@wias-berlin.de>
 Maintainer: Joerg Polzehl <polzehl@wias-berlin.de>
