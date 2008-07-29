@@ -1,0 +1,54 @@
+File: aws.r
+
+aws()
+setawsdefaults()
+IQRdiff()
+KLdist()
+updtheta()
+regularize()
+awsfamily()
+awstestprop()
+getvofh()
+gethani()
+
+File: lpaws.r
+
+lpaws()
+
+File: awsirregular.r
+
+aws.irreg()
+awsisigma2()
+
+File: misc.r
+
+ckernsm()
+gceknsm()
+Varcor()
+Varcor.gauss()
+SpatialCorr()
+SpatialCorr.gauss()
+Spatialvar()
+Spatialvar.gauss()
+geth.gauss()
+get3Dh.gauss()
+get.corr.gauss()
+gfft()
+
+
+.Fortran calls:
+
+chaws     in aws(),awstestprop()   in file caws.f
+caws      in aws(),awstestprop()   in file caws.f
+getvofh   in getvofh()
+gethani   in gethani()
+mpaws1    in lpaws()          in file awslp.f
+mpaws2    in lpaws()          in file awslp.f
+awsph1    in lpaws()          in file awslp.f
+awsph2    in lpaws()          in file awslp.f
+awsp1b    in lpaws()          in file awslp.f
+awsp2     in lpaws()          in file awslp.f
+mask      in aws.irreg()   in file cawsmask.f
+cawsmask  in aws.irreg()   in file cawsmask.f
+cgawsmas  in aws.irreg()   in file cawsmask.f
+
