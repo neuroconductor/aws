@@ -30,7 +30,7 @@
 aws <- function(y,hmax=NULL,ladjust=1,family="Gaussian",
                 sigma2=NULL,scorr=0,shape=NULL,wghts=NULL,graph=FALSE,demo=FALSE,
 		lkern="Triangle",aggkern="Uniform",
-		spmin=0.25,aws=TRUE,memory=FALSE,homogen=TRUE,u=NULL,testprop=FALSE)
+		aws=TRUE,memory=FALSE,homogen=TRUE,u=NULL,testprop=FALSE)
 {
 #
 #   this version uses neighborhoods with an increase in potential 
@@ -92,7 +92,7 @@ if(testprop) {
 #  prepare to  check for alpha in propagation condition (to adjust value of lambda using parameter ladjust)
 #
        if(is.null(u)) u <- 0
-       cpar <- c(cpar, list(n1=n1,n2=n2,n3=n3,n=n1*n2*n3,spmin=spmin,family=family,u=u))
+       cpar <- c(cpar, list(n1=n1,n2=n2,n3=n3,n=n1*n2*n3,family=family,u=u))
        propagation <- NULL
     } 
 #
@@ -129,7 +129,7 @@ zobj <- .Fortran("chaws",as.double(y),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
-	               as.double(spmin),
+	               as.double(0.25),
 		       double(prod(dlw)),
 		       as.double(wghts),
 		       PACKAGE="aws",DUP=FALSE)[c("bi","bi0","bi2","vred","ai","hakt")]
@@ -151,7 +151,7 @@ zobj <- .Fortran("caws",as.double(y),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
-                       as.double(spmin),
+                       as.double(0.25),
 		       double(prod(dlw)),
 		       as.double(wghts),
 		       PACKAGE="aws",DUP=FALSE)[c("bi","bi0","bi2","ai","hakt","hhom")]
@@ -192,8 +192,8 @@ image(tobj$theta,col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Reconstruction  h=",signif(hakt,3)," min=",signif(min(tobj$theta),3)," max=",signif(max(tobj$theta),3)))
 image(tobj$bi,col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Sum of weights: min=",signif(min(tobj$bi),3)," mean=",signif(mean(tobj$bi),3)," max=",signif(max(tobj$bi),3)))
-image(tobj$eta,col=gray((0:255)/255),xaxt="n",yaxt="n",zlim=c(0,1))
-title("eta")
+image(tobj$fix,col=gray((0:255)/255),xaxt="n",yaxt="n",zlim=c(0,1))
+title("Estimates fixed")
 }
 if(d==3){ 
 oldpar<-par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
@@ -203,8 +203,8 @@ image(tobj$theta[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Reconstruction  h=",signif(hakt,3)," min=",signif(min(tobj$theta),3)," max=",signif(max(tobj$theta),3)))
 image(tobj$bi[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Sum of weights: min=",signif(min(tobj$bi),3)," mean=",signif(mean(tobj$bi),3)," max=",signif(max(tobj$bi),3)))
-image(tobj$eta[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n",zlim=c(0,1))
-title("eta")
+image(tobj$fix[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n",zlim=c(0,1))
+title("Estimates fixed")
 } 
 par(oldpar)
 }
@@ -242,6 +242,7 @@ cat("\n")
 if( family=="Gaussian"&length(sigma2)==n){
 # heteroskedastic Gaussian case 
 vartheta <- tobj$bi2/tobj$bi^2
+#  pointwise variances are reflected in weights
 } else {
 vartheta <- switch(family,Gaussian=sigma2,
                           Bernoulli=tobj$theta*(1-tobj$theta),
@@ -251,14 +252,17 @@ vartheta <- switch(family,Gaussian=sigma2,
 			  Variance=2*tobj$theta,0)*tobj$bi2/tobj$bi^2
 vred<-tobj$bi2/tobj$bi^2
 }
+sigma2 <- switch(family,Gaussian=sigma2,
+                          Bernoulli=tobj$theta*(1-tobj$theta),
+			  Poisson=tobj$theta,
+			  Exponential=tobj$theta^2,
+			  Volatility=2*tobj$theta,
+			  Variance=2*tobj$theta,0)
 if( family=="Gaussian"){
 vartheta<-vartheta/Spatialvar.gauss(hakt/0.42445/4,h0+1e-5,d)*Spatialvar.gauss(hakt/0.42445/4,1e-5,d)
 }
-z<-list(theta=tobj$theta,ni=tobj$bi,var=vartheta,vred=vred,y=y,
-        hmax=hmax,mae=mae,call=args)
-class(z)<-switch(family,Gaussian="aws.gaussian",Bernoulli="aws.bernoulli",Exponential="aws.exponential",
-                 Poisson="aws.poisson",Volatility="aws.vola",Variance="aws.var")
-z
+awsobj(y,tobj$theta,vartheta,hakt,sigma2,lkern,lambda,ladjust,aws,memory,
+              call,homogen,earlystop=FALSE,family=family,wghts=wghts,mae=mae)
 }
 #######################################################################################
 #
@@ -284,10 +288,10 @@ if(is.null(dy)){
       d <- length(dy)
 }
 qlambda <- switch(family,
-                  Gaussian=switch(d,.995,.95,.95),# alpha=0.005 for spmin=0.25
+                  Gaussian=switch(d,.995,.96,.95),# alpha=0.005 for spmin=0.25
 		  Bernoulli=switch(d,.99,.96,.95),
         	  Exponential=switch(d,.995,.96,.96),
-	          Poisson=switch(d,.99,.95,.95),
+	          Poisson=switch(d,.99,.96,.95),
                   Volatility=switch(d,.995,.96,.96),
                   Variance=switch(d,.995,.96,.96),
                   switch(d,.995,.96,.96))
@@ -366,7 +370,7 @@ if(is.null(shape)) shape<-1
 maxvol <- getvofh(hmax,lkern,wghts)
 kstar <- as.integer(log(maxvol)/log(1.25))
 if(aws||memory) k <- switch(d,1,3,6) else k <- kstar
-if(aws) cat("Running PS with lambda=",signif(lambda,3)," hmax=",hmax,"number of iterations:",kstar," memory step",if(qtau>=1) "OFF" else "ON","\n")
+if(aws) cat("Running PS with lambda=",signif(lambda,3)," hmax=",hmax,"number of iterations:",kstar-k+1," memory step",if(memory) "ON" else "OFF","\n")
 else cat("Stagewise aggregation \n")
 list(heta=heta,tau1=tau1,tau2=tau2,lambda=lambda,hmax=hmax,d=d,mcode=mcode,shape=shape,aggkern=aggkern,ktau=ktau,kstar=kstar,maxvol=maxvol,k=k,lkern=lkern,wghts=wghts)
 }
@@ -523,7 +527,7 @@ pobj <- .Fortran("chaws",as.double(y),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(cpar$lkern),
-	               as.double(cpar$spmin),
+	               as.double(0.25),
 		       double(prod(dlw)),
 		       as.double(cpar$wghts),
 		       PACKAGE="aws",DUP=FALSE)[c("bi","ai","hakt")]
@@ -544,7 +548,7 @@ pobj <- .Fortran("caws",as.double(y),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(cpar$lkern),
-                       as.double(cpar$spmin),
+                       as.double(0.25),
 		       double(prod(dlw)),
 		       as.double(cpar$wghts),
 		       PACKAGE="aws",DUP=FALSE)[c("bi","ai","hakt")]

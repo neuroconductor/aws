@@ -262,7 +262,7 @@ C
       external kldistp,lkern
       real*8 kldistp,lkern
       integer n,kern,degr,ind(1),nfix
-      logical aws,fix(1)
+      logical aws,fix(1),lfix
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,hhom(1),
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),si(1),spmin
       integer ih,j1,k,iind,jind,dlw,clw,jw1,
@@ -276,6 +276,9 @@ C   bi(n,dp2)
 C   arrays of fixed length correspond to degr=2
 C   first set dimensions for arrays depending on degree
       aws=lambda.lt.1.d20
+      lfix=nfix.gt.(degr+1)
+      hnfix=nfix
+      hnfix=max(hnfix,.2d0*hakt)
       spf=1.d0/(1.d0-spmin)
       if(degr.eq.0) THEN
          dp1=1
@@ -1251,3 +1254,41 @@ C    if info>0 just keep the old estimate
       END DO
       RETURN
       END      
+      subroutine vpaws(n,dp2,bi,bi2,var)
+C   calculate variance (reduction) of estimates
+      integer n,dp2
+      real*8 bi(n,dp2),bi2(n,dp2),var(n)
+      integer i
+      real*8 a1,a2,a3,d
+      if(dp2.eq.3) THEN
+         DO i=1,n
+            d = bi(i,1)*bi(i,3)-bi(i,2)*bi(i,2)
+            IF(d.lt.1d-8) THEN
+               var(i)=1.d0/bi(i,1)
+C  bi(i,1) should contain either 1 or 1/sigma^2 in this case
+               CYCLE
+            END IF
+            a1 = bi(i,3)/d
+            a2 = -bi(i,2)/d
+            var(i)=a1*a1*bi2(i,1)+a2*a2*bi2(i,3)+2.d0*a1*a2*bi2(i,2)
+         END DO
+      ELSE
+         DO i=1,n
+            d=bi(i,1)*bi(i,4)*bi(i,6)+2.d0*bi(i,2)*bi(i,3)*bi(i,5)-
+     1        bi(i,3)*bi(i,3)*bi(i,4)-bi(i,2)*bi(i,2)*bi(i,6)-
+     1        bi(i,5)*bi(i,5)*bi(i,1)
+            IF(d.lt.1d-8) THEN
+               var(i)=1.d0/bi(i,1)
+C  bi(i,1) should contain either 1 or 1/sigma^2 in this case
+            CYCLE
+            END IF
+            a1=(bi(i,6)*bi(i,4)-bi(i,5)*bi(i,5))/d
+            a2=(bi(i,3)*bi(i,5)-bi(i,2)*bi(i,6))/d
+            a3=(bi(i,2)*bi(i,5)-bi(i,3)*bi(i,4))/d
+            var(i)=a1*a1*bi2(i,1)+a2*a2*bi2(i,4)+a3*a3*bi2(i,6)+
+     1             2.d0*a1*a2*bi2(i,2)+2.d0*a1*a3*bi2(i,3)+
+     1             2.d0*a2*a3*bi2(i,5)
+         END DO
+      END IF
+      RETURN
+      END

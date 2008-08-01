@@ -1,3 +1,10 @@
+.onLoad <- function(lib, pkg){
+if(capabilities("X11")) X11.options(type="Xlib")
+if(capabilities("aqua")) quartz.options(type="native")
+if(.Platform$OS.type=="windows") windows.options(buffered=FALSE)
+invisible(NULL)
+}
+
 ###########################################################################
 #
 #   nonadaptive 1D -- 3D smoothing on a grid (kernel supported on (-1,1))

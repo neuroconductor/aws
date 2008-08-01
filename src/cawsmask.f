@@ -15,7 +15,7 @@ C   bi       \sum  Wi   (output)
 C   ai       \sum  Wi Y     (output)
 C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
-C   wght     scaling factor for second and third dimension (larger values shrink)
+C   wght     scaling factor for second dimension (larger values shrink)
 C   
       implicit logical (a-z)
       external kldist,lkern
@@ -172,7 +172,7 @@ C  first stochastic term
                lwght(jind)=lkern(kern,(z1*z1+z2)/hakt2)
             END DO
          END DO
-      call rchkusr()
+         call rchkusr()
          DO i2=1,n2
              DO i1=1,n1
 	       iind=i1+(i2-1)*n1
@@ -217,8 +217,8 @@ C  first stochastic term
 			wj = wj*si2(jind)
                         swj=swj+wj
                         swj2=swj2+wj*wj0
-                        swjy=swjy+wj*y(jind)
-                     END DO
+                         swjy=swjy+wj*y(jind)
+                      END DO
                   END DO
                ai(iind)=swjy
                bi(iind)=swj

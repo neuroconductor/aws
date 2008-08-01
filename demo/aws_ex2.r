@@ -1,4 +1,7 @@
 require(aws)
+switch(options()$device,"X11"=X11(,12,6),
+                        "windows"=windows(,12,6),
+                        "quartz"=quartz(,12,6))
 f1 <- function(x){
      xj <- c(20,30,55,65,80)/100
      hj <- c(50,-30,50,-40,30)
@@ -26,17 +29,18 @@ if(ifamily==4) lines(x,-u,col=2, lwd=2)
 hmax <- readline("Maximal bandwidth:\n Press 'Enter' for hmax=250, otherwise provide value of hmax:")
 if(is.na(as.numeric(hmax))) hmax <- 250 else hmax <- as.numeric(hmax)
 if(hmax <= 1) hmax <- 250
-spmin <- readline("Kernel form:\n Press 'Enter' for spmin=0, otherwise provide value of spmin:")
-if(is.na(as.numeric(spmin))) spmin <- 0 else spmin <- pmax(0,pmin(1,as.numeric(spmin)))
 cat("Run aws \n")
-yhat <- aws(y,hmax=hmax,family=family,graph=TRUE,spmin=spmin,qtau=1)
+yhat <- aws(y,hmax=hmax,family=family,graph=TRUE)
 readline("Press ENTER to show results")
 if(ifamily==4) {
 y <- abs(y)
 yhat$theta <- sqrt( yhat$theta)
 }
-plot(x,u,type="l",col=2,ylim=range(u,y),lwd=2)
+plot(x,u,type="l",col=3,ylim=range(u,y),lwd=2,lty=2)
 points(x,y)
-lines(x,yhat$theta,col=3,lwd=2)
-title("Data, fitted and true values")
+lines(x,awsdata(yhat,"est"),col=2,lwd=2)
+title("Data, fitted (red) and true (green) values")
+if(! readline("keep files and device (N/Y) :") %in% c("y","Y")){ 
 rm(f1,x,u,y,hmax,yhat,factor,ifamily,family)
+dev.off()
+}

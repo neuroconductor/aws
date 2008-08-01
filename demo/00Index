@@ -1,5 +1,7 @@
-aws_ex1	1D Example with local constant regression function
-aws_ex2	1D Example with piecewise smooth regression function
+aws_ex1	        1D Example with local constant regression function
+aws_ex2	        1D Example with piecewise smooth regression function
 lpaws_ex1	1D Example with piecewise smooth regression function
-aws_ex3	2D Example with local constant regression function
+irreg_ex1       1D Example with irregular design
+aws_ex3	        2D Example with local constant regression function
 lpaws_ex2	2D Example with piecewise smooth regression function
+irreg_ex2       2D Example with irregular design

@@ -210,6 +210,7 @@ C
       dlw3=ih3+clw3
       z2=0.d0
       z3=0.d0
+      hmax2=0.d0
       DO j3=1,dlw3
          if(n3.gt.1) THEN
             z3=(clw3-j3)*wght(2)
