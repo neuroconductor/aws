@@ -56,28 +56,9 @@ cgawsmas  in aws.irreg()   in file cawsmask.f
 Structure of aws-objects
 
 y     -  original/binned data
-x     -  design (NULL for data on a grid)
-xlim  -  range of x-values for theta
+x     -  design ( dim(y) for data on a grid)
 ni    -  number of observed values per grid point
 theta -  estimates numeric  1-3 dimensional
          last dimension == polynomial degree+1 if degree>0
 var   -  variance of estimates  
-degree - 0-2
-hmax 
-sigma2
-scorr
-shape
-wghts
-family 
-lkern
-ladjust
-lambda
-aws
-memory
-varmodel
-vcoef
-homogen
-earlystop
-varmodel
-mae       - if u was provided
-call
+mae   - if u was provided

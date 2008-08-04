@@ -1,7 +1,8 @@
-aws.irreg <- function(y,x,hmax=NULL,hpre=NULL,aws=TRUE,memory=FALSE,varmodel="Constant",
-                sigma2=NULL,varprop=.1,graph=FALSE,
-		lkern="Triangle",aggkern="Uniform",
-		nbins=100,henv=NULL,ladjust=1)
+aws.irreg <- function(y,x,hmax=NULL,aws=TRUE,memory=FALSE,
+                      varmodel="Constant",lkern="Triangle",
+                      aggkern="Uniform",sigma2=NULL,nbins=100,
+                      hpre=NULL,henv=NULL,ladjust=1,
+                      varprop=.1,graph=FALSE)
 {
 #
 #    first check arguments and initialize
@@ -14,10 +15,9 @@ if(!(d %in% 1:2)) stop("this version is for 1D and 2D only")
 if((d==1 && length(x)!=length(y))||(d==2 && dx[1]!=n)) stop("incorrect size of x")
 if(!(varmodel %in% c("Constant","Linear","Quadratic"))) stop("Model for variance not implemented")
 #
-#   2D binning
+#   binning for variance estimation
 #
-require(sm)
-zbins<-binning(x,y,nbins=n^(1/d)/2)
+zbins<-binning(x,y,nbins=rep(n^(1/d)/2,d))
 given.var<-!is.null(sigma2)
 if(!given.var) {
 sigma20 <- mean(zbins$devs[zbins$x.freq>1]/(zbins$x.freq[zbins$x.freq>1]-1))
@@ -26,17 +26,18 @@ vcoef <- sigma20
 } else {
 vcoef <- mean(sigma2)
 }
+if(is.null(nbins)) nbins <- n^(1/d)/2
+if(length(nbins)<d) nbins <- rep(nbins[1],d)
 zbins<-binning(x,y,nbins=nbins)
 ni <- zbins$table.freq
-if(d>1) ni <- t(ni)
 xmin <- if(d==1) min(zbins$x) else apply(zbins$x,2,min)
 xmax <- if(d==1) max(zbins$x) else apply(zbins$x,2,max)
 mask <- ni>0 
 if(!is.null(henv)) mask <- .Fortran("mask",
                                     as.logical(mask),
 				    mask=as.logical(mask),
-				    as.integer(nbins),
-				    as.integer(switch(d,1,nbins)),
+				    as.integer(nbins[1]),
+				    as.integer(switch(d,1,nbins[2])),
 				    as.integer(max(0,henv)),
 				    PACKAGE="aws",DUP=FALSE)$mask
 yy <- rep(mean(y),length(mask))
@@ -57,8 +58,8 @@ sigma2 <- 1/sigma2
 } else {
 sigma2 <- 1/rep(sigma20,nn)
 }
-if(d==2) wghts<-c(diff(range(x[,1]))/diff(range(x[,2])),0) else wghts<-c(0,0)
-if(d==2) dy<-dim(yy)<-dim(sigma2)<-c(nbins,nbins)
+if(d==2) wghts<-c(diff(range(x[,1]))/diff(range(x[,2]))/nbins[1]*nbins[2],0) else wghts<-c(0,0)
+if(d==2) dy<-dim(yy)<-dim(sigma2)<-nbins[1:2]
 #
 #   set appropriate defaults
 #
@@ -80,8 +81,8 @@ if(lkern==5) {
     }
 # now check which procedure is appropriate
 ##  this is the version on a grid
-n1 <- nbins
-n2 <- switch(d,1,nbins)
+n1 <- nbins[1]
+n2 <- switch(d,1,nbins[2])
 dy <- switch(d,NULL,c(n1,n2))
 #
 #    Initialize  for the iteration
@@ -224,7 +225,7 @@ vred<-tobj$bi2/tobj$bi^2
 }
 awsobj(yy,tobj$theta,vartheta,hakt,1/sigma2,lkern,lambda,ladjust,aws,memory,
               call,ni=ni,homogen=FALSE,earlystop=FALSE,family="Gaussian",wghts=wghts,
-              varmodel = varmodel,vcoef = vcoef,xmin=xmin,xmax=xmax)
+              varmodel = varmodel,vcoef = vcoef,x=x,xmin=xmin,xmax=xmax)
 
 }
 ############################################################################

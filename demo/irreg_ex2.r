@@ -25,8 +25,8 @@ z <- rnorm(z0,z0,sigma)
 nbins <- readline("Number of bins:\n Press 'Enter' for nbins=250, otherwise provide number of bins:")
 if(is.na(as.numeric(nbins))) nbins <- 250 else nbins <- as.numeric(nbins)
 if(nbins <= 10) nbins <- 125
-hmax <- readline("Maximal bandwidth:\n Press 'Enter' for hmax=15, otherwise provide value of hmax:")
-if(is.na(as.numeric(hmax))) hmax <- 50 else hmax <- as.numeric(hmax)
+hmax <- readline("Maximal bandwidth:\n Press 'Enter' for hmax=25, otherwise provide value of hmax:")
+if(is.na(as.numeric(hmax))) hmax <- 25 else hmax <- as.numeric(hmax)
 if(hmax <= 1) hmax <- 25
 memory <- if(readline("Memory control(N/Y) :") %in% c("y","Y")) TRUE else FALSE
 if(k<25) {
@@ -48,7 +48,7 @@ image(awsdata(yhat,"sd"),col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Standard deviation of estimates (min:",signif(min(awsdata(yhat,"sd"),na.rm=TRUE),3)," max:",signif(max(awsdata(yhat,"sd"),na.rm=TRUE),3),")"))
 image(awsdata(yhat,"ni"),col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Number of observations per bin (range = 0 - ",max(awsdata(yhat,"ni")),")"))
-image(awsdata(yhat,"mask"),col=gray((0:255)/255),xaxt="n",yaxt="n")
+image(awsdata(yhat,"mask"),zlim=c(0,1),col=gray((0:255)/255),xaxt="n",yaxt="n")
 title("Mask of evaluated bins")
 
 par(oldpar)

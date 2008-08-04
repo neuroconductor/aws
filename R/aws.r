@@ -27,10 +27,11 @@
 #
 #     default parameters:  see function setawsdefaults
 #       
-aws <- function(y,hmax=NULL,ladjust=1,family="Gaussian",
-                sigma2=NULL,scorr=0,shape=NULL,wghts=NULL,graph=FALSE,demo=FALSE,
-		lkern="Triangle",aggkern="Uniform",
-		aws=TRUE,memory=FALSE,homogen=TRUE,u=NULL,testprop=FALSE)
+aws <- function(y,hmax=NULL,aws=TRUE,memory=FALSE,family="Gaussian",
+                lkern="Triangle",homogen=TRUE,aggkern="Uniform",
+                sigma2=NULL,shape=NULL,scorr=0,
+		ladjust=1,wghts=NULL,u=NULL,graph=FALSE,demo=FALSE,
+                testprop=FALSE)
 {
 #
 #   this version uses neighborhoods with an increase in potential 

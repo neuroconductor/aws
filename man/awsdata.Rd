@@ -34,13 +34,13 @@ Joerg Polzehl, Vladimir Spokoiny,  Adaptive Weights Smoothing with applications 
 
 Joerg Polzehl, Vladimir Spokoiny,  Propagation-separation approach for local likelihood estimation,  Probab. Theory Related Fields  135 (3),  (2006)  , pp. 335--362.
 
-Joerg Polzehl, Vladimir Spokoiny, in V. Chen, C.; Härdle, W. & Unwin, A. (ed.) Handbook of Data Visualization Structural adaptive smoothing by propagation-separation methods Springer-Verlag, 2008, 471-492
+Joerg Polzehl, Vladimir Spokoiny, in V. Chen, C.; Haerdle, W. and Unwin, A. (ed.) Handbook of Data Visualization Structural adaptive smoothing by propagation-separation methods Springer-Verlag, 2008, 471-492
 
  }
 \author{ Joerg Polzehl \email{polzehl@wias-berlin.de}  }
 \seealso{\code{link{awsdata}},\code{\link{aws}}, \code{\link{aws.irreg}}}
 \examples{
-library(aws)
+require(aws)
 # 1D local constant smoothing
 \dontrun{demo(aws_ex1)}
 \dontrun{demo(aws_ex2)}
@@ -60,3 +60,5 @@ library(aws)
 % R documentation directory.
 \keyword{ smooth }
 \keyword{ manip }
+\keyword{ nonparametric }
+\keyword{ regression }

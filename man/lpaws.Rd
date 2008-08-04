@@ -62,9 +62,9 @@ lpaws(y, degree = 1, hmax = NULL, aws = TRUE, memory = FALSE, lkern = "Triangle"
                         \item{earlystop = "logical"}{eralustop}
                         \item{varmodel = "character"}{"Constant"}
                         \item{vcoef = "numeric"}{numeric(0)}
-                        \item{call = "function"}{calling sequence}
+                        \item{call = "function"}{the arguments of the call to \code{lpaws}}
 }
-\references{Joerg Polzehl, Vladimir Spokoiny, in V. Chen, C.; Härdle, W. & Unwin, A. (ed.) Handbook of Data Visualization Structural adaptive smoothing by propagation-separation methods Springer-Verlag, 2008, 471-492
+\references{Joerg Polzehl, Vladimir Spokoiny, in V. Chen, C.; Haerdle, W. and Unwin, A. (ed.) Handbook of Data Visualization Structural adaptive smoothing by propagation-separation methods Springer-Verlag, 2008, 471-492
 }
 \author{Joerg Polzehl \email{polzehl@wias-berlin.de} }
 \note{If you specify \code{graph=TRUE} for 2D problems 
@@ -84,3 +84,5 @@ library(aws)
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 \keyword{ smooth }
+\keyword{ nonparametric }
+\keyword{ regression }

@@ -1,10 +1,83 @@
-.onLoad <- function(lib, pkg){
+.onload <- function(lib, pkg){
 if(capabilities("X11")) X11.options(type="Xlib")
 if(capabilities("aqua")) quartz.options(type="native")
-if(.Platform$OS.type=="windows") windows.options(buffered=FALSE)
 invisible(NULL)
 }
 
+
+#########################################################################
+#
+#   binning in 1D -- 3D (adapted from binning function in package sm
+#
+#########################################################################
+binning <- function (x, y, nbins, xrange = NULL){
+        dx <- dim(x)
+        if(is.null(dx)) d <- 1 else d <- dx[2]
+        if(d > 3) {
+           warning("Binning only implemented in 1D, 2D and 3D") 
+           return(NULL)
+        }
+        if(length(nbins) < d || any(nbins < 2)) {
+           warning("Invalid values for nbins") 
+           return(NULL)
+        }
+        if(!is.null(y) && length(y)*d != length(x)) {
+           warning("Dimensions of design matrix incompatible with length of response vector") 
+           return(NULL)
+        }
+        if(is.null(xrange)){
+           xrange <- if(d==1) range(x) else apply(x,2,range)
+        } else { 
+          if((d==1 && length(xrange)!=2)||(d>1 && any(dim(xrange) != c(2,d)))) {
+           warning("Dimensions of xrange incorrect ")
+           return(NULL)
+           }
+           xrange <- if(d==1) range(x,xrange) else apply(rbind(x,xrange),2,range)
+        }
+        xnames <- if(d>1) dimnames(x)[[2]] else names(x)
+        breaks.x1 <- seq(xrange[1],xrange[2],length=nbins[1]+1)
+        if(d>1) breaks.x2 <- seq(xrange[1,2],xrange[2,2],length=nbins[2]+1)
+        if(d>2) breaks.x3 <- seq(xrange[1,3],xrange[2,3],length=nbins[3]+1)
+        f1 <- cut(if(d==1) x else x[,1], breaks = breaks.x1)
+        if(d>1) f2 <- cut(x[,2], breaks = breaks.x2)
+        if(d>2) f3 <- cut(x[,3], breaks = breaks.x3)
+        freq <- switch(d,table(f1),table(f1,f2),table(f1, f2, f3))
+        dimnames(freq) <- NULL
+        midpoints.x1 <- (breaks.x1[-1] + breaks.x1[-(nbins[1] + 1)])/2
+        if(d>1) midpoints.x2 <- (breaks.x2[-1] + breaks.x2[-(nbins[2] + 1)])/2
+        if(d>2) midpoints.x3 <- (breaks.x3[-1] + breaks.x3[-(nbins[3] + 1)])/2
+        z1 <- midpoints.x1
+        if(d>1) z2 <- midpoints.x2
+        if(d>2) z3 <- midpoints.x3
+        X <- switch(d,z1,
+                      cbind(rep(z1, length(z2)), 
+                            rep(z2, rep(length(z1),length(z2)))),
+                      cbind(rep(z1, length(z2)*length(z3)), 
+                            rep(z2, rep(length(z1)*length(z3),length(z2))),
+                            rep(z3, rep(length(z1)*length(z2),length(z3)))))
+        X.f <- as.vector(freq)
+        id <- (X.f > 0)
+        if(d>1) X <- X[id, ] else X <- X[id]
+        if(d>1) dimnames(X) <- list(NULL, xnames) else names(X) <- xnames
+        X.f <- X.f[id]
+        result <- list(x = X, x.freq = X.f, 
+                       midpoints.x1 = midpoints.x1, 
+                       midpoints.x2 = if(d>1) midpoints.x2 else NULL, 
+                       midpoints.x3 = if(d>2) midpoints.x3 else NULL, 
+                       breaks.x1 = breaks.x1, 
+                       breaks.x2 = if(d>1) breaks.x2 else NULL, 
+                       breaks.x3 = if(d>2) breaks.x3 else NULL, 
+                       table.freq = freq)
+        if (!is.null(y) && !all(is.na(y))) {
+            result$means <- as.numeric(tapply(y, switch(d,list(f1),
+                                         list(f1,f2),list(f1, f2, f3)),
+                                         mean))[id]
+            result$devs <- as.numeric(tapply(y, switch(d,list(f1),
+                                         list(f1,f2),list(f1, f2, f3)),
+                                  function(x) sum((x - mean(x))^2)))[id]
+        }
+        result
+}
 ###########################################################################
 #
 #   nonadaptive 1D -- 3D smoothing on a grid (kernel supported on (-1,1))
