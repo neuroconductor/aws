@@ -164,6 +164,7 @@ tobj<-updtheta(zobj,tobj,cpar)
 dim(tobj$theta)<-dy
 dim(tobj$bi)<-dy
 dim(tobj$eta)<-dy
+dim(tobj$fix)<-dy
 if(homogen) hhom <- zobj$hhom
 #
 #  if testprop == TRUE

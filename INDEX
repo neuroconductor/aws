@@ -1,8 +1,5 @@
-aws		lokal constant likelihood model (includes heteroskedastic case)
-aws.gaussian	lokal constant Gaussian model including variance estimation (as f(mean))
-aws.segment 	lokal constant Gaussian model/Segmentation
-aws.irreg	lokal constant Gaussian model including variance estimation (as f(mean)) Irregular design (1D, 2D)
-aws.irreg2D	lokal constant Gaussian model including variance estimation (as f(mean)) Irregular design 2D
-lpaws		local polynomial Gaussian models (1D or 2D grid, up to degree 2)
-gkernsm		Nonadaptive Gaussian filter on a 1D, 2D or 3D grid using fft and mirroring
-glmaws          Generalized linear models (in preparation)
+aws                     AWS for local constant models on a grid
+awsdata                 Extract information from an object of class aws
+aws.irreg               local constant AWS for irregular (1D/2D) design
+binning                 Binning in 1D, 2D or 3D
+lpaws                   Local polynomial smoothing by AWS
