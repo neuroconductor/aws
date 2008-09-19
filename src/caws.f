@@ -37,7 +37,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       do 1 i=1,dx
          zd=xi(i)-xj(i)
          z=z+zd*zd
-	 if(z.gt.h2) goto 2
+         if(z.gt.h2) goto 2
 1     continue
       lmkern=lkern(kern,z/h2)
       goto 999
@@ -167,7 +167,7 @@ C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine caws(y,fix,n1,n2,n3,hakt,hhom,lambda,theta,bi,bi2,
      1                bi0,ai,model,kern,spmin,lwght,wght)
-C   
+C
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
 C   hakt     actual bandwidth
@@ -178,7 +178,7 @@ C   ai       \sum  Wi Y     (output)
 C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
-C   
+C
       implicit logical (a-z)
       external kldist,lkern
       real*8 kldist,lkern
@@ -217,18 +217,18 @@ C
             z3=z3*z3
             ih2=sqrt(hakt2-z3)/wght(1)
             jind3=(j3-1)*dlw1*dlw2
-	 ELSE
-	    jind3=0
-	 END IF
+         ELSE
+            jind3=0
+         END IF
          DO j2=clw2-ih2,clw2+ih2
             if(n2.gt.1) THEN
                z2=(clw2-j2)*wght(1)
                z2=z3+z2*z2
                ih1=sqrt(hakt2-z2)
                jind2=jind3+(j2-1)*dlw1
-	    ELSE
-	       jind2=0
-	    END IF
+            ELSE
+               jind2=0
+            END IF
             DO j1=clw1-ih1,clw1+ih1
 C  first stochastic term
                jind=j1+jind2
@@ -242,7 +242,7 @@ C  first stochastic term
       DO i3=1,n3
          DO i2=1,n2
              DO i1=1,n1
-	       iind=i1+(i2-1)*n1+(i3-1)*n1*n2
+               iind=i1+(i2-1)*n1+(i3-1)*n1*n2
                hhomi=hhom(iind)
                hhomi=hhomi*hhomi
                hhommax=hmax2
@@ -253,29 +253,29 @@ C    nothing to do, final estimate is already fixed by control
 C   scaling of sij outside the loop
                bii0=bi0(iind)
                swj=0.d0
-	       swj2=0.d0
+               swj2=0.d0
                swj0=0.d0
                swjy=0.d0
                DO jw3=1,dlw3
-	          j3=jw3-clw3+i3
-	          if(j3.lt.1.or.j3.gt.n3) CYCLE
-		  jwind3=(jw3-1)*dlw1*dlw2
-	          jind3=(j3-1)*n1*n2
+                  j3=jw3-clw3+i3
+                  if(j3.lt.1.or.j3.gt.n3) CYCLE
+                  jwind3=(jw3-1)*dlw1*dlw2
+                  jind3=(j3-1)*n1*n2
                   z3=(clw3-jw3)*wght(2)
                   z3=z3*z3
                   if(n2.gt.1) ih2=sqrt(hakt2-z3)/wght(1)
                   DO jw2=clw2-ih2,clw2+ih2
-	             j2=jw2-clw2+i2
-	             if(j2.lt.1.or.j2.gt.n2) CYCLE
-		     jwind2=jwind3+(jw2-1)*dlw1
-	             jind2=(j2-1)*n1+jind3
+                     j2=jw2-clw2+i2
+                     if(j2.lt.1.or.j2.gt.n2) CYCLE
+                     jwind2=jwind3+(jw2-1)*dlw1
+                     jind2=(j2-1)*n1+jind3
                      z2=(clw2-jw2)*wght(1)
                      z2=z3+z2*z2
                      ih1=sqrt(hakt2-z2)
                      DO jw1=clw1-ih1,clw1+ih1
 C  first stochastic term
-	                j1=jw1-clw1+i1
-	                if(j1.lt.1.or.j1.gt.n1) CYCLE
+                        j1=jw1-clw1+i1
+                        if(j1.lt.1.or.j1.gt.n1) CYCLE
                         jind=j1+jind2
                         wj=lwght(jw1+jwind2)
                         swj0=swj0+wj
@@ -287,10 +287,10 @@ C  first stochastic term
                               hhommax=min(hhommax,z1)
                               CYCLE
                            END IF
-			      IF (sij.gt.spmin) THEN
-			         wj=wj*(1.d0-spf*(sij-spmin))
-                                 hhommax=min(hhommax,z1)
-                              END IF
+                           IF (sij.gt.spmin) THEN
+                               wj=wj*(1.d0-spf*(sij-spmin))
+                               hhommax=min(hhommax,z1)
+                           END IF
                         END IF
                         swj=swj+wj
                         swj2=swj2+wj*wj
@@ -316,7 +316,7 @@ C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine chaws(y,fix,si2,n1,n2,n3,hakt,lambda,theta,bi,bi2,
      1           bi0,vred,ai,model,kern,spmin,lwght,wght)
-C   
+C
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
 C   hakt     actual bandwidth
@@ -327,7 +327,7 @@ C   ai       \sum  Wi Y     (output)
 C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
-C   
+C
       implicit logical (a-z)
       external kldist,lkern
       real*8 kldist,lkern
@@ -365,18 +365,18 @@ C
             z3=z3*z3
             ih2=sqrt(hakt2-z3)/wght(1)
             jind3=(j3-1)*dlw1*dlw2
-	 ELSE
-	    jind3=0
-	 END IF
+         ELSE
+            jind3=0
+         END IF
          DO j2=clw2-ih2,clw2+ih2
             if(n2.gt.1) THEN
                z2=(clw2-j2)*wght(1)
                z2=z3+z2*z2
                ih1=sqrt(hakt2-z2)
                jind2=jind3+(j2-1)*dlw1
-	    ELSE
-	       jind2=0
-	    END IF
+            ELSE
+               jind2=0
+            END IF
             DO j1=clw1-ih1,clw1+ih1
 C  first stochastic term
                jind=j1+jind2
@@ -389,52 +389,52 @@ C  first stochastic term
       DO i3=1,n3
          DO i2=1,n2
              DO i1=1,n1
-	       iind=i1+(i2-1)*n1+(i3-1)*n1*n2
+               iind=i1+(i2-1)*n1+(i3-1)*n1*n2
                IF (fix(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
                thetai=theta(iind)
                bii=bi(iind)/lambda
 C   scaling of sij outside the loop
                bii0=bi0(iind)
-	       ih3=hakt/wght(2)
+               ih3=hakt/wght(2)
                swj=0.d0
-	       swj2=0.d0
+               swj2=0.d0
                swj0=0.d0
                swjy=0.d0
-	       sv1=0.d0
-	       sv2=0.d0
+               sv1=0.d0
+               sv2=0.d0
                DO jw3=1,dlw3
-	          j3=jw3-clw3+i3
-	          if(j3.lt.1.or.j3.gt.n3) CYCLE
-	          jind3=(j3-1)*n1*n2
+                  j3=jw3-clw3+i3
+                  if(j3.lt.1.or.j3.gt.n3) CYCLE
+                  jind3=(j3-1)*n1*n2
                   z3=(clw3-jw3)*wght(2)
                   z3=z3*z3
                   if(n2.gt.1) ih2=sqrt(hakt2-z3)/wght(1)
-		  jwind3=(jw3-1)*dlw1*dlw2
+                  jwind3=(jw3-1)*dlw1*dlw2
                   DO jw2=clw2-ih2,clw2+ih2
-	             j2=jw2-clw2+i2
-	             if(j2.lt.1.or.j2.gt.n2) CYCLE
-	             jind2=(j2-1)*n1+jind3
+                     j2=jw2-clw2+i2
+                     if(j2.lt.1.or.j2.gt.n2) CYCLE
+                     jind2=(j2-1)*n1+jind3
                      z2=(clw2-jw2)*wght(1)
                      z2=z3+z2*z2
                      ih1=sqrt(hakt2-z2)
-		     jwind2=jwind3+(jw2-1)*dlw1
+                     jwind2=jwind3+(jw2-1)*dlw1
                      DO jw1=clw1-ih1,clw1+ih1
 C  first stochastic term
-	                j1=jw1-clw1+i1
-	                if(j1.lt.1.or.j1.gt.n1) CYCLE
+                        j1=jw1-clw1+i1
+                        if(j1.lt.1.or.j1.gt.n1) CYCLE
                         jind=j1+jind2
                         wj=lwght(jw1+jwind2)
                         swj0=swj0+wj*si2(jind)
                         IF (aws) THEN
                   sij=bii*kldist(model,thetai,theta(jind),bii0)
                            IF (sij.gt.1.d0) CYCLE
-			   IF (sij.gt.spmin) THEN
-			      wj=wj*(1.d0-spf*(sij-spmin))
+                           IF (sij.gt.spmin) THEN
+                               wj=wj*(1.d0-spf*(sij-spmin))
                            END IF
                         END IF
-			sv1=sv1+wj
-			sv2=sv2+wj*wj
+                        sv1=sv1+wj
+                        sv2=sv2+wj*wj
                         swj=swj+wj*si2(jind)
                         swj2=swj2+wj*wj*si2(jind)
                         swjy=swjy+wj*si2(jind)*y(jind)
@@ -445,7 +445,7 @@ C  first stochastic term
                bi(iind)=swj
                bi2(iind)=swj2
                bi0(iind)=swj0
-	       vred(iind)=sv2/sv1/sv1
+               vred(iind)=sv2/sv1/sv1
                call rchkusr()
             END DO
          END DO
@@ -459,7 +459,7 @@ C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine cgaws(y,fix,si2,n1,n2,n3,hakt,hhom,lambda,theta,bi,
      1        bi2,bi0,gi,vred,ai,kern,spmin,lwght,wght)
-C   
+C
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
 C   hakt     actual bandwidth
@@ -470,7 +470,7 @@ C   ai       \sum  Wi Y     (output)
 C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
-C   
+C
       implicit logical (a-z)
       external kldist,lkern
       real*8 kldist,lkern
@@ -509,18 +509,18 @@ C
             z3=z3*z3
             ih2=sqrt(hakt2-z3)/wght(1)
             jind3=(j3-1)*dlw1*dlw2
-	 ELSE
-	    jind3=0
-	 END IF
+         ELSE
+            jind3=0
+         END IF
          DO j2=clw2-ih2,clw2+ih2
             if(n2.gt.1) THEN
                z2=(clw2-j2)*wght(1)
                z2=z3+z2*z2
                ih1=sqrt(hakt2-z2)
                jind2=jind3+(j2-1)*dlw1
-	    ELSE
-	       jind2=0
-	    END IF
+            ELSE
+               jind2=0
+            END IF
             DO j1=clw1-ih1,clw1+ih1
 C  first stochastic term
                jind=j1+jind2
@@ -533,7 +533,7 @@ C  first stochastic term
       DO i3=1,n3
          DO i2=1,n2
              DO i1=1,n1
-	       iind=i1+(i2-1)*n1+(i3-1)*n1*n2
+               iind=i1+(i2-1)*n1+(i3-1)*n1*n2
                hhomi=hhom(iind)
                hhomi=hhomi*hhomi
                hhommax=hmax2
@@ -543,33 +543,33 @@ C    nothing to do, final estimate is already fixed by control
                bii=bi(iind)/lambda
 C   scaling of sij outside the loop
                bii0=bi0(iind)
-	       ih3=hakt/wght(2)
+               ih3=hakt/wght(2)
                swj=0.d0
-	       swj2=0.d0
+               swj2=0.d0
                swj0=0.d0
                swjy=0.d0
-	       sv1=0.d0
-	       sv2=0.d0
+               sv1=0.d0
+               sv2=0.d0
                DO jw3=1,dlw3
-	          j3=jw3-clw3+i3
-	          if(j3.lt.1.or.j3.gt.n3) CYCLE
-	          jind3=(j3-1)*n1*n2
+                  j3=jw3-clw3+i3
+                  if(j3.lt.1.or.j3.gt.n3) CYCLE
+                  jind3=(j3-1)*n1*n2
                   z3=(clw3-jw3)*wght(2)
                   z3=z3*z3
                   if(n2.gt.1) ih2=sqrt(hakt2-z3)/wght(1)
-		  jwind3=(jw3-1)*dlw1*dlw2
+                  jwind3=(jw3-1)*dlw1*dlw2
                   DO jw2=clw2-ih2,clw2+ih2
-	             j2=jw2-clw2+i2
-	             if(j2.lt.1.or.j2.gt.n2) CYCLE
-	             jind2=(j2-1)*n1+jind3
+                     j2=jw2-clw2+i2
+                     if(j2.lt.1.or.j2.gt.n2) CYCLE
+                     jind2=(j2-1)*n1+jind3
                      z2=(clw2-jw2)*wght(1)
                      z2=z3+z2*z2
                      ih1=sqrt(hakt2-z2)
-		     jwind2=jwind3+(jw2-1)*dlw1
+                     jwind2=jwind3+(jw2-1)*dlw1
                      DO jw1=clw1-ih1,clw1+ih1
 C  first stochastic term
-	                j1=jw1-clw1+i1
-	                if(j1.lt.1.or.j1.gt.n1) CYCLE
+                        j1=jw1-clw1+i1
+                        if(j1.lt.1.or.j1.gt.n1) CYCLE
                         jind=j1+jind2
                         wj=lwght(jw1+jwind2)
                         swj0=swj0+wj*si2(jind)
@@ -585,13 +585,13 @@ C
                               hhommax=min(hhommax,z1)
                               CYCLE
                            END IF
-			   IF (sij.gt.spmin) THEN
-			      wj=wj*(1.d0-spf*(sij-spmin))
+                           IF (sij.gt.spmin) THEN
+                              wj=wj*(1.d0-spf*(sij-spmin))
                               hhommax=min(hhommax,z1)
                            END IF
                         END IF
-			sv1=sv1+wj
-			sv2=sv2+wj*wj
+                        sv1=sv1+wj
+                        sv2=sv2+wj*wj
                         swj=swj+wj*si2(jind)
                         swj2=swj2+wj*wj*si2(jind)
                         swjy=swjy+wj*si2(jind)*y(jind)
@@ -603,8 +603,8 @@ C
                bi2(iind)=swj2
                bi0(iind)=swj0
                hhom(iind)=sqrt(hhommax)
-	       gi(iind)=sv1
-	       vred(iind)=sv2/sv1/sv1
+               gi(iind)=sv1
+               vred(iind)=sv2/sv1/sv1
                call rchkusr()
             END DO
          END DO

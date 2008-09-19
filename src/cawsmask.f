@@ -5,7 +5,7 @@ C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine cawsmask(y,mask,ni,fix,n1,n2,hakt,lambda,theta,
      1         bi,bi2,bi0,ai,model,kern,spmin,lwght,wght)
-C   
+C
 C   y        observed values of regression function
 C   n1,n2    design dimensions
 C   hakt     actual bandwidth
@@ -16,7 +16,7 @@ C   ai       \sum  Wi Y     (output)
 C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
 C   wght     scaling factor for second dimension (larger values shrink)
-C   
+C
       implicit logical (a-z)
       external kldist,lkern
       real*8 kldist,lkern
@@ -48,9 +48,9 @@ C
             z2=z2*z2
             ih1=sqrt(hakt2-z2)
             jind2=(j2-1)*dlw1
-	 ELSE
-	    jind2=0
-	 END IF
+         ELSE
+            jind2=0
+         END IF
          DO j1=clw1-ih1,clw1+ih1
 C  first stochastic term
             jind=j1+jind2
@@ -61,8 +61,8 @@ C  first stochastic term
       call rchkusr()
       DO i2=1,n2
          DO i1=1,n1
-	    iind=i1+(i2-1)*n1
-	    if(.not.mask(iind)) CYCLE
+            iind=i1+(i2-1)*n1
+            if(.not.mask(iind)) CYCLE
             IF (fix(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
             thetai=theta(iind)
@@ -70,29 +70,29 @@ C    nothing to do, final estimate is already fixed by control
 C   scaling of sij outside the loop
             bii0=bi0(iind)
             swj=0.d0
-	    swj2=0.d0
+            swj2=0.d0
             swj0=0.d0
             swjy=0.d0
             DO jw2=1,dlw2
-	       j2=jw2-clw2+i2
-	       if(j2.lt.1.or.j2.gt.n2) CYCLE
-	       jwind2=(jw2-1)*dlw1
-	       jind2=(j2-1)*n1
+               j2=jw2-clw2+i2
+               if(j2.lt.1.or.j2.gt.n2) CYCLE
+               jwind2=(jw2-1)*dlw1
+               jind2=(j2-1)*n1
                z2=(clw2-jw2)*wght
                z2=z2*z2
                ih1=sqrt(hakt2-z2)
                DO jw1=clw1-ih1,clw1+ih1
 C  first stochastic term
-	          j1=jw1-clw1+i1
-	          if(j1.lt.1.or.j1.gt.n1) CYCLE
+                  j1=jw1-clw1+i1
+                  if(j1.lt.1.or.j1.gt.n1) CYCLE
                   jind=j1+jind2
-	          if(ni(jind).eq.0) CYCLE
+                  if(ni(jind).eq.0) CYCLE
                   wj=lwght(jw1+jwind2)*ni(jind)
                   swj0=swj0+wj
                   IF (aws) THEN
                      sij=bii*kldist(model,thetai,theta(jind),bii0)
                      IF (sij.gt.1.d0) CYCLE
-	             wj=wj*(1.d0-sij)
+                     wj=wj*(1.d0-sij)
 C   if sij <= spmin  this just keeps the location penalty
 C    spmin = 0 corresponds to old choice of K_s 
 C   new kernel is flat in [0,spmin] and then decays exponentially
@@ -118,7 +118,7 @@ C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine cgawsmas(y,mask,ni,fix,si2,n1,n2,hakt,lambda,theta,
      1  bi,bi2,bi0,vred,ai,model,kern,spmin,lwght,wght)
-C   
+C
 C   y        observed values of regression function
 C   n1,n2    design dimensions
 C   hakt     actual bandwidth
@@ -129,7 +129,7 @@ C   ai       \sum  Wi Y     (output)
 C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
-C   
+C
       implicit logical (a-z)
       external kldist,lkern
       real*8 kldist,lkern
@@ -162,9 +162,9 @@ C
                z2=z2*z2
                ih1=sqrt(hakt2-z2)
                jind2=(j2-1)*dlw1
-	    ELSE
-	       jind2=0
-	    END IF
+            ELSE
+               jind2=0
+            END IF
             DO j1=clw1-ih1,clw1+ih1
 C  first stochastic term
                jind=j1+jind2
@@ -175,8 +175,8 @@ C  first stochastic term
          call rchkusr()
          DO i2=1,n2
              DO i1=1,n1
-	       iind=i1+(i2-1)*n1
-	       if(.not.mask(iind)) CYCLE
+               iind=i1+(i2-1)*n1
+               if(.not.mask(iind)) CYCLE
                IF (fix(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
                thetai=theta(iind)
@@ -184,47 +184,47 @@ C    nothing to do, final estimate is already fixed by control
 C   scaling of sij outside the loop
                bii0=bi0(iind)
                swj=0.d0
-	       swj2=0.d0
+               swj2=0.d0
                swj0=0.d0
                swjy=0.d0
-	       sv1=0.d0
-	       sv2=0.d0
-                  DO jw2=1,dlw2
-	             j2=jw2-clw2+i2
-	             if(j2.lt.1.or.j2.gt.n2) CYCLE
-	             jind2=(j2-1)*n1
-                     z2=(clw2-jw2)*wght
-                     z2=z2*z2
-                     ih1=sqrt(hakt2-z2)
-		     jwind2=(jw2-1)*dlw1
-                     DO jw1=clw1-ih1,clw1+ih1
+               sv1=0.d0
+               sv2=0.d0
+               DO jw2=1,dlw2
+                  j2=jw2-clw2+i2
+                  if(j2.lt.1.or.j2.gt.n2) CYCLE
+                  jind2=(j2-1)*n1
+                  z2=(clw2-jw2)*wght
+                  z2=z2*z2
+                  ih1=sqrt(hakt2-z2)
+                  jwind2=(jw2-1)*dlw1
+                  DO jw1=clw1-ih1,clw1+ih1
 C  first stochastic term
-	                j1=jw1-clw1+i1
-	                if(j1.lt.1.or.j1.gt.n1) CYCLE
-                        jind=j1+jind2
-	                if(ni(jind).eq.0) CYCLE
-                        wj=lwght(jw1+jwind2)
-                        swj0=swj0+wj*si2(jind)
-                        IF (aws) THEN
+                     j1=jw1-clw1+i1
+                     if(j1.lt.1.or.j1.gt.n1) CYCLE
+                     jind=j1+jind2
+                     if(ni(jind).eq.0) CYCLE
+                     wj=lwght(jw1+jwind2)
+                     swj0=swj0+wj*si2(jind)
+                     IF (aws) THEN
                   sij=bii*kldist(model,thetai,theta(jind),bii0)
-                           IF (sij.gt.1.d0) CYCLE
-			   wj=wj*(1.d0-sij)
-                        END IF
-			wj0 = wj
-			wj = wj*ni(jind)
-			sv1=sv1+wj
-			sv2=sv2+wj*wj0
-			wj = wj*si2(jind)
-                        swj=swj+wj
-                        swj2=swj2+wj*wj0
-                         swjy=swjy+wj*y(jind)
-                      END DO
+                        IF (sij.gt.1.d0) CYCLE
+                        wj=wj*(1.d0-sij)
+                     END IF
+                     wj0 = wj
+                     wj = wj*ni(jind)
+                     sv1=sv1+wj
+                     sv2=sv2+wj*wj0
+                     wj = wj*si2(jind)
+                     swj=swj+wj
+                     swj2=swj2+wj*wj0
+                     swjy=swjy+wj*y(jind)
                   END DO
+               END DO
                ai(iind)=swjy
                bi(iind)=swj
                bi2(iind)=swj2
                bi0(iind)=swj0
-	       vred(iind)=sv2/sv1/sv1
+               vred(iind)=sv2/sv1/sv1
                call rchkusr()
             END DO
          END DO
@@ -236,18 +236,17 @@ C  first stochastic term
       integer i1,i2
       DO i1=1,n1
          j1a=max0(1,i1-h)
-	 j1e=min0(n1,i1+h)
+         j1e=min0(n1,i1+h)
          DO i2=1,n2
-	    if(.not.maskin(i1,i2)) CYCLE
+            if(.not.maskin(i1,i2)) CYCLE
             j2a=max0(1,i2-h)
-	    j2e=min0(n2,i2+h)
-	    DO j1=j1a,j1e
-	       DO j2=j2a,j2e
-	          maskout(j1,j2)=.TRUE.
+            j2e=min0(n2,i2+h)
+            DO j1=j1a,j1e
+               DO j2=j2a,j2e
+                  maskout(j1,j2)=.TRUE.
                END DO
-	    END DO
-	 END DO
+            END DO
+         END DO
       END DO
       RETURN
       END
-      
