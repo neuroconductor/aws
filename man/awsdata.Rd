@@ -20,6 +20,8 @@ awsdata(awsobj, what)
 "mae" (mean absolute error for each iteration step, if available),
 "ni" (number of observations per bin),
 "mask" (logical indicator for bins where the regression function is estimated).
+"bi" (array of sum of weights or NULL)
+"bi2" (array of sum of squared weights or NULL)
  }
 }
 \details{

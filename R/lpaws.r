@@ -170,6 +170,7 @@ qlambda <-switch(d,switch( degree+1,.9725,.92,.94),
 #
 #  defaults for degree=1,2 correspond to alpha=0.1
 #
+if(is.null(hmax)) hmax <- switch(d,400,10,5)
 if(earlystop) nfix <- switch(d,
                              switch(degree+1,2,10,50),
                              switch(degree+1,2,2,2)) else nfix <- n
@@ -367,7 +368,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
     gc()
     dim(zobj$ai) <- c(switch(d,n,dy),dp1)
     dim(zobj$bi) <- c(switch(d,n,dy),dp2)
-    if (hakt>n^(1/d)/2) zobj$bi0 <- rep(max(zobj$bi),n)
+    if (hakt>n^(1/d)/2) zobj$bi0 <- zobj$bi0<-biold
     biold <- zobj$bi0
     dim(zobj$bi0)<-c(switch(d,n,dy),dp2)
     if(!homogen) zobj$hhom<- switch(d,rep(1,2*n),rep(1,n))
@@ -446,7 +447,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
     vartheta <- sigma2[1]*vartheta
   }
 awsobj(y,theta,vartheta,hakt,sigma2,lkern,lambda,ladjust,aws,memory,
-              call,homogen,earlystop,degree=degree,wghts=wghts,mae=mae)
+              call,homogen,earlystop,degree=degree,wghts=wghts,mae=mae,data=list(bi=bi,bi2=bi2))
 }
 
 

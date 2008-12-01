@@ -28,7 +28,7 @@
 #     default parameters:  see function setawsdefaults
 #       
 aws.gaussian <- function(y,hmax=NULL,hpre=NULL,aws=TRUE,memory=FALSE,varmodel="Constant",
-                lkern="Triangle",homogen=TRUE,aggkern="Uniform",scorr=0,
+                lkern="Triangle",homogen=TRUE,aggkern="Uniform",scorr=0,mask=NULL,
                 ladjust=1,wghts=NULL,u=NULL,varprop=.1,graph=FALSE,demo=FALSE)
 {
 #
@@ -45,6 +45,9 @@ if(is.null(wghts)) wghts <- c(1,1,1)
 wghts <- switch(length(dy),c(0,0),c(wghts[1]/wghts[2],0),wghts[1]/wghts[2:3])
 if(is.null(wghts)) wghts <- c(0,0)
 cpar<-setawsdefaults(dy,mean(y),"Gaussian",lkern,aggkern,aws,memory,ladjust,hmax,1,wghts)
+if(is.null(mask)) {
+    if(length(dy)==0) mask <- repl(TRUE,length(y)) else mask <- array(TRUE,dy)
+}
 lkern <- cpar$lkern
 lambda <- 2*cpar$lambda # Gaussian case
 maxvol <- cpar$maxvol
@@ -83,7 +86,7 @@ n3 <- switch(d,1,1,dy[3])
 #    Initialize  for the iteration
 #  
 #wghts<-(wghts[2:3]/wghts[1])
-tobj<-list(bi= rep(1,n), bi2= rep(1,n), theta= y/shape, fix=rep(FALSE,n))
+tobj<-list(bi= rep(1,n), bi2= rep(1,n), theta= y/shape, fix=!mask)
 zobj<-list(ai=y, bi0= rep(1,n))
 biold<-rep(1,n)
 vred<-rep(1,n)
@@ -135,6 +138,7 @@ hakt0<-hakt
 # heteroskedastic Gaussian case
 zobj <- .Fortran("cgaws",as.double(y),
                        as.logical(tobj$fix),
+                       as.logical(mask),
                        as.double(sigma2),
                        as.integer(n1),
                        as.integer(n2),
@@ -222,7 +226,7 @@ if(demo) readline("Press return")
 #
 #   Create new variance estimate
 #
-vobj <- awsgsigma2(y,hobj,tobj,varmodel,varprop,h0)
+vobj <- awsgsigma2(y,mask,hobj,tobj,varmodel,varprop,h0)
 sigma2 <- vobj$sigma2inv
 coef <- vobj$coef
 rm(vobj)
@@ -245,7 +249,7 @@ vartheta <- tobj$bi2/tobj$bi^2
 vartheta<-vartheta/Spatialvar.gauss(hakt/0.42445/4,h0+1e-5,d)*Spatialvar.gauss(hakt/0.42445/4,1e-5,d)
 awsobj(y,tobj$theta,vartheta,hakt,1/sigma2,lkern,lambda,ladjust,aws,memory,
               call,homogen,earlystop=FALSE,family="Gaussian",wghts=wghts,
-              scorr=scorr,vcoef=coef,mae=mae)
+              scorr=scorr,vcoef=coef,mae=mae,mask=mask)
 }
 ###########################################################################
 #
@@ -276,12 +280,12 @@ awsgfamily <- function(y,scorr,d){
 #  estimate inverse of variances
 #
 ############################################################################
-awsgsigma2 <- function(y,hobj,tobj,varmodel,varprop,h0){
+awsgsigma2 <- function(y,mask,hobj,tobj,varmodel,varprop,h0){
   if(is.null(dy <- dim(y))) dy <- length(y)
     if(is.null(dy)) d <- 1 else d <- length(dy)
     corfactor <- 1
     for( i in 1:d ) corfactor <- corfactor*sum(dnorm((-5:5),0,h0[i]*0.59+1e-10))/dnorm(0,0,h0[i]*0.59+1e-10)
-    ind <- tobj$gi>1
+    ind <- tobj$gi>1&mask
     residsq <- ((y-tobj$theta)[ind]*tobj$gi[ind]/(tobj$gi[ind]-pmin(.95*tobj$gi[ind],corfactor)))^2
     theta <- tobj$theta[ind]
     if(varmodel=="Quadratic") theta2 <- theta^2

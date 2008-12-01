@@ -457,8 +457,8 @@ C
 C   Perform one iteration in local constant three-variate aws (gridded) with variance - mean model
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine cgaws(y,fix,si2,n1,n2,n3,hakt,hhom,lambda,theta,bi,
-     1        bi2,bi0,gi,vred,ai,kern,spmin,lwght,wght)
+      subroutine cgaws(y,fix,mask,si2,n1,n2,n3,hakt,hhom,lambda,theta,
+     1        bi,bi2,bi0,gi,vred,ai,kern,spmin,lwght,wght)
 C
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -475,7 +475,7 @@ C
       external kldist,lkern
       real*8 kldist,lkern
       integer n1,n2,n3,kern
-      logical aws,fix(1)
+      logical aws,fix(1),mask(1)
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,wght(2),
      1       bi2(1),hakt,lwght(1),si2(1),vred(1),spmin,hhom(1),gi(1)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
@@ -537,7 +537,7 @@ C  first stochastic term
                hhomi=hhom(iind)
                hhomi=hhomi*hhomi
                hhommax=hmax2
-               IF (fix(iind)) CYCLE
+               IF (fix(iind).or..not.mask(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
                thetai=theta(iind)
                bii=bi(iind)/lambda
@@ -571,6 +571,7 @@ C  first stochastic term
                         j1=jw1-clw1+i1
                         if(j1.lt.1.or.j1.gt.n1) CYCLE
                         jind=j1+jind2
+                        if(.not.mask(jind)) CYCLE
                         wj=lwght(jw1+jwind2)
                         swj0=swj0+wj*si2(jind)
                         z1=(clw1-jw1)

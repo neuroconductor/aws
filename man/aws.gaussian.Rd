@@ -9,7 +9,7 @@
   (polynomial) model.  
 }
 \usage{
-aws.gaussian(y, hmax = NULL, hpre = NULL, aws = TRUE, memory = FALSE, varmodel = "Constant", lkern = "Triangle", homogen = TRUE, aggkern = "Uniform", scorr = 0, ladjust = 1, wghts = NULL, u = NULL, varprop = 0.1, graph = FALSE, demo = FALSE)
+aws.gaussian(y, hmax = NULL, hpre = NULL, aws = TRUE, memory = FALSE, varmodel = "Constant", lkern = "Triangle", homogen = TRUE, aggkern = "Uniform", scorr = 0, mask=NULL, ladjust = 1, wghts = NULL, u = NULL, varprop = 0.1, graph = FALSE, demo = FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -27,6 +27,7 @@ aws.gaussian(y, hmax = NULL, hpre = NULL, aws = TRUE, memory = FALSE, varmodel =
   \item{aggkern}{ character: kernel used in stagewise aggregation, either "Triangle" or "Uniform" }
   \item{scorr}{The vector \code{scorr} allows to specify a first order correlations of the noise for each coordinate direction,
     defaults to 0 (no correlation). }
+  \item{mask}{Restrict smoothing to points where \code{mask==TRUE}. Defaults to \code{TRUE} in all voxel.}
   \item{ladjust}{ factor to increase the default value of lambda }
   \item{wghts}{ \code{wghts} specifies the  diagonal elements of a weight matrix to adjust for different distances between grid-points
   in different coordinate directions, i.e. allows to define a more appropriate metric in the design space. }
