@@ -4,6 +4,7 @@ Date: 2008-07-24
 Title: Adaptive Weights Smoothing
 Author: Joerg Polzehl <polzehl@wias-berlin.de>
 Maintainer: Joerg Polzehl <polzehl@wias-berlin.de>
+Depends: R (>= 2.5.0), methods
 Description: The library contains R-functions implementing the
      Propagation-Separation Approach to adaptive smoothing as described
      in
