@@ -46,7 +46,7 @@ wghts <- switch(length(dy),c(0,0),c(wghts[1]/wghts[2],0),wghts[1]/wghts[2:3])
 if(is.null(wghts)) wghts <- c(0,0)
 cpar<-setawsdefaults(dy,mean(y),"Gaussian",lkern,aggkern,aws,memory,ladjust,hmax,1,wghts)
 if(is.null(mask)) {
-    if(length(dy)==0) mask <- repl(TRUE,length(y)) else mask <- array(TRUE,dy)
+    if(length(dy)==0) mask <- rep(TRUE,length(y)) else mask <- array(TRUE,dy)
 }
 lkern <- cpar$lkern
 lambda <- 2*cpar$lambda # Gaussian case

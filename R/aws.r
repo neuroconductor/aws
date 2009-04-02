@@ -102,8 +102,8 @@ if(testprop) {
 cat("Progress:")
 total <- cumsum(1.25^(1:kstar))/sum(1.25^(1:kstar))
 while (k<=kstar) {
-      hakt0 <- gethani(1,10,lkern,1.25^(k-1),wghts,1e-4)
-      hakt <- gethani(1,10,lkern,1.25^k,wghts,1e-4)
+      hakt0 <- gethani(1,1.25*hmax,lkern,1.25^(k-1),wghts,1e-4)
+      hakt <- gethani(1,1.25*hmax,lkern,1.25^k,wghts,1e-4)
       cat("step",k,"hakt",hakt,"\n")
 if(lkern==5) {
 #  assume  hmax was given in  FWHM  units (Gaussian kernel will be truncated at 4)
