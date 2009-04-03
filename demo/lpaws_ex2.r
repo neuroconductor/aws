@@ -1,7 +1,5 @@
 require(aws)
-switch(options()$device,"X11"=X11(,12,4.5),
-                        "windows"=windows(,12,4.5),
-                        "quartz"=quartz(,12,4.5))
+if(exists("X11")) X11(,12,4.5)
 par(mfrow=c(1,3),mar=c(3,3,3,.25),mgp=c(2,1,0))
 x<-seq(-1,1,length=256)
 fbi<-function(x,y,k,r){
@@ -50,11 +48,9 @@ readline("Enter for next plot:")
 image(awsdata(yhat,"sd"),col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Standard deviation of estimates (min:",signif(min(awsdata(yhat,"sd")),3)," max:",signif(max(awsdata(yhat,"sd")),3),")"))
 if(degree>0) image(awsdata(yhat,"theta")[,,2],col=gray((0:255)/255),
-                   xaxt="n",yaxt="n",
-main="first derivative"))
+                   xaxt="n",yaxt="n",main="first derivative")
 if(degree>1) image(awsdata(yhat,"theta")[,,3],col=gray((0:255)/255),
-                   xaxt="n",yaxt="n",
-main="second derivative"))
+                   xaxt="n",yaxt="n",main="second derivative")
 par(oldpar)
 if(! readline("keep files and device (N/Y) :") %in% c("y","Y")){ 
 rm(fbi,x,im0,y,sigma,hmax,yhat,degree,u,risk,memory)

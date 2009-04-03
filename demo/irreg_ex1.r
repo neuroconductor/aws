@@ -1,7 +1,5 @@
 require(aws)
-switch(options()$device,"X11"=X11(,12,6),
-                        "windows"=windows(,12,6),
-                        "quartz"=quartz(,12,6))
+if(exists("X11")) X11(,10,10)
 n <- as.integer(readline("Sample size: Enter for 1000, provide positive integer (>250) otherwise"))
 if(is.na(as.numeric(n))) n <- 1000 else n <- max(250,as.integer(n))
 set.seed(1)

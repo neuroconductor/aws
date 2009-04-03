@@ -1,7 +1,5 @@
 require(aws)
-switch(options()$device,"X11"=X11(,12,6),
-                        "windows"=windows(,12,6),
-                        "quartz"=quartz(,12,6))
+if(exists("X11")) X11(,12,4.5)
 f1 <- function(x){
 #  
 #    Blocks data (Example 6 from Fan & Gijbels (1996)

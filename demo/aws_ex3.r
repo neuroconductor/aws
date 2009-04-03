@@ -1,4 +1,5 @@
 require(aws)
+if(exists("X11")) X11(,10,10)
 fw0 <- function(){
          xy <- rbind(rep(0:255,256),rep(0:255,rep(256,256)))
          indw <- c(1:12,29:48,73:100,133:168,209:256)
@@ -24,8 +25,8 @@ fw0 <- function(){
 w0 <- fw0()
 image(w0,col=gray((0:255)/255))
 title("Original image")
-sigma <- readline("Standard deviation of noise:\n Press 'Enter' for sigma=0.5, otherwise provide value of sigma:")
-if(is.na(as.numeric(sigma))) sigma <- 0.5 else sigma <- as.numeric(sigma)
+sigma <- readline("Standard deviation of noise:\n Press 'Enter' for sigma=0.25, otherwise provide value of sigma:")
+if(is.na(as.numeric(sigma))) sigma <- 0.25 else sigma <- as.numeric(sigma)
 if(sigma <= 0) sigma <- 0.1
 y <- w0+rnorm(w0,0,sigma)
 image(y,col=gray((0:255)/255))

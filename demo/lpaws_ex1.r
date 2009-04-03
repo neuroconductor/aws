@@ -1,7 +1,5 @@
 require(aws)
-switch(options()$device,"X11"=X11(,12,6),
-                        "windows"=windows(,12,6),
-                        "quartz"=quartz(,12,6))
+if(exists("X11")) X11(,10,5)
 f1 <- function(x){
    12*sin(2*pi*x)+3*sign(x>.4)-3*sign(x>.7)
      }

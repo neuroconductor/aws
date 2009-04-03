@@ -1,7 +1,5 @@
 require(aws)
-switch(options()$device,"X11"=X11(,12,6),
-                        "windows"=windows(,12,6),
-                        "quartz"=quartz(,12,6))
+if(exists("X11")) X11(,12,4.5)
 f1 <- function(x){
      xj <- c(20,30,55,65,80)/100
      hj <- c(50,-30,50,-40,30)
@@ -34,11 +32,14 @@ yhat <- aws(y,hmax=hmax,family=family,graph=TRUE)
 readline("Press ENTER to show results")
 if(ifamily==4) {
 y <- abs(y)
-yhat$theta <- sqrt( yhat$theta)
-}
+yhat <- sqrt(awsdata(yhat,"est"))
+#
+# thats standard deviation instead of variance
+#
+} else yhat <- awsdata(yhat,"est")
 plot(x,u,type="l",col=3,ylim=range(u,y),lwd=2,lty=2)
 points(x,y)
-lines(x,awsdata(yhat,"est"),col=2,lwd=2)
+lines(x,yhat,col=2,lwd=2)
 title("Data, fitted (red) and true (green) values")
 if(! readline("keep files and device (N/Y) :") %in% c("y","Y")){ 
 rm(f1,x,u,y,hmax,yhat,factor,ifamily,family)
