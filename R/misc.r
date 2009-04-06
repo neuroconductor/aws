@@ -1,9 +1,9 @@
 .onLoad <- function(lib, pkg){
 if(capabilities("X11")) {
-X11.options(type="Xlib")
+grDevices::X11.options(type="Xlib")
 cat("X11-type set to Xlib\n")
 }
-if(capabilities("aqua")) quartz.options(type="native")
+if(capabilities("aqua")) grDevices::quartz.options(type="native")
 invisible(NULL)
 }
 
