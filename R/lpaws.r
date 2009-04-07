@@ -176,24 +176,23 @@ if(earlystop) nfix <- switch(d,
                              switch(degree+1,2,2,2)) else nfix <- n
   if (!aws) {
     # thats stagewise aggregation with kernel specified by aggkern
-    qtau <- switch(d,switch( degree+1,.6,.8,.94),
-                     switch( degree+1,.55,.45,.45))
+    tau1 <- switch(d,switch( degree+1,.7,3.2,7.4),
+                     switch( degree+1,.6,1.2,2.1))
     if (!memory) {
         tau1 <- 1e50 
 	heta <- hmax
     } else {
-	tau1 <- qchisq(qtau,degree+1)
 	heta <- degree+1.1
     }
     if (aggkern=="Triangle") tau1 <- 2.5*tau1
     tau2 <- tau1/2
   } else {
-    qtau<-switch(degree+1,1,.68,.86)
+    tau1<-switch(d,switch(degree+1,10,5.2,30),
+                   switch( degree+1,3,2.25,5.5))
     if (!memory) {
       tau1 <- 1e50 
       heta <- 1e40
     } else {
-      tau1 <- qchisq(qtau,degree+1)^(2/d)
       heta <- 1.25^((degree+2)/d)
     }
     if (aggkern=="Triangle") tau1 <- 2.5*tau1
@@ -433,7 +432,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
   ###                                                                       
   ###            end cases                                                  
   ###                                 
-  ###   component var contains an estimate of Var(theta) if and aggkern="Uniform", or if qtau1=1 
+  ###   component var contains an estimate of Var(theta) if and aggkern="Uniform", or if !memory
   ###   
   vartheta <- .Fortran("vpaws",
                        as.integer(n),
