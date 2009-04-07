@@ -49,7 +49,7 @@ if(is.null(mask)) {
     if(length(dy)==0) mask <- rep(TRUE,length(y)) else mask <- array(TRUE,dy)
 }
 lkern <- cpar$lkern
-lambda <- 2*cpar$lambda # Gaussian case
+lambda <- 2.5*cpar$lambda # Gaussian case + 25% for estimating variances
 maxvol <- cpar$maxvol
 k <- cpar$k
 kstar <- cpar$kstar

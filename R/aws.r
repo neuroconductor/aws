@@ -239,7 +239,7 @@ cat("\n")
 ###                                                                       
 ###            end iterations now prepare results                                                  
 ###                                 
-###   component var contains an estimate of Var(tobj$theta) if aggkern="Uniform", or if qtau1=1 
+###   component var contains an estimate of Var(tobj$theta) if aggkern="Uniform", or if !memory 
 ###   
 if( family=="Gaussian"&length(sigma2)==n){
 # heteroskedastic Gaussian case 
@@ -289,16 +289,15 @@ if(is.null(dy)){
 } else {
       d <- length(dy)
 }
-qlambda <- switch(family,
-                  Gaussian=switch(d,.995,.96,.95),# alpha=0.005 for spmin=0.25
-		  Bernoulli=switch(d,.99,.96,.95),
-        	  Exponential=switch(d,.995,.96,.96),
-	          Poisson=switch(d,.99,.96,.95),
-                  Volatility=switch(d,.995,.96,.96),
-                  Variance=switch(d,.995,.96,.96),
-                  switch(d,.995,.96,.96))
 if(is.null(hmax)) hmax <- switch(d,250,12,5)
-if(aws) lambda <- ladjust*qchisq(qlambda,1) else lambda <- 1e50
+if(aws) lambda <- ladjust*switch(family,
+                  Gaussian=switch(d,11.3,6.1,6.2),# see inst/scripts/adjust.r for alpha values
+		  Bernoulli=switch(d,9.6,7.6,6.9),
+        	  Exponential=switch(d,14.2,6.8,6.1),
+	          Poisson=switch(d,9.6,7.6,6.9),
+                  Volatility=switch(d,10,6.1,6.1),
+                  Variance=switch(d,12.8,6.1,6.1),
+                  switch(d,11.3,6.1,.96)) else lambda <- 1e50
 #
 #    determine heta for memory step
 #
@@ -328,27 +327,27 @@ if(!aws){
         heta <- hmax
         cat("Neither PS nor Stagewise Aggregation is specified, compute kernel estimate with bandwidth hmax\n") 
     } else {
-    qtau <- switch(family,
-                            Gaussian=switch(d,.4,.35,.35),
-			    Bernoulli=switch(d,.45,.45,.45),
-			    Exponential=switch(d,.75,.75,.75),
-			    Poisson=switch(d,.45,.35,.35),
-                            Volatility=switch(d,.75,.75,.75),
-			    Variance=switch(d,.75,.75,.75),
-			    switch(d,.35,.3,.25))
+    tau <- switch(family,
+                            Gaussian=switch(d,.28,.21,.21),
+			    Bernoulli=switch(d,.36,.36,.36),
+			    Exponential=switch(d,1.3,1.3,1.3),
+			    Poisson=switch(d,.36,.21,.21),
+                            Volatility=switch(d,1.3,1.3,1.3),
+			    Variance=switch(d,1.3,1.3,1.3),
+			    switch(d,.28,.21,.21))
 }
 } else {
 #
-#   set appropriate value for qtau (works for all families)
+#   set appropriate value for tau (works for all families)
 #
 if(memory) {
-qtau <- .995 
+tau <- 8 
 } else {
-qtau <- 1
+tau <- 1e10
 heta <- 1e10
 }
 }
-if(memory) tau1<-ladjust*qchisq(qtau,1) else tau1 <- 1e10
+if(memory) tau1<-ladjust*tau else tau1 <- 1e10
 #
 #    adjust for different aggregation kernels
 #

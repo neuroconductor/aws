@@ -575,15 +575,15 @@ gfft<-function (y, h = 1)
     extend.y <- function(y,h,d){
        if(d==1) dim(y)<-c(length(y),1)
           n <- dim(y)[1]
-	  h <- min(h,n%/%2)
+          h <- min(h,n%/%2)
           nn <- nextn(n+6*h)
-	  yy <- matrix(0,dim(y)[2],nn)
-	  ih0 <- (nn-n)%/%2
-	  ih1 <- nn-ih0-n
-	  ind <- (ih0+1):(ih0+n)
-	  yy[,ind] <- t(y)
-	  yy[,1:ih0] <- t(y[ih0:1,])
-	  yy[,(nn-ih1+1):nn] <- t(y[n:(n-ih1+1),])
+          yy <- matrix(0,dim(y)[2],nn)
+          ih0 <- (nn-n)%/%2
+          ih1 <- nn-ih0-n
+          ind <- (ih0+1):(ih0+n)
+          yy[,ind] <- t(y)
+          yy[,1:ih0] <- t(y[ih0:1,])
+          yy[,(nn-ih1+1):nn] <- t(y[n:(n-ih1+1),])
 list(yy=t(yy),ind=ind)
 }	
     grid <- function(d) {

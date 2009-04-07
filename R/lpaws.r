@@ -165,10 +165,10 @@ dp2 <- switch( degree+1,1,6,15)
 }
 lkern<-switch(lkern,Triangle=2,Quadratic=3,Cubic=4,Uniform=1,
 	            Gaussian=5,2)
-qlambda <-switch(d,switch( degree+1,.9725,.92,.94),
-                   switch( degree+1,.95,.87,.965)) 
+lambda <-switch(d,switch( degree+1,11.3,6,10.4),
+                   switch( degree+1,6.1,11.3,27)) 
 #
-#  defaults for degree=1,2 correspond to alpha=0.1
+#  defaults for degree=1,2 see inst/scripts/adjust.r for alpha values
 #
 if(is.null(hmax)) hmax <- switch(d,400,10,5)
 if(earlystop) nfix <- switch(d,
@@ -199,7 +199,7 @@ if(earlystop) nfix <- switch(d,
     if (aggkern=="Triangle") tau1 <- 2.5*tau1
     tau2 <- tau1/2
   }
-  if (aws) lambda <- ladjust*2*qchisq(qlambda,dp1) else lambda <- 1e50
+  if (aws) lambda <- ladjust*lambda else lambda <- 1e50
 wghts <- switch(d,c(0,0),c(1,0))
 maxvol <- getvofh(hmax,lkern,wghts)
 kstar <- as.integer(log(maxvol)/log(1.25))
