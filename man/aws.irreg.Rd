@@ -70,10 +70,6 @@ returns anobject of class \code{aws} with slots
 \references{ Joerg Polzehl, Vladimir Spokoiny, in V. Chen, C.; Haerdle, W. and Unwin, A. (ed.) Handbook of Data Visualization Structural adaptive smoothing by propagation-separation methods Springer-Verlag, 2008, 471-492
  }
 \author{ Joerg Polzehl, \email{polzehl@wias-berlin.de} }
-\note{ ~~further notes~~ 
-
- ~Make other sections like Warning with \section{Warning }{....} ~
-}
 \seealso{ See also  \code{\link{lpaws}}, \code{link{awsdata}}, \code{\link{lpaws}} }
 \examples{
 require(aws)
