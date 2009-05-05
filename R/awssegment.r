@@ -27,10 +27,9 @@
 #
 #     default parameters:  see function setawsdefaults
 #       
-aws.segment <- function(y, level,delta=0,hmax=NULL,hpre=NULL,aws=TRUE,
-                memory=FALSE,varmodel="Constant",lkern="Triangle",
-                aggkern="Uniform",scorr=0,ladjust=1,
-                wghts=NULL,u=NULL,varprop=.1,thresh= 10,ext=3,
+aws.segment <- function(y, level,delta=0,hmax=NULL,hpre=NULL,
+                varmodel="Constant",lkern="Triangle",scorr=0,ladjust=1,
+                wghts=NULL,u=NULL,varprop=.1,ext=0,
                 graph=FALSE,demo=FALSE,fov=NULL)
 {
 #
@@ -38,6 +37,7 @@ aws.segment <- function(y, level,delta=0,hmax=NULL,hpre=NULL,aws=TRUE,
 #
 args <- match.call()
 dy<-dim(y)
+mask <- rep(TRUE,length(y))
 if(length(dy)>3) stop("AWS for more than 3 dimensional grids is not implemented")
 if(!(varmodel %in% c("Constant","Linear","Quadratic"))) stop("Model for variance not implemented")
 #
@@ -53,9 +53,9 @@ stop(paste("Inproper specifications for level ",level," or delta ",delta,
 if(is.null(wghts)) wghts <- c(1,1,1)
 wghts <- switch(length(dy),c(0,0),c(wghts[1]/wghts[2],0),wghts[1]/wghts[2:3])
 if(is.null(wghts)) wghts <- c(0,0)
-cpar<-setawsdefaults(dy,mean(y),"Gaussian",lkern,aggkern,aws,memory,ladjust,hmax,1,wghts)
+cpar<-setawsdefaults(dy,mean(y),"Gaussian",lkern,"Uniform",TRUE,FALSE,ladjust,hmax,1,wghts)
 lkern <- cpar$lkern
-lambda <- 2*cpar$lambda # Gaussian case
+lambda <- 1.25*cpar$lambda # Gaussian case
 maxvol <- cpar$maxvol
 k <- cpar$k
 kstar <- cpar$kstar
@@ -69,6 +69,15 @@ if(lkern==5) {
     }
 d <- cpar$d
 n<-length(y)
+#
+#    set threshold
+#
+thresh <- setawsthresh(d,kstar,ladjust,ext)
+beta <- switch(d,1.06,1.42,1.33)
+#  optimised for sample sizes
+#     d=1: n=c(2000,4000,8000)
+#     d=2: n=c(256^2,512^2,1024^2)=c(65536,262144,1048576)
+#     d=3: n=c(32^3,64^2*32,128^2*32)=c(32768,131072,524288)
 # 
 #   family dependent transformations 
 #
@@ -90,35 +99,38 @@ n1 <- switch(d,n,dy[1],dy[1])
 n2 <- switch(d,1,dy[2],dy[2])
 n3 <- switch(d,1,1,dy[3])
 if(is.null(fov)) fov <- n
+interval <- if(delta>0) paste("Central interval: (",level-delta,",",level+delta,")") else paste("Level: ",level)
+cat("Running segmentation algorithm with following parameters:\n",
+interval,"\n",
+"Critical value: ",thresh,"  Extension: ",ext,"  Field of view: ", fov,"\n")
 #
 #    Initialize  for the iteration
-#  
-#wghts<-(wghts[2:3]/wghts[1])
-tobj<-list(bi= rep(1,n), bi2= rep(1,n), theta= y/shape, fix=rep(FALSE,n))
-zobj<-list(ai=y, bi0= rep(1,n))
+#
+fix <- rep(FALSE,n)
+zobj<-list(ai=y, bi0= rep(1,n), bi2=rep(1,n), bi=rep(1,n), theta=y/shape, fix=rep(FALSE,n)  )
 segment <- array(0,c(n1,n2,n3))
 biold<-rep(1,n)
 vred<-rep(1,n)
 mae<-NULL
 lambda0<-1e50 # that removes the stochstic term for the first step, initialization by kernel estimates
 #
-#   produce a presmoothed estimate to stabilze variance estimates
+#   produce a presmoothed estimate to stabilize variance estimates
 #
 if(is.null(hpre)) hpre<-20^(1/d)
 dlw<-(2*trunc(hpre/c(1,wghts))+1)[1:d]
 hobj <- .Fortran("caws",as.double(y),
-                       as.logical(tobj$fix),
+                       as.logical(fix),
                        as.integer(n1),
                        as.integer(n2),
                        as.integer(n3),
                        as.double(hpre),
                        as.double(rep(1,n)),
                        as.double(1e40),
-                       as.double(tobj$theta),
-                       bi=as.double(tobj$bi),
+                       as.double(zobj$theta),
+                       bi=double(n),
 		       double(n),
                        as.double(zobj$bi0),
-                       ai=as.double(zobj$ai),
+                       ai=double(n),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
                        as.double(0.25),
@@ -144,7 +156,7 @@ if(scorr[1]>=0.1) lambda0<-lambda0*Spatialvar.gauss(hakt0/0.42445/4,h0,d)/Spatia
 hakt0<-hakt
 # heteroskedastic Gaussian case
 zobj <- .Fortran("segment",as.double(y),
-                       fix=as.logical(tobj$fix),
+                       fix=as.logical(fix),
                        as.double(level),
                        as.double(delta),
                        as.double(sigma2),
@@ -153,60 +165,53 @@ zobj <- .Fortran("segment",as.double(y),
                        as.integer(n3),
                        hakt=as.double(hakt),
                        as.double(lambda0),
-                       as.double(tobj$theta),
-                       bi=as.double(tobj$bi),
+                       as.double(zobj$theta),
+                       bi=as.double(zobj$bi),
 		       bi2=double(n),
                        bi0=as.double(zobj$bi0),
 		       gi=double(n),
 		       vred=double(n),
-                       ai=as.double(zobj$ai),
+                       theta=as.double(zobj$theta),
                        as.integer(lkern),
 	               as.double(0.25),
 		       double(prod(dlw)),
 		       as.double(wghts),
                        pvalues=double(n),# array for pvalues
                        segment=as.integer(segment),# array for segment (-1,0,1)
+                       as.double(beta),
                        as.double(thresh),
                        as.double(ext),
                        as.double(fov),
                        varest=as.double(varest),
-		       PACKAGE="aws",DUP=FALSE)[c("fix","bi","bi0","bi2","vred","pvalues","segment","ai","gi","hakt","varest")]
-vred[!tobj$fix]<-zobj$vred[!tobj$fix]
-dim(zobj$ai)<-dim(zobj$gi)<-dy
+		       PACKAGE="aws",DUP=FALSE)[c("fix","bi","bi0","bi2","vred","pvalues","segment","theta","gi","hakt","varest")]
+vred[!fix]<-zobj$vred[!fix]
 if(hakt>n1/2) zobj$bi0 <- rep(max(zobj$bi),n)
 pvalues <- zobj$pvalues
 segment <- zobj$segment
 varest <- zobj$varest
 biold <- zobj$bi0
-tobj<-updtheta(zobj,tobj,cpar)
-tobj$gi <- zobj$gi
-tobj$fix <- zobj$fix
-dim(tobj$theta)<-dy
-dim(tobj$bi)<-dy
-dim(tobj$eta)<-dy
-dim(tobj$fix)<-dy
-dim(pvalues) <- dim(segment) <- dy
+fix <- zobj$fix
+dim(zobj$theta) <- dim(zobj$gi) <- dim(pvalues) <- dim(segment) <- dim(fix) <- dim(zobj$bi) <- dy
 if(graph){
 #
 #     Display intermediate results if graph == TRUE
 #
 if(d==1){ 
 oldpar<-par(mfrow=c(1,3),mar=c(3,3,3,.2),mgp=c(2,1,0))
-plot(y,ylim=range(y,tobj$theta),col=3)
+plot(y,ylim=range(y,zobj$theta),col=3)
 if(!is.null(u)) lines(u,col=2)
-lines(tobj$theta,lwd=2)
+lines(zobj$theta,lwd=2)
 title(paste("Reconstruction  h=",signif(hakt,3)))
 plot(segment,type="l",main="Segmentation result",ylim=c(-1,1))
-plot(tobj$bi,type="l",ylim=range(0,tobj$bi))
-lines(tobj$eta*max(tobj$bi),col=2)
-title("Sum of weights and eta")
+plot(zobj$bi,type="l",ylim=range(0,zobj$bi))
+title("Sum of weights")
 } 
 if(d==2){ 
 oldpar<-par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
 image(y,col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Observed Image  min=",signif(min(y),3)," max=",signif(max(y),3)))
-image(tobj$theta,col=gray((0:255)/255),xaxt="n",yaxt="n")
-title(paste("Reconstruction  h=",signif(hakt,3)," min=",signif(min(tobj$theta),3)," max=",signif(max(tobj$theta),3)))
+image(zobj$theta,col=gray((0:255)/255),xaxt="n",yaxt="n")
+title(paste("Reconstruction  h=",signif(hakt,3)," min=",signif(min(zobj$theta),3)," max=",signif(max(zobj$theta),3)))
 image(zobj$gi,col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Sum of weights: min=",signif(min(zobj$gi),3)," mean=",signif(mean(zobj$gi),3)," max=",signif(max(zobj$gi),3)))
 image(segment,col=gray((0:255)/255),xaxt="n",yaxt="n",zlim=c(-1,1))
@@ -216,10 +221,10 @@ if(d==3){
 oldpar<-par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
 image(y[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Observed Image  min=",signif(min(y),3)," max=",signif(max(y),3)))
-image(tobj$theta[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n")
-title(paste("Reconstruction  h=",signif(hakt,3)," min=",signif(min(tobj$theta),3)," max=",signif(max(tobj$theta),3)))
-image(tobj$bi[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n")
-title(paste("Sum of weights: min=",signif(min(tobj$bi),3)," mean=",signif(mean(tobj$bi),3)," max=",signif(max(tobj$bi),3)))
+image(zobj$theta[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n")
+title(paste("Reconstruction  h=",signif(hakt,3)," min=",signif(min(zobj$theta),3)," max=",signif(max(zobj$theta),3)))
+image(zobj$bi[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n")
+title(paste("Sum of weights: min=",signif(min(zobj$bi),3)," mean=",signif(mean(zobj$bi),3)," max=",signif(max(zobj$bi),3)))
 image(segment[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n",zlim=c(-1,1))
 title("Segmentation result")
 } 
@@ -231,11 +236,11 @@ par(oldpar)
 #    only.
 #
 if(!is.null(u)) {
-   cat("bandwidth: ",signif(hakt,3),"eta==1",sum(tobj$eta==1),"   MSE: ",
-                    signif(mean((tobj$theta-u)^2),3),"   MAE: ",
-		    signif(mean(abs(tobj$theta-u)),3)," mean(bi)=",
-		    signif(mean(tobj$bi),3),"\n")
-   mae<-c(mae,signif(mean(abs(tobj$theta-u)),3))
+   cat("bandwidth: ",signif(hakt,3),"   MSE: ",
+                    signif(mean((zobj$theta-u)^2),3),"   MAE: ",
+		    signif(mean(abs(zobj$theta-u)),3)," mean(bi)=",
+		    signif(mean(zobj$bi),3),"\n")
+   mae<-c(mae,signif(mean(abs(zobj$theta-u)),3))
 		    }
 if(demo) readline("Press return")
 #
@@ -244,7 +249,7 @@ if(demo) readline("Press return")
 #
 #   Create new variance estimate
 #
-vobj <- awsgsigma2(y,hobj,tobj,varmodel,varprop,h0)
+vobj <- awsgsigma2(y,mask,hobj,zobj[c("theta","gi")],varmodel,varprop,h0)
 sigma2 <- vobj$sigma2inv
 coef <- vobj$coef
 rm(vobj)
@@ -252,7 +257,7 @@ x<-1.25^(k-1)
 scorrfactor<-x/(3^d*prod(scorr)*prod(h0)+x)
 lambda0<-lambda*scorrfactor
 if (max(total) >0) {
-      cat("step:",k,"  hakt=",hakt,"  progress:",signif(total[k],2)*100,"% .  fixed=",sum(tobj$fix),"\n",sep="")
+      cat("step:",k,"  hakt=",hakt,"  progress:",signif(total[k],2)*100,"% .  fixed=",sum(zobj$fix),"\n",sep="")
      }
 k <- k+1
 gc()
@@ -261,11 +266,18 @@ cat("\n")
 ###                                                                       
 ###            end iterations now prepare results                                                  
 ###                                 
-###   component var contains an estimate of Var(tobj$theta) if aggkern="Uniform", or if qtau1=1 
+###   component var contains an estimate of Var(zobj$theta) 
 ###   
-vartheta <- tobj$bi2/tobj$bi^2
+vartheta <- zobj$bi2/zobj$bi^2
 vartheta<-vartheta/Spatialvar.gauss(hakt/0.42445/4,h0+1e-5,d)*Spatialvar.gauss(hakt/0.42445/4,1e-5,d)
-awsobj(y,segment,vartheta,hakt,1/sigma2,lkern,lambda,ladjust,aws,memory,
+awsobj(y,segment,vartheta,hakt,1/sigma2,lkern,lambda,ladjust,TRUE,FALSE,
               call,homogen=FALSE,earlystop=FALSE,family="Gaussian",wghts=wghts,
               scorr=scorr,varmodel=varmodel,vcoef=coef,mae=mae)
+}
+setawsthresh <- function(d,kstar,ladjust,ext){
+ladjust <- min(ladjust,switch(d,1.68,2.37,2.44))
+#  for ladjust>=switch(d,1.68,2.37,2.44) use nonadaptive thresholds
+switch(d,1.65  + 0.1952*log(kstar)-0.0473*ladjust-0.6771*ext,
+         1.729 + 0.2831*log(kstar)-0.2715*ladjust-0.4576*ext,
+         1.696 + 0.4010*log(kstar)-0.2975*ladjust-0.4273*ext)
 }

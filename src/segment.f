@@ -4,8 +4,8 @@ C   Perform one iteration in local constant three-variate aws (gridded) with var
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine segment(y,fix,level,delta,si2,n1,n2,n3,hakt,
-     1        lambda,theta,bi,bi2,bi0,gi,vred,ai,kern,spmin,lwght,
-     2        wght,pvalue,segm,thresh,ext,fov,varest)
+     1        lambda,theta,bi,bi2,bi0,gi,vred,thetan,kern,spmin,lwght,
+     2        wght,pvalue,segm,beta,thresh,ext,fov,varest)
 C
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -23,13 +23,13 @@ C
       real*8 kldist,lkern,fpchisq
       integer n1,n2,n3,kern,segm(1)
       logical aws,fix(1)
-      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,wght(2),
+      real*8 y(1),theta(1),bi(1),bi0(1),thetan(1),lambda,wght(2),
      1       bi2(1),hakt,lwght(1),si2(1),vred(1),spmin,gi(1),
-     2       level,delta,pvalue(1),thresh,ext,varest(1),fov
+     2       level,delta,pvalue(1),beta,thresh,ext,varest(1),fov
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3
       real*8 bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0,
-     1        sv1,sv2,spf,z,a,b,thi,s2i,si,ti,cofh
+     1        sv1,sv2,spf,z,a,b,thi,s2i,si,ti,cofh,extthr
       hakt2=hakt*hakt
       spf=1.d0/(1.d0-spmin)
       ih1=hakt
@@ -50,6 +50,8 @@ C
       dlw3=ih3+clw3
       z2=0.d0
       z3=0.d0
+      swj0=0.d0
+      extthr=thresh+ext
       DO j3=1,dlw3
          if(n3.gt.1) THEN
             z3=(clw3-j3)*wght(2)
@@ -72,13 +74,16 @@ C
 C  first stochastic term
                jind=j1+jind2
                z1=clw1-j1
-               lwght(jind)=lkern(kern,(z1*z1+z2)/hakt2)
+               wj=lkern(kern,(z1*z1+z2)/hakt2)
+               swj0=swj0+wj
+               lwght(jind)=wj
             END DO
          END DO
       END DO
       a = level-delta
       b = level+delta
       call rchkusr()
+      IF(hakt.gt.1.25) THEN
       DO i1=1,n1
          DO i2=1,n2
             DO i3=1,n3
@@ -86,9 +91,8 @@ C  first stochastic term
                if(fix(iind)) CYCLE
                thi = theta(iind)
                s2i = si2(iind)
-            cofh = 2.d0*log(2.d0*varest(iind)*s2i*fov)
-            cofh=sqrt(cofh)
-           if(max(a-thi,thi-b)/sqrt(varest(iind))-cofh.gt.thresh) THEN
+            cofh = sqrt(beta*log(varest(iind)*s2i*fov))
+           if(max(a-thi,thi-b)/sqrt(varest(iind))-cofh.gt.extthr) THEN
                   fix(iind)=.TRUE.
                   if(segm(iind).eq.0) segm(iind)=sign(1.d0,thi-level)
 C wee need to assign a value to segment before we can fix the decision
@@ -100,6 +104,7 @@ C wee need to assign a value to segment before we can fix the decision
             END DO
          END DO
       END DO
+      END IF
       DO i3=1,n3
          DO i2=1,n2
              DO i1=1,n1
@@ -163,17 +168,18 @@ C
                      END DO
                   END DO
                END DO
-               ai(iind)=swjy
+               thetan(iind)=swjy/swj
                bi(iind)=swj
                bi2(iind)=swj2
                bi0(iind)=swj0
                si=swj2/swj/swj
                varest(iind)=si
-               cofh = 2.d0*log(2.d0*si*si2(iind)*fov)
+               cofh = sqrt(beta*log(si*si2(iind)*fov))
+C    both are equivalent for  homogeneous si2
                si=sqrt(si)
-               IF((thi-a)/si+cofh.lt.-ext) THEN
+               IF((thi-a)/si+cofh.lt.-thresh) THEN
                   segm(iind)=-1
-               ELSE IF ((thi-b)/si-cofh.gt.ext) THEN
+               ELSE IF ((thi-b)/si-cofh.gt.thresh) THEN
                   segm(iind)=1
                ELSE
                   segm(iind)=0

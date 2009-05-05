@@ -7,7 +7,7 @@ The function implements a modification of the adaptive weights smoothing algorit
 segmentation into three classes. The 
 }
 \usage{
-aws.segment(y, level, delta = 0, hmax = NULL, hpre = NULL, aws = TRUE, memory = FALSE, varmodel = "Constant", lkern = "Triangle", aggkern = "Uniform", scorr = 0, ladjust = 1, wghts = NULL, u = NULL, varprop = 0.1, thresh = 10, ext = 3, graph = FALSE, demo = FALSE, fov=NULL)
+aws.segment(y, level, delta = 0, hmax = NULL, hpre = NULL, varmodel = "Constant", lkern = "Triangle", scorr = 0, ladjust = 1, wghts = NULL, u = NULL, varprop = 0.1, ext = 0, graph = FALSE, demo = FALSE, fov=NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -17,12 +17,8 @@ aws.segment(y, level, delta = 0, hmax = NULL, hpre = NULL, aws = TRUE, memory = 
   \item{hmax}{ \code{hmax} specifies the maximal bandwidth. Defaults to \code{hmax=250, 12, 5} for \code{dd=1, 2, 3}, respectively.}
   \item{hpre}{ Describe \code{hpre} Bandwidth used for an initial nonadaptive estimate. The first estimate
    of variance parameters  is obtained from residuals with respect to this estimate. }
-  \item{aws}{ logical: if TRUE structural adaptation (AWS) is used. }
-  \item{memory}{ logical: if TRUE stagewise aggregation is used as an additional
-   adaptation scheme. }
   \item{varmodel}{Implemented are "Constant", "Linear" and "Quadratic" refering to a polynomial model of degree 0 to 2.}
   \item{lkern}{ character: location kernel, either "Triangle", "Plateau", "Quadratic", "Cubic" or "Gaussian"}
-  \item{aggkern}{ character: kernel used in stagewise aggregation, either "Triangle" or "Uniform" }
   \item{scorr}{The vector \code{scorr} allows to specify a first order correlations of the noise for each coordinate direction,
     defaults to 0 (no correlation). }
   \item{ladjust}{ factor to increase the default value of lambda }
@@ -31,8 +27,7 @@ aws.segment(y, level, delta = 0, hmax = NULL, hpre = NULL, aws = TRUE, memory = 
   \item{u}{ a "true" value of the regression function, may be provided to 
    report risks at each iteration. This can be used to test the propagation condition with \code{u=0} }
   \item{varprop}{ Small variance estimates are replaced by \code{varprop} times the mean variance.}
-  \item{thresh}{Critical value for final assignment to segment 1 or 3 , should be specified as a quantile of the standard Gaussian distribution.  }
-  \item{ext}{ A design point i is classified into segment 2 as long as for the estimated mean \code{\hat{\theta} \in (level-delta-ext*sigma/N_i,level+delta+ext*sigma/N_i )} where sigma is the estimated standard deviation of the observed \code{Y_i} and \code{N_i} is the sum of weights from estimating the mean \code{theta}. }
+  \item{ext}{ Intermediate results are fixed if the test statistics exceeds the critical value by \code{ext}.}
   \item{graph}{If  \code{graph=TRUE} intermediate results are illustrated after each iteration step. Defaults to \code{graph=FALSE}. }
   \item{demo}{ If \code{demo=TRUE} the function pauses after each iteration. Defaults to \code{demo=FALSE}. }
   \item{fov}{Field of view. Size of region (sample size) to adjust for in multiscale testing.}

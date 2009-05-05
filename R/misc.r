@@ -635,3 +635,17 @@ list(yy=t(yy),ind=ind)
       }
       yhat
 }
+gethseq <- function(awsobj){
+dy <- awsobj@dy
+wghts <- awsobj@wghts
+hmax <- awsobj@hmax*(1+1e-6)
+family <- awsobj@family
+lkern <- awsobj@lkern
+maxvol <- getvofh(hmax,lkern,wghts)
+kstar <- as.integer(log(maxvol)/log(1.25))
+k <- switch(length(dy),1,3,6)
+h <- numeric(kstar)
+for(i in k:kstar) h[i] <- gethani(1,1.25*hmax,lkern,1.25^i,wghts,1e-4)
+h
+}
+
