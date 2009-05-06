@@ -33,8 +33,9 @@ y1[11:14,21:28,15:18] <- sqrt(.125)
 y1[21:28,21:28,15:18] <- .25
 
 
-delta <- as.numeric(readline("Width of central interval (default 0)"))
-if(is.na(delta)||delta <= 0) delta <- 0 else delta <- delta/2
+delta <- as.numeric(readline("Width of central interval (default 4)"))
+if(is.na(delta)||delta < 0) delta <- 4 
+delta <- delta/2
 
 size <- as.numeric(readline("Signal size (default 5+intervalwidth/2)"))
 if(is.na(size)||size <= 0) size <- 5+delta

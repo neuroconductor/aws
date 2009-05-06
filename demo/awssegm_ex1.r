@@ -13,8 +13,8 @@ y1[6936:7064]<-sqrt(.03125/2)
 y1[7872:8128]<-sqrt(.03125/4)
 y1[8744:9256]<-sqrt(.03125/8)
 
-delta <- as.numeric(readline("Width of central interval (default 4)"))
-if(is.na(delta)||delta <= 0) delta <- 4 
+delta <- as.numeric(readline("Width of central interval (default 0)"))
+if(is.na(delta)||delta < 0) delta <- 0
 delta <- delta/2
 
 size <- as.numeric(readline("Signal size (default 5+intervalwidth/2)"))
