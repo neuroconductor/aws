@@ -24,7 +24,7 @@ aws(y,hmax=NULL,aws=TRUE,memory=FALSE,family="Gaussian",
    adaptation scheme. }
   \item{family}{\code{family} specifies the probability distribution. Default is \code{family="Gaussian"}, also implemented
    are "Bernoulli", "Poisson", "Exponential", "Volatility" and "Variance". \code{family="Volatility"} specifies a Gaussian distribution with
-   expectation 0 and unknown variance. \code{family="Volatility"} specifies that \code{p*y/theta} is distributed as \code{\Chi^2} with \code{p=shape}
+   expectation 0 and unknown variance. \code{family="Volatility"} specifies that \code{p*y/theta} is distributed as \eqn{\chi^2} with \code{p=shape}
    degrees of freedom.}
   \item{lkern}{ character: location kernel, either "Triangle", "Plateau", "Quadratic", "Cubic" or "Gaussian"}
   \item{homogen}{ logical: if TRUE the function tries to determine regions 
@@ -33,7 +33,7 @@ aws(y,hmax=NULL,aws=TRUE,memory=FALSE,family="Gaussian",
   \item{sigma2}{\code{sigma2} allows to specify the variance in case of \code{family="Gaussian"}. Not used if \code{family!="Gaussian"}.
    Defaults to \code{NULL}. In this case a homoskedastic variance estimate is generated. If \code{length(sigma2)==length(y)} then \code{sigma2}
    is assumed to contain the pointwise variance of \code{y} and a heteroscedastic variance model is used.}
-  \item{shape}{Allows to specify an additional shape parameter for certain family models. Currently only used for family="Variance", that is \code{\Chi}-Square distributed observations
+  \item{shape}{Allows to specify an additional shape parameter for certain family models. Currently only used for family="Variance", that is \eqn{\chi}-Square distributed observations
   with \code{shape} degrees of freedom. }
   \item{scorr}{The vector \code{scorr} allows to specify a first order correlations of the noise for each coordinate direction,
     defaults to 0 (no correlation). }
@@ -63,9 +63,9 @@ The essential parameter in the procedure is a critical value \code{lambda}. This
    provides, with a high probability, the global (parametric) estimate.
    More formally we require the parameter \code{lambda}
    to be specified such that
-   \code{\bf{E} |\hat{\theta}^k - \theta| \le (1+\alpha) \bf{E} |\tilde{\theta}^k - \theta|}
-   where \code{\hat{\theta}^k} is the aws-estimate in step \code{k} and \code{\tilde{\theta}^k}
-   is corresponding nonadaptive estimate using the same bandwidth (\code{lambda=\infty}).
+   \eqn{\bf{E} |\hat{\theta}^k - \theta| \le (1+\alpha) \bf{E} |\tilde{\theta}^k - \theta|}
+   where \eqn{\hat{\theta}^k} is the aws-estimate in step \code{k} and \eqn{\tilde{\theta}^k}
+   is corresponding nonadaptive estimate using the same bandwidth (\code{lambda=Inf}).
    The value of lambda can be adjusted by specifying the factor \code{ladjust}. Values \code{ladjust>1} lead to an less effective adaptation while \code{ladjust<<1} may lead to random segmentation
    of, with respect to a constant model, homogeneous regions.
    

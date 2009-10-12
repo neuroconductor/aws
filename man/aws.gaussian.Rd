@@ -54,9 +54,9 @@ The essential parameter in the procedure is a critical value \code{lambda}. This
    provides, with a high probability, the global (parametric) estimate.
    More formally we require the parameter \code{lambda}
    to be specified such that
-   \code{\bf{E} |\hat{\theta}^k - \theta| \le (1+\alpha) \bf{E} |\tilde{\theta}^k - \theta|}
-   where \code{\hat{\theta}^k} is the aws-estimate in step \code{k} and \code{\tilde{\theta}^k}
-   is corresponding nonadaptive estimate using the same bandwidth (\code{lambda=\infty}).
+   \eqn{\bf{E} |\hat{\theta}^k - \theta| \le (1+\alpha) \bf{E} |\tilde{\theta}^k - \theta|}
+   where \eqn{\hat{\theta}^k} is the aws-estimate in step \code{k} and \eqn{\tilde{\theta}^k}
+   is corresponding nonadaptive estimate using the same bandwidth (\code{lambda=Inf}).
    The value of lambda can be adjusted by specifying the factor \code{ladjust}. Values \code{ladjust>1} lead to an less effective adaptation while \code{ladjust<<1} may lead to random segmentation
    of, with respect to a constant model, homogeneous regions.
    
