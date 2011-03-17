@@ -177,13 +177,14 @@ zobj <- .Fortran("segment",as.double(y),
 		       double(prod(dlw)),
 		       as.double(wghts),
                        pvalues=double(n),# array for pvalues
-                       segment=as.integer(segment),# array for segment (-1,0,1)
+                       as.integer(segment),# previous segmentation array 
+                       segment=as.integer(segment),# new array for segment (-1,0,1)
                        as.double(beta),
                        as.double(thresh),
                        as.double(ext),
                        as.double(fov),
                        varest=as.double(varest),
-		       PACKAGE="aws",DUP=FALSE)[c("fix","bi","bi0","bi2","vred","pvalues","segment","theta","gi","hakt","varest")]
+		       PACKAGE="aws")[c("fix","bi","bi0","bi2","vred","pvalues","segment","theta","gi","hakt","varest")]
 vred[!fix]<-zobj$vred[!fix]
 if(hakt>n1/2) zobj$bi0 <- rep(max(zobj$bi),n)
 pvalues <- zobj$pvalues

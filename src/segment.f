@@ -5,7 +5,7 @@ C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine segment(y,fix,level,delta,si2,n1,n2,n3,hakt,
      1        lambda,theta,bi,bi2,bi0,gi,vred,thetan,kern,spmin,lwght,
-     2        wght,pvalue,segm,beta,thresh,ext,fov,varest)
+     2        wght,pvalue,segm,segmn,beta,thresh,ext,fov,varest)
 C
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -21,7 +21,7 @@ C
       implicit logical (a-z)
       external kldist,lkern,fpchisq
       real*8 kldist,lkern,fpchisq
-      integer n1,n2,n3,kern,segm(1)
+      integer n1,n2,n3,kern,segm(1),segmn(1)
       logical aws,fix(1)
       real*8 y(1),theta(1),bi(1),bi0(1),thetan(1),lambda,wght(2),
      1       bi2(1),hakt,lwght(1),si2(1),vred(1),spmin,gi(1),
@@ -178,11 +178,11 @@ C
 C    both are equivalent for  homogeneous si2
                si=sqrt(si)
                IF((thi-a)/si+cofh.lt.-thresh) THEN
-                  segm(iind)=-1
+                  segmn(iind)=-1
                ELSE IF ((thi-b)/si-cofh.gt.thresh) THEN
-                  segm(iind)=1
+                  segmn(iind)=1
                ELSE
-                  segm(iind)=0
+                  segmn(iind)=0
                END IF               
                gi(iind)=sv1
                vred(iind)=sv2/sv1/sv1
