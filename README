@@ -20,6 +20,19 @@ Functions for density estimation and tail-index estimation have been removed.
 Additional functionality includes local constant Gaussian models for
 irregular design (function aws.irreg) and Gaussian models with global mean-variance model (aws.gaussian).
 
+AWS 1.7-0 or higher supports OpenMP. If you wish to enable multiprocessing via OpenMP, install AWS with configure argument
+- from shell
+  R CMD INSTALL --configure-args='--enable-openmp' aws_<version>.tar.gz.
+
+- from R session
+  install.packages("aws", configure.args="--enable-openmp")
+
+As an OpenMP standard, the environment variable 'OMP_NUM_THREADS' is used to determine the number of threads.
+If OMP_NUM_THREADS is not set or less or equal 0, OMP_NUM_THREADS will be set to 1 during the current R session.
+
+Please notice that an OpenMP compiled version of AWS with OMP_NUM_THREADS=1 is usually slower than a pure AWS installation.
+
+For safety reasons it is not possible to set OMP_NUM_THREADS higher than the number of (virtual) cores on your platform.
 
 
 Joerg Polzehl
