@@ -106,7 +106,7 @@ list(yy=t(yy),ind=ind)
         d0 <- d%/%2 + 1
         gd <- seq(0, 1, length = d0)
         if (2 * d0 == d + 1)
-            gd <- c(gd, -gd[d0:2],)
+            gd <- c(gd, -gd[d0:2])
         else gd <- c(gd, -gd[(d0 - 1):2])
         gd/2/h*d
     }
@@ -244,7 +244,7 @@ list(yy=t(yy),ind=ind)
         d0 <- d%/%2 + 1
         gd <- seq(0, 1, length = d0)
         if (2 * d0 == d + 1)
-            gd <- c(gd, -gd[d0:2],)
+            gd <- c(gd, -gd[d0:2])
         else gd <- c(gd, -gd[(d0 - 1):2])
         gd
     }
@@ -590,7 +590,7 @@ list(yy=t(yy),ind=ind)
         d0 <- d%/%2 + 1
         gd <- seq(0, 1, length = d0)
         if (2 * d0 == d + 1)
-            gd <- c(gd, -gd[d0:2],)
+            gd <- c(gd, -gd[d0:2])
         else gd <- c(gd, -gd[(d0 - 1):2])
         gd
     }

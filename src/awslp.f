@@ -634,8 +634,9 @@ C
                   lwj=slw(jwind)
                   wj=sw(jwind)
                   IF(wj.lt.0.d0.or.wj.gt.1.d0) THEN
-                     call dblepr("sw",2,sw,dsw*dsw)
-                     stop
+                     wj=max(0.d0,min(1.d0,wj))
+C                     call dblepr("sw",2,sw,dsw*dsw)
+C                     stop
                   END IF
                   if(lwj.le.0.d0.and.wj.le.0.d0) CYCLE
                   IF(dp1.gt.1) THEN
