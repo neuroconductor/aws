@@ -105,7 +105,7 @@ x=numeric(0),ni=as.integer(1),xmin=numeric(0),xmax=numeric(0),
 wghts=numeric(0),scorr=0,mae=numeric(0),shape=numeric(0),
 varmodel="Constant",vcoef=NULL,mask=logical(0),data=list(NULL)){
               dy <- if(is.null(dim(y))) length(y) else dim(y)
-              invisible(new("aws",
+              invisible(new("awssegment",
                         .Data=data,
                         y = array(y,dy),
                         dy = dy,
