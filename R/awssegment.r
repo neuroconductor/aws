@@ -271,7 +271,7 @@ cat("\n")
 ###   
 vartheta <- zobj$bi2/zobj$bi^2
 vartheta<-vartheta/Spatialvar.gauss(hakt/0.42445/4,h0+1e-5,d)*Spatialvar.gauss(hakt/0.42445/4,1e-5,d)
-awsobj(y,segment,vartheta,hakt,1/sigma2,lkern,lambda,ladjust,TRUE,FALSE,
+awssegmentobj(y,zobj$theta,segment,vartheta,level,delta,hakt,1/sigma2,lkern,lambda,ladjust,TRUE,FALSE,
               call,homogen=FALSE,earlystop=FALSE,family="Gaussian",wghts=wghts,
               scorr=scorr,varmodel=varmodel,vcoef=coef,mae=mae)
 }
