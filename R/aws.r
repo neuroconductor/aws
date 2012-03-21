@@ -50,7 +50,6 @@ if(length(dy)>3) stop("AWS for more than 3 dimensional grids is not implemented"
 #
 if(is.null(wghts)) wghts <- c(1,1,1)
 wghts <- switch(length(dy),c(0,0),c(wghts[1]/wghts[2],0),wghts[1]/wghts[2:3])
-if(is.null(wghts)) wghts <- c(0,0)
 cpar<-setawsdefaults(dy,mean(y),family,lkern,aggkern,aws,memory,ladjust,hmax,shape,wghts)
 lambda <- cpar$lambda
 hmax <- cpar$hmax
@@ -71,7 +70,6 @@ rm(zfamily)
 if(demo&& !graph) graph <- TRUE
 # now check which procedure is appropriate
 ##  this is the version on a grid
-n <- length(y)
 n1 <- switch(d,n,dy[1],dy[1])
 n2 <- switch(d,1,dy[2],dy[2])
 n3 <- switch(d,1,1,dy[3])
@@ -264,7 +262,7 @@ if( family=="Gaussian"){
 vartheta<-vartheta/Spatialvar.gauss(hakt/0.42445/4,h0+1e-5,d)*Spatialvar.gauss(hakt/0.42445/4,1e-5,d)
 }
 awsobj(y,tobj$theta,vartheta,hakt,sigma2,lkern,lambda,ladjust,aws,memory,
-              call,homogen,earlystop=FALSE,family=family,wghts=wghts,mae=mae)
+              call,homogen,earlystop=FALSE,family=family,wghts=wghts,mae=mae,ni=tobj$bi)
 }
 #######################################################################################
 #
@@ -291,11 +289,16 @@ if(is.null(dy)){
 }
 if(is.null(hmax)) hmax <- switch(d,250,12,5)
 if(aws) lambda <- ladjust*switch(family,
-                  Gaussian=switch(d,11.3,6.1,6.2),# see inst/scripts/adjust.r for alpha values
-		  Bernoulli=switch(d,9.6,7.6,6.9),
-        	  Exponential=switch(d,14.2,6.8,6.1),
-	          Poisson=switch(d,9.6,7.6,6.9),
-                  Volatility=switch(d,10,6.1,6.1),
+# old values                  Gaussian=switch(d,11.3,6.1,6.2),# see inst/scripts/adjust.r for alpha values
+Gaussian=switch(d,6.8,4.9,4.1),# see ladjgaussx.r in R/aws/ladj
+# old values          Bernoulli=switch(d,9.6,7.6,6.9),
+Bernoulli=switch(d,5.3,5,4.8),
+# old values          Exponential=switch(d,14.2,6.8,6.1),
+        	  Exponential=switch(d,7.1,6.1,5.5),
+# old values          Poisson=switch(d,9.6,7.6,6.9),
+	          Poisson=switch(d,7.7,6.1,5.9),# see ladjpoissonx.r in R/aws/ladj
+# old values          Volatility=switch(d,10,6.1,6.1),
+                  Volatility=switch(d,5,4,3.7),
                   Variance=switch(d,12.8,6.1,6.1),
                   switch(d,11.3,6.1,.96)) else lambda <- 1e50
 #
@@ -386,13 +389,13 @@ IQRdiff <- function(y) IQR(diff(y))/1.908
 #    Kullback-Leibler distances
 #
 #######################################################################################
-KLdist <- function(mcode,th1,th2,bi0){
+KLdist <- function(mcode,th1,th2,bi0,shape){
    th12<-(1-0.5/bi0)*th2+0.5/bi0*th1
    z<-switch(mcode,(th1-th2)^2,
                 th1*log(th1/th12)+(1.-th1)*log((1.-th1)/(1.-th12)),
 		th1*log(th1/th12)-th1+th12,
 		th1/th2-1.-log(th1/th2),
-		th1/th2-1.-log(th1/th2))
+		shape/2*(th2/th1-1.)+(shape/2-1)*log(th1/th2))
    z[is.na(z)]<-0
    z
 		}
@@ -412,6 +415,7 @@ if(hakt>heta) {
 #   memory step
 #
 mcode<-cpar$mcode
+shape<- cpar$shape
 aggkern <- cpar$aggkern
 tau1<-cpar$tau1
 tau2<-cpar$tau2
@@ -420,11 +424,11 @@ tau<-2*(tau1+tau2*max(kstar-log(hakt),0))
 theta<-tobj$theta
 thetanew[tobj$fix]<-theta[tobj$fix]
 eta<-switch(aggkern,"Uniform"=as.numeric(zobj$bi0/tau*
-                     KLdist(mcode,thetanew,theta,max(zobj$bi0))>1),
+                     KLdist(mcode,thetanew,theta,max(zobj$bi0),shape)>1),
                     "Triangle"=pmin(1,zobj$bi0/tau*
-		     KLdist(mcode,thetanew,theta,max(zobj$bi0))),
+		     KLdist(mcode,thetanew,theta,max(zobj$bi0),shape)),
 		    as.numeric(zobj$bi0/tau*
-		     KLdist(mcode,thetanew,theta,max(zobj$bi0))>1))
+		     KLdist(mcode,thetanew,theta,max(zobj$bi0),shape)>1))
 eta[tobj$fix]<-1
 bi <- (1-eta)*bi + eta * tobj$bi
 bi2 <- (1-eta)*bi2 + eta * tobj$bi2
@@ -496,10 +500,9 @@ if(family=="Volatility"){
 # this accounts for the additional 1/2 in Q(\hat{theta},theta)
 }
 if(family=="Variance"){
-   lambda <- 2*lambda/shape 
-# this accounts for the additional 1/2 in Q(\hat{theta},theta) and the degrees of freedom in chisq
-   cpar$tau1 <- cpar$tau1/shape
-   cpar$tau2 <- cpar$tau2/shape 
+   lambda <- 2*lambda/cpar$shape 
+   cpar$tau1 <- cpar$tau1*2/cpar$shape 
+   cpar$tau2 <- cpar$tau2*2/cpar$shape 
 }
 list(cpar=cpar,lambda=lambda,y=y,sigma2=sigma2,h0=h0)
 }

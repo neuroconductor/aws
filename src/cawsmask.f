@@ -100,7 +100,7 @@ C  first stochastic term
                   wj=lwght(jw1+jwind2)*ni(jind)
                   swj0=swj0+wj
                   IF (aws) THEN
-                     sij=bii*kldist(model,thetai,theta(jind),bii0)
+                    sij=bii*kldist(model,thetai,theta(jind),bii0,1.d0)
                      IF (sij.gt.1.d0) CYCLE
                      wj=wj*(1.d0-sij)
 C   if sij <= spmin  this just keeps the location penalty

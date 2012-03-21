@@ -93,7 +93,7 @@ C        Poisson
 C        Exponential
          kldist=thi/thj-1.d0-log(thi/thj)
       ELSE IF (model.eq.5) THEN
-C        Exponential
+C        Variance
          kldist=thi/thj-1.d0-log(thi/thj)
       ELSE
 C        use Gaussian
@@ -485,8 +485,8 @@ C
 C   Perform one iteration in local constant three-variate aws (gridded) with variance - mean model
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine cgaws(y,fix,mask,si2,n1,n2,n3,hakt,hhom,lambda,theta,
-     1        bi,bi2,bi0,gi,vred,ai,kern,spmin,lwght,wght)
+      subroutine cgaws(y,fix,mask,si2,n1,n2,n3,hakt,hhom,lambda,
+     1        theta,bi,bi2,bi0,gi,vred,ai,kern,spmin,lwght,wght)
 C
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -500,8 +500,8 @@ C   kern     specifies the location kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C
       implicit logical (a-z)
-      external kldist,lkern
-      real*8 kldist,lkern
+      external lkern
+      real*8 lkern
       integer n1,n2,n3,kern
       logical aws,fix(1),mask(1)
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,wght(2),

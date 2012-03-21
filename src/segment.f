@@ -19,8 +19,8 @@ C   kern     specifies the location kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C
       implicit logical (a-z)
-      external kldist,lkern,fpchisq
-      real*8 kldist,lkern,fpchisq
+      external lkern,fpchisq
+      real*8 lkern,fpchisq
       integer n1,n2,n3,kern,segm(1),segmn(1)
       logical aws,fix(1)
       real*8 y(1),theta(1),bi(1),bi0(1),thetan(1),lambda,wght(2),
