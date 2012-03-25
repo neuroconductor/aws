@@ -3,14 +3,14 @@ awstestprop <- function(dy,hmax,theta=1,family="Gaussian",
 if(length(dy)>3) return("maximum array dimension is 3")
 nnn <- prod(dy)
 set.seed(seed)
-par(mfrow=c(1,4),mar=c(3,3,3,1),mgp=c(2,1,0))
+par(mfrow=c(1,2),mar=c(3,3,3,1),mgp=c(2,1,0))
 y <- array(switch(family,"Gaussian"=rnorm(nnn),
                          "Poisson"=rpois(nnn,theta),
                          "Exponential"=rexp(nnn,1),
                          "Bernoulli"=rbinom(nnn,1,theta),
                          "Volatility"=rnorm(nnn),
                          "Variance"=rchisq(nnn,shape)/shape),dy)
-z <- 1:30
+z <- seq(0,30,.5)
 alpha <- exp(seq(-10,3.5,.25))
 wghts <- switch(length(dy),c(0,0),c(1,0),c(1,1))
 cpar<-setawsdefaults(dy,mean(y),family,lkern,"Uniform",aws,memory,ladjust,hmax,shape,wghts)
@@ -37,7 +37,7 @@ kstar <- cpar$kstar
 h <- numeric(kstar)
 if(k>1) h[1:(k-1)] <- 1+(0:(k-2))*.001
 fix <- rep(FALSE,n)
-exceedence  <- matrix(0,30,kstar) # this is used to store exceedence probabilities 
+exceedence  <- matrix(0,61,kstar) # this is used to store exceedence probabilities 
 pofalpha <- matrix(0,55,kstar) # this is used to store exceedence probabilities 
 tobj<-list(bi= rep(1,n), bi2= rep(1,n), theta= y/shape, fix=fix)
 zobj<-zobj0<-list(ai=y, bi0= rep(1,n), bi=rep(1,n))
@@ -94,7 +94,6 @@ KLdist0 <- switch(family,"Gaussian"=yhat0^2/2,
                                      (1-yhat0)*log((1-yhat0)/(1-theta))),
                          "Volatility"=(log(yhat0)-1+1/yhat0)/2,
                          "Variance"=shape/2*(log(yhat0)-1+1/yhat0))
-plot(density(sqrt(KLdist0)))
 #
 #   get adaptive estimate
 #
@@ -126,7 +125,6 @@ dim(tobj$bi)<-dy
 dim(tobj$eta)<-dy
 dim(tobj$fix)<-dy
 lambda0 <- lambda
-cat("lambda0",lambda0,"\n")
 yhat <- tobj$theta
 bi <- tobj$bi
 yhat <- switch(length(dy),yhat[ind1],yhat[ind1,ind2],yhat[ind1,ind2,ind3])
@@ -137,14 +135,9 @@ KLdist1 <- switch(family,"Gaussian"=yhat^2/2,
                                      (1-yhat)*log((1-yhat)/(1-theta))),
                          "Volatility"=(log(yhat)-1+1/yhat)/2,
                          "Variance"=shape/2*(log(yhat)-1+1/yhat))
-lines(density(sqrt(KLdist1)),col=2)
 bi <- switch(length(dy),bi[ind1],bi[ind1,ind2],bi[ind1,ind2,ind3])
-plot(density(bi))
-#lines(density(zobj$bi),col=2)
-cat("quantiles diff bi",quantile(zobj0$bi-zobj$bi),"\n")
-#plot(density(KLdist1/KLdist0,na.rm=TRUE))
 for(i in 1:55) pofalpha[i,k] <- mean(KLdist1 > (1+alpha[i])*KLdist0)
-if(k>1) contour(log(alpha),h[1:k],pofalpha[,1:k]^.2,n=30,ylab="h",xlab="ln(alpha)",
+if(k>1) contour(log(alpha),h[1:k],pofalpha[,1:k]^.2,n=50,ylab="h",xlab="ln(alpha)",
        main=paste(family,length(dy),"-dim. ladj=",ladjust," p^(.2)"))
 #KLdist <- switch(family,"Gaussian"=ni*yhat^2/2,
 #                         "Poisson"=ni*(theta-yhat+yhat*(log(yhat)-log(theta))),
@@ -153,17 +146,17 @@ if(k>1) contour(log(alpha),h[1:k],pofalpha[,1:k]^.2,n=30,ylab="h",xlab="ln(alpha
 #                                     (1-yhat)*log((1-yhat)/(1-theta))),
 #                         "Volatility"=ni*(log(yhat)-1+1/yhat)/2,
 #                         "Variance"=ni*shape/2*(log(yhat)-1+1/yhat))
-for(i in 1:30) exceedence[i,k] <- mean(ni*KLdist1>z[i])
-if(k>1) contour(z,h[1:k],exceedence[,1:k]^.2,n=30,ylab="h",xlab="z",
+for(i in 1:61) exceedence[i,k] <- mean(ni*KLdist1>z[i])
+if(k>1) contour(z,h[1:k],exceedence[,1:k]^.2,n=50,ylab="h",xlab="z",
        main=paste(family,length(dy),"-dim. ladj=",ladjust," Exceed. Prob.^(.2)"))
 if (max(total) >0) {
       cat(signif(total[k],2)*100,"% . ",sep="")
      }
 tpar <- if(family%in%c("Bernoulli","Poisson"))  paste("theta=",theta) else  ""
-cat(family,"(dim:",length(dy),tpar,")",signif(exceedence[,k],3),"\n")
-cat("p",signif(pofalpha[,k],3),"\n")
-cat("Quantile KLdist0",signif(quantile(KLdist0,c(0,.25,.5,.75,.9,.95,.99,.995,.999)),3),"\n")
-cat("Quantile KLdist1",signif(quantile(KLdist1,c(0,.25,.5,.75,.9,.95,.99,.995,.999)),3),"\n")
+cat(family,"(dim:",length(dy),tpar,") ni=",ni,"e-prob:",signif(exceedence[4*(1:15)+1,k],3),"\n")
+cat("p",signif(pofalpha[5*(1:11),k],3),"\n")
+cat("Quantile KLdist0 (.5,.75,.9,.95,.99,.995,.999,1)",signif(quantile(KLdist0,c(.5,.75,.9,.95,.99,.995,.999,1)),3),"\n")
+cat("Quantile KLdist1 (.5,.75,.9,.95,.99,.995,.999,1)",signif(quantile(KLdist1,c(.5,.75,.9,.95,.99,.995,.999,1)),3),"\n")
 k <- k+1
 gc()
 }
