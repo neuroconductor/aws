@@ -37,7 +37,7 @@ kstar <- cpar$kstar
 h <- numeric(kstar)
 if(k>1) h[1:(k-1)] <- 1+(0:(k-2))*.001
 fix <- rep(FALSE,n)
-exceedence  <- matrix(0,61,kstar) # this is used to store exceedence probabilities 
+exceedence  <- exceedencena  <- matrix(0,61,kstar) # this is used to store exceedence probabilities for adaptive and nonadaptive estimates
 pofalpha <- matrix(0,55,kstar) # this is used to store exceedence probabilities 
 tobj<-list(bi= rep(1,n), bi2= rep(1,n), theta= y/shape, fix=fix)
 zobj<-zobj0<-list(ai=y, bi0= rep(1,n), bi=rep(1,n))
@@ -94,6 +94,7 @@ KLdist0 <- switch(family,"Gaussian"=yhat0^2/2,
                                      (1-yhat0)*log((1-yhat0)/(1-theta))),
                          "Volatility"=(log(yhat0)-1+1/yhat0)/2,
                          "Variance"=shape/2*(log(yhat0)-1+1/yhat0))
+for(i in 1:61) exceedencena[i,k] <- mean(ni*KLdist0>z[i])
 #
 #   get adaptive estimate
 #
@@ -137,8 +138,12 @@ KLdist1 <- switch(family,"Gaussian"=yhat^2/2,
                          "Variance"=shape/2*(log(yhat)-1+1/yhat))
 bi <- switch(length(dy),bi[ind1],bi[ind1,ind2],bi[ind1,ind2,ind3])
 for(i in 1:55) pofalpha[i,k] <- mean(KLdist1 > (1+alpha[i])*KLdist0)
-if(k>1) contour(log(alpha),h[1:k],pofalpha[,1:k]^.2,n=50,ylab="h",xlab="ln(alpha)",
-       main=paste(family,length(dy),"-dim. ladj=",ladjust," p^(.2)"))
+#if(k>1) contour(log(alpha),h[1:k],pofalpha[,1:k]^.2,n=50,ylab="h",xlab="ln(alpha)",
+#       main=paste(family,length(dy),"-dim. ladj=",ladjust," p^(.2)"))
+if(k>1) contour(log(alpha),h[1:k],pofalpha[,1:k],levels=c(.5,.2,.1,.05,.02,.01,.005,
+                .002,.001,.0005,.0002,.0001,.00005,.00002,.00001,.000005,.000002,.000001),
+                       ylab="h",xlab="ln(alpha)",
+       main=paste(family,length(dy),"-dim. ladj=",ladjust," p"))
 #KLdist <- switch(family,"Gaussian"=ni*yhat^2/2,
 #                         "Poisson"=ni*(theta-yhat+yhat*(log(yhat)-log(theta))),
 #                         "Exponential"=ni*(log(yhat)-1+1/yhat),
@@ -147,8 +152,16 @@ if(k>1) contour(log(alpha),h[1:k],pofalpha[,1:k]^.2,n=50,ylab="h",xlab="ln(alpha
 #                         "Volatility"=ni*(log(yhat)-1+1/yhat)/2,
 #                         "Variance"=ni*shape/2*(log(yhat)-1+1/yhat))
 for(i in 1:61) exceedence[i,k] <- mean(ni*KLdist1>z[i])
-if(k>1) contour(z,h[1:k],exceedence[,1:k]^.2,n=50,ylab="h",xlab="z",
-       main=paste(family,length(dy),"-dim. ladj=",ladjust," Exceed. Prob.^(.2)"))
+#if(k>1) contour(z,h[1:k],exceedence[,1:k]^.2,n=50,ylab="h",xlab="z",
+#       main=paste(family,length(dy),"-dim. ladj=",ladjust," Exceed. Prob.^(.2)"))
+if(k>1){
+contour(z,h[1:k],exceedence[,1:k],levels=c(.5,.2,.1,.05,.02,.01,.005,
+                .002,.001,.0005,.0002,.0001,.00005,.00002,.00001,.000005,.000002,.000001),ylab="h",xlab="z",
+       main=paste(family,length(dy),"-dim. ladj=",ladjust," Exceed. Prob."))
+contour(z,h[1:k],exceedencena[,1:k],levels=c(.5,.2,.1,.05,.02,.01,.005,
+                .002,.001,.0005,.0002,.0001,.00005,.00002,.00001,.000005,.000002,.000001),ylab="h",xlab="z",
+       main=paste(family,length(dy),"-dim. ladj=",ladjust," Exceed. Prob."),add=TRUE,col=2,lty=3)
+       }
 if (max(total) >0) {
       cat(signif(total[k],2)*100,"% . ",sep="")
      }
@@ -160,5 +173,5 @@ cat("Quantile KLdist1 (.5,.75,.9,.95,.99,.995,.999,1)",signif(quantile(KLdist1,c
 k <- k+1
 gc()
 }
-list(h=h,z=z,prob=exceedence,pofalpha=pofalpha)
+list(h=h,z=z,prob=exceedence,probna=exceedencena,pofalpha=pofalpha)
 }

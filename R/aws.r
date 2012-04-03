@@ -290,7 +290,7 @@ if(is.null(dy)){
 if(is.null(hmax)) hmax <- switch(d,250,12,5)
 if(aws) lambda <- ladjust*switch(family,
 # old values                  Gaussian=switch(d,11.3,6.1,6.2),# see inst/scripts/adjust.r for alpha values
-Gaussian=switch(d,6.8,4.9,4.1),# see ladjgaussx.r in R/aws/ladj
+Gaussian=switch(d,8.1,5.4,4.9),# see ladjgaussx.r in R/aws/ladj
 # old values          Bernoulli=switch(d,9.6,7.6,6.9),
 Bernoulli=switch(d,5.3,5,4.8),
 # old values          Exponential=switch(d,14.2,6.8,6.1),
