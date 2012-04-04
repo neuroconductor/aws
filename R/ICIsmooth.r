@@ -115,8 +115,9 @@ kernsm<-function (y, h = 1, kern="Gaussian", m=0, nsector=1, sector=1, symmetric
                                 
              kwghts <- kwghts*array(sector,xp$dx1)
           }
-       kwghts/sum(kwghts)
+          kwghts/sum(kwghts)
        }
+       kwghts
     }
     ypar <- expand.x.par(y,h)
     yext <- expand.x(y,ypar)
@@ -202,6 +203,10 @@ ICIsmooth <- function(y, hmax, hinc=1.45, beta=0.01, kern="Gaussian", m=0, nsect
    list(yhat=array(yhat,dy),vhat=array(varhat,dy),hbest=array(hbest,dy))
 }
 ICIcombined <- function(y, hmax, hinc=1.45, beta=0.01, kern="Gaussian", m=0, nsector=1, symmetric=FALSE, presmooth=FALSE){
+   if(any(m>0)&nsector>1){
+      nsector <- 1
+      warning("no sectorial weights for estimates of derivatives")
+   }
    n <- length(y)
    dy <- dim(y)
    if(is.null(dy)) dy <- n
