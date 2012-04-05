@@ -72,18 +72,11 @@ C  Gaussian
             case default
                khx(i)=exp(-xih*xih/2.d0)/mu0
          end select
-         if(m.eq.0) skhx=skhx+khx(i)
-         if(m.eq.1) THEN
+         skhx=skhx+khx(i)
 C  compute first order derivatives 
-            khx(i)=mu2*xi/h*khx(i)
-            skhx=skhx+khx(i)*xi
-         END IF
-         IF(m.eq.2) THEN
+         if(m.eq.1) khx(i)=xi/h*khx(i)/mu2
 C  compute second order derivatives
-            xi=xi*xi
-            khx(i)=(xi-mu2)/(mu4-mu2*mu2)*khx(i)
-            skhx=skhx+khx(i)*xi
-         END IF
+         IF(m.eq.2) khx(i)=(xi/h*xi/h-mu2)/(mu4-mu2*mu2)*khx(i)
       END DO
       DO i=1,n
          khx(i)=khx(i)/skhx
@@ -98,9 +91,9 @@ C  compute second order derivatives
       integer i1,i2,isect
       real*8 alpha,xi1,xi2,xnorm,ax
       if(symm) THEN 
-         alpha=3.14159265358979d0/nsect
+         alpha=3.14159265358978d0/nsect
       ELSE
-         alpha=6.28318530717959d0/nsect
+         alpha=6.28318530717958d0/nsect
       END IF
       Do i1=1,n1
          xi1=x1(i1)
@@ -111,7 +104,7 @@ C  compute second order derivatives
                insect(i1,i2)=1.d0/nsect
             ELSE
                ax=acos(xi1/xnorm)
-            if(xi2.lt.0.d0.and.xi1.lt.1.d0) ax=ax+3.14159265358979d0
+               if(xi2.lt.0.d0) ax=ax+3.14159265358979d0
                isect=ax/alpha
                IF(symm.and.isect.gt.nsect) isect=isect-nsect
                if(isect.eq.sect-1) insect(i1,i2)=1.d0
