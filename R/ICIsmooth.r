@@ -130,7 +130,8 @@ kernsm<-function (y, h = 1, kern="Gaussian", m=0, nsector=1, sector=1, symmetric
     kernsmobj(y,h=h,kern=kern,m=m,nsector=nsector,sector=sector,symmetric=symmetric,
               yhat=yhat,vred=1/sum(kwghts^2),call=args)
     }
-ICIsmooth <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0, nsector=1, sector=1, symmetric=FALSE, presmooth = FALSE){
+ICIsmooth <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0, sigma=NULL, nsector=1, 
+             sector=1, symmetric=FALSE, presmooth = FALSE){
    args <- match.call()
    if(any(m>0)&nsector>1){
       nsector <- 1
@@ -147,7 +148,7 @@ ICIsmooth <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0, nse
       thresh <- sqrt((d+2*sum(m))/2)+qnorm(1-beta/2)
       cat("using thresh=",thresh,"\n")
       }
-   sigma <- median(abs(y[-1]-y[-n]))/.9538
+   if(is.null(sigma)) sigma <- median(abs(y[-1]-y[-n]))/.9538
    if(all(m==0)){
    Low <- as.vector(y - thresh * sigma)
    Up  <- as.vector(y + thresh * sigma)
@@ -160,7 +161,7 @@ ICIsmooth <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0, nse
    hbest <- rep(hakt,n)
    fixed <- rep(FALSE,n)
    yhat <- as.vector(y)
-   varhat <- rep(sigma^2,n) 
+   vhat <- rep(sigma^2,n) 
    while(hakt < hmax){
       z <- kernsm(y, hakt, kern, m, nsector, sector, symmetric)
       ind0 <- (1:n)[!fixed]
@@ -169,7 +170,7 @@ ICIsmooth <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0, nse
       ind <- ind0[Low[ind0]<=Up[ind0]]
       hbest[ind] <- hakt
       yhat[ind] <- z@yhat[ind]
-      varhat[ind] <- sigma^2/z@vred
+      vhat[ind] <- sigma^2/z@vred
       fixed[-ind] <- TRUE
       hakt <- hakt*hinc
       if(sum(fixed)==n) break
@@ -203,16 +204,17 @@ ICIsmooth <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0, nse
          if(length(ind)>0){
             z <- kernsm(y, hakt, kern, m, nsector, sector, symmetric)
             yhat[ind] <- z@yhat[ind]
-            varhat[ind] <- sigma^2/z@vred
+            vhat[ind] <- sigma^2/z@vred
          }
          hakt <- hakt*hinc
       }                                  
    }
-   ICIsmoothobj(y,h=h,hinc=hinc,thresh=thresh,kern=kern,m=m,nsector=nsector,
+   ICIsmoothobj(y,h=hmax,hinc=hinc,thresh=thresh,kern=kern,m=m,nsector=nsector,
                 sector=sector,symmetric=symmetric,yhat=array(yhat,dy),
-                vhat=varhat,hbest=hbest,sigma=sigma,call=args)
+                vhat=vhat,hbest=hbest,sigma=sigma,call=args)
 }
-ICIcombined <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0, nsector=1, symmetric=FALSE, presmooth=FALSE){
+ICIcombined <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0, 
+                 sigma = NULL, nsector=1, symmetric=FALSE, presmooth=FALSE){
    args <- match.call()
    if(any(m>0)&nsector>1){
       nsector <- 1
@@ -226,14 +228,15 @@ ICIcombined <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0, n
       warning("nsector>1 not yet implemented in 3D")
       nsector <- 1
    }
+   if(is.null(sigma)) sigma <- median(abs(y[-1]-y[-n]))/.9538
    if(nsector==1){
-      return(ICIsmooth(y, hmax, hinc, beta, kern, m, 1, 1, symmetric, presmooth))
+      return(ICIsmooth(y, hmax, hinc, thresh, kern, m, 1, 1, symmetric, presmooth))
    } else {
       yhatc <- array(0,c(nsector,prod(dy)))
       vhatc <- array(0,c(nsector,prod(dy)))
       hbest <- numeric(prod(dy))
       for(i in 1:nsector){
-         z <- ICIsmooth(y, hmax, hinc, thresh, kern, m, nsector, i, symmetric, presmooth)
+         z <- ICIsmooth(y, hmax, hinc, thresh, kern, m, sigma, nsector, i, symmetric, presmooth)
          yhatc[i,] <- z@yhat
          vhatc[i,] <- z@vhat
          hbest <- hbest+z@hbest
@@ -245,14 +248,16 @@ ICIcombined <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0, n
       yhat <- vhat/vhatc[1,]*yhatc[1,]
       for(i in 2:nsector) yhat <- yhat+vhat/vhatc[i,]*yhatc[i,]
    }
-   ICIsmoothobj(y,h=h,hinc=hinc,thresh=thresh,kern=kern,m=m,nsector=nsector,
-                sector=0,symmetric=symmetric,yhat=array(yhat,dy),vhat=varhat,
+   ICIsmoothobj(y,h=hmax,hinc=hinc,thresh=thresh,kern=kern,m=m,nsector=nsector,
+                sector=0,symmetric=symmetric,yhat=array(yhat,dy),vhat=vhat,
                 hbest=hbest,sigma=sigma,call=args)
 }
-risk <- function(y,u){
-if(class(y)%in%c("kernsm","ICIsmooth")) y <- y@yhat
-if(class(y)%in%c("aws")) y <- extract(y,"yhat")
-if(is.null(dim(y))) {
+riskyhat <- function(y,u){
+if(length(u)==1) {
+u <- rep(u,length(y))
+dim(u) <- dim(y)
+}
+if(is.null(dim(y))||length(dim(y))==1) {
    if(length(y)!=length(u)) stop("length(y)!=length(u)") else u <- as.vector(u)
 } else {
    if(length(dim(y))!=length(dim(u))||any(dim(y)!=dim(u))) stop("dim(y)!=dim(u)")

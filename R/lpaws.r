@@ -271,7 +271,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
                        as.integer(nfix),
                        as.integer(n),
                        as.integer(degree),
-		       as.double(hw),
+		                 as.double(hw),
                        hakt=as.double(hakt),
                        hhom=as.double(hhom),
                        as.double(lambda0),
@@ -289,14 +289,14 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
                        as.integer(ind),
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")],
                      .Fortran("awsph2",
-		       as.double(y),
+		                 as.double(y),
                        as.double(sigma2),
                        fix=as.logical(fix),
                        as.integer(nfix),
                        as.integer(n1),
                        as.integer(n2),
                        as.integer(degree),
-		       as.double(hw),
+		                 as.double(hw),
                        hakt=as.double(hakt),
                        hhom=as.double(hhom),
                        as.double(lambda0),
@@ -317,12 +317,12 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
       # all other cases
       zobj <- switch(d,
                      .Fortran("awsp1b",
-		       as.double(y),
+		                 as.double(y),
                        fix=as.logical(fix),
                        as.integer(nfix),
                        as.integer(n),
                        as.integer(degree),
-		       as.double(hw),
+		                 as.double(hw),
                        hakt=as.double(hakt),
                        hhom=as.double(hhom),
                        as.double(lambda0),
@@ -340,13 +340,13 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
                        as.integer(ind),
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")],
                      .Fortran("awsp2",
-		       as.double(y),
+		                 as.double(y),
                        fix=as.logical(fix),
                        as.integer(nfix),
                        as.integer(n1),
                        as.integer(n2),
                        as.integer(degree),
-		       as.double(hw),
+		                 as.double(hw),
                        hakt=as.double(hakt),
                        hhom=as.double(hhom),
                        as.double(lambda0),
@@ -448,7 +448,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
     vartheta <- sigma2*vartheta
   }
 awsobj(y,theta,vartheta,hakt,sigma2,lkern,lambda,ladjust,aws,memory,
-              call,homogen,earlystop,degree=degree,wghts=wghts,mae=mae,data=list(bi=bi,bi2=bi2))
+              args,homogen,earlystop,degree=degree,wghts=wghts,mae=mae,data=list(bi=bi,bi2=bi2))
 }
 
 

@@ -37,6 +37,7 @@ aws.segment <- function(y, level,delta=0,hmax=NULL,hpre=NULL,
 #
 args <- match.call()
 dy<-dim(y)
+if(is.null(dy)) dy <- length(y)
 mask <- rep(TRUE,length(y))
 if(length(dy)>3) stop("AWS for more than 3 dimensional grids is not implemented")
 if(!(varmodel %in% c("Constant","Linear","Quadratic"))) stop("Model for variance not implemented")
@@ -167,15 +168,15 @@ zobj <- .Fortran("segment",as.double(y),
                        as.double(lambda0),
                        as.double(zobj$theta),
                        bi=as.double(zobj$bi),
-		       bi2=double(n),
+		                 bi2=double(n),
                        bi0=as.double(zobj$bi0),
-		       gi=double(n),
-		       vred=double(n),
+		                 gi=double(n),
+		                 vred=double(n),
                        theta=as.double(zobj$theta),
                        as.integer(lkern),
-	               as.double(0.25),
-		       double(prod(dlw)),
-		       as.double(wghts),
+	                    as.double(0.25),
+		                 double(prod(dlw)),
+		                 as.double(wghts),
                        pvalues=double(n),# array for pvalues
                        as.integer(segment),# previous segmentation array 
                        segment=as.integer(segment),# new array for segment (-1,0,1)
@@ -250,10 +251,14 @@ if(demo) readline("Press return")
 #
 #   Create new variance estimate
 #
+if(sum(zobj$fix)<prod(dy)/4){
+# the estimates of sigma should be stable enough otherwise
+# avoids estimating variances from small number of design points
 vobj <- awsgsigma2(y,mask,hobj,zobj[c("theta","gi")],varmodel,varprop,h0)
 sigma2 <- vobj$sigma2inv
 coef <- vobj$coef
 rm(vobj)
+}
 x<-1.25^(k-1)
 scorrfactor<-x/(3^d*prod(scorr)*prod(h0)+x)
 lambda0<-lambda*scorrfactor
@@ -272,7 +277,7 @@ cat("\n")
 vartheta <- zobj$bi2/zobj$bi^2
 vartheta<-vartheta/Spatialvar.gauss(hakt/0.42445/4,h0+1e-5,d)*Spatialvar.gauss(hakt/0.42445/4,1e-5,d)
 awssegmentobj(y,zobj$theta,segment,vartheta,level,delta,hakt,1/sigma2,lkern,lambda,ladjust,TRUE,FALSE,
-              call,homogen=FALSE,earlystop=FALSE,family="Gaussian",wghts=wghts,
+              args,homogen=FALSE,earlystop=FALSE,family="Gaussian",wghts=wghts,
               scorr=scorr,varmodel=varmodel,vcoef=coef,mae=mae)
 }
 setawsthresh <- function(d,kstar,ladjust,ext){

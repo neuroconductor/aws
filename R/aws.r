@@ -44,6 +44,7 @@ aws <- function(y,hmax=NULL,aws=TRUE,memory=FALSE,family="Gaussian",
 #
 args <- match.call()
 dy<-dim(y)
+if(is.null(dy)) dy <- length(y)
 if(length(dy)>3) stop("AWS for more than 3 dimensional grids is not implemented")
 #
 #   set appropriate defaults
@@ -262,7 +263,7 @@ if( family=="Gaussian"){
 vartheta<-vartheta/Spatialvar.gauss(hakt/0.42445/4,h0+1e-5,d)*Spatialvar.gauss(hakt/0.42445/4,1e-5,d)
 }
 awsobj(y,tobj$theta,vartheta,hakt,sigma2,lkern,lambda,ladjust,aws,memory,
-              call,homogen,earlystop=FALSE,family=family,wghts=wghts,mae=mae,ni=tobj$bi)
+              args,homogen,earlystop=FALSE,family=family,wghts=wghts,mae=mae,ni=tobj$bi)
 }
 #######################################################################################
 #
@@ -376,7 +377,8 @@ kstar <- as.integer(log(maxvol)/log(1.25))
 if(aws||memory) k <- switch(d,1,3,6) else k <- kstar
 if(aws) cat("Running PS with lambda=",signif(lambda,3)," hmax=",hmax,"number of iterations:",kstar-k+1," memory step",if(memory) "ON" else "OFF","\n")
 else cat("Stagewise aggregation \n")
-list(heta=heta,tau1=tau1,tau2=tau2,lambda=lambda,hmax=hmax,d=d,mcode=mcode,shape=shape,aggkern=aggkern,ktau=ktau,kstar=kstar,maxvol=maxvol,k=k,lkern=lkern,wghts=wghts)
+list(heta=heta,tau1=tau1,tau2=tau2,lambda=lambda,hmax=hmax,d=d,mcode=mcode,shape=shape,
+     aggkern=aggkern,ktau=ktau,kstar=kstar,maxvol=maxvol,k=k,lkern=lkern,wghts=wghts)
 }
 #######################################################################################
 #

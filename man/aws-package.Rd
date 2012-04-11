@@ -7,7 +7,10 @@ The package contains R-functions implementing the Propagation-Separation Approac
 in J. Polzehl and V. Spokoiny (2006) Propagation-Separation Approach for Local Likelihood Estimation,
 Prob. Theory and Rel. Fields 135(3):335-362. and
 J. Polzehl and V. Spokoiny (2004) Spatially adaptive regression estimation: Propagation-separation approach,
-WIAS-Preprint 998.}
+WIAS-Preprint 998. Additionally it contains an implementation of selected LPA-ICI pointwise adaptive
+smoothing algorithms from the book V. Katkovnik, K. Egiazarian and J. Astola (2006). Local Approximation
+Techniques in Signal and Image Processing, SPIE Press Monograph Vol. PM 157. 
+ }
 \details{
 \tabular{ll}{
 Package: \tab aws\cr
@@ -30,6 +33,9 @@ aws.segment             Segmentation by adaptive weights for Gaussian
 awsdata                 Extract information from an object of class aws
 binning                 Binning in 1D, 2D or 3D
 lpaws                   Local polynomial smoothing by AWS
+kernsm                  1D, 2D, 3D nonparametric kernel smoothing via fft
+ICIsmooth               pointwise adaptive kernel smoothing  
+ICIcombined             pointwise adaptive kernel smoothing with fusing
 }
 }
 \author{
@@ -44,5 +50,9 @@ Maintainer: Joerg Polzehl <polzehl@wias-berlin.de>
              J. Polzehl and V. Spokoiny (2004)
              Spatially adaptive regression estimation: Propagation-separation approach,
              WIAS-Preprint 998.
+
+             V. Katkovnik, K. Egiazarian and J. Astola (2006) 
+             \emph{Local Approximation Techniques in Signal and Image Processing},
+              SPIE Press Monograph Vol. PM 157
 }
 \keyword{ package }

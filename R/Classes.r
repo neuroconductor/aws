@@ -26,7 +26,7 @@ setClass("aws",
                         earlystop = "logical",
                         varmodel = "character",
                         vcoef = "numeric",
-                        call = "function")
+                        call = "call")
          )
 setClass("awssegment",
          representation(.Data = "list",
@@ -59,7 +59,7 @@ setClass("awssegment",
                         earlystop = "logical",
                         varmodel = "character",
                         vcoef = "numeric",
-                        call = "function")
+                        call = "call")
          )
 setClass("kernsm",
          representation(.Data = "list",
@@ -73,8 +73,8 @@ setClass("kernsm",
                         sector = "integer",
                         symmetric = "logical",
                         yhat = "array",
-                        vred = "array",
-                        call = "function")
+                        vred = "numeric",
+                        call = "call")
          )
 setClass("ICIsmooth",
          representation(.Data = "list",
@@ -93,7 +93,7 @@ setClass("ICIsmooth",
                         vhat = "array",
                         hbest = "array",
                         sigma = "numeric",
-                        call = "function")
+                        call = "call")
          )
 kernsmobj <- function(y,x=numeric(0),h,kern,m,nsector,sector,symmetric,
                       yhat,vred,call,data=list(NULL)){                                                                
@@ -110,7 +110,7 @@ kernsmobj <- function(y,x=numeric(0),h,kern,m,nsector,sector,symmetric,
                         sector = as.integer(sector),
                         symmetric = as.logical(symmetric),
                         yhat = array(yhat,dy),
-                        vred = array(vred,dy),
+                        vred = vred,
                         call = call)
             )
 }
@@ -132,7 +132,7 @@ ICIsmoothobj <- function(y,x=numeric(0),h,hinc,thresh,kern,m,nsector,sector,symm
                         symmetric = as.logical(symmetric),
                         yhat = array(yhat,dy),
                         vhat = array(vhat,dy),
-                        hbest = array(vhat,dy),
+                        hbest = array(hbest,dy),
                         sigma = as.numeric(sigma),
                         call = call)
             )

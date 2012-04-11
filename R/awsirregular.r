@@ -224,7 +224,7 @@ vartheta <- sigma2*tobj$bi2/tobj$bi^2
 vred<-tobj$bi2/tobj$bi^2
 }
 awsobj(yy,tobj$theta,vartheta,hakt,1/sigma2,lkern,lambda,ladjust,aws,memory,
-              call,ni=ni,homogen=FALSE,earlystop=FALSE,family="Gaussian",wghts=wghts,
+              args,ni=ni,homogen=FALSE,earlystop=FALSE,family="Gaussian",wghts=wghts,
               varmodel = varmodel,vcoef = vcoef,x=x,xmin=xmin,xmax=xmax)
 
 }

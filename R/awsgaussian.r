@@ -248,7 +248,7 @@ cat("\n")
 vartheta <- tobj$bi2/tobj$bi^2
 vartheta<-vartheta/Spatialvar.gauss(hakt/0.42445/4,h0+1e-5,d)*Spatialvar.gauss(hakt/0.42445/4,1e-5,d)
 awsobj(y,tobj$theta,vartheta,hakt,1/sigma2,lkern,lambda,ladjust,aws,memory,
-              call,homogen,earlystop=FALSE,family="Gaussian",wghts=wghts,
+              args,homogen,earlystop=FALSE,family="Gaussian",wghts=wghts,
               scorr=scorr,vcoef=coef,mae=mae,mask=mask,ni=tobj$bi)
 }
 ###########################################################################
