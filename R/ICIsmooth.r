@@ -38,6 +38,10 @@ kernsm<-function (y, h = 1, kern="Gaussian", m=0, nsector=1, sector=1, symmetric
        if (2*d0==d+1) gd <- c(gd,-gd[d0:2]) else gd <- c(gd,-gd[(d0-1):2])
        gd
     }
+    gridind <- function(d,side=1) {
+       d0 <- d%/%2+1
+       if(side==1) 1:d0  else (d0+1):d 
+    }
     lkern1 <- function(x,h,ikern,m){
        nx <- length(x)
        .Fortran("lkern1",
@@ -114,6 +118,25 @@ kernsm<-function (y, h = 1, kern="Gaussian", m=0, nsector=1, sector=1, symmetric
                                 PACKAGE="aws")$insector                               
              kwghts <- kwghts*array(sector,xp$dx1)
           }
+          if(xp$d==3){
+             sect3D <- switch(sector,c(0,0,0),
+                                     c(0,0,1),
+                                     c(0,1,0),
+                                     c(0,1,1),
+                                     c(1,0,0),
+                                     c(1,0,1),
+                                     c(1,1,0),
+                                     c(1,1,1)) 
+             sector <- array(0,xp$dx1)
+             sector[gridind(xp$dx1[1]),
+                    gridind(xp$dx1[2]),
+                    gridind(xp$dx1[3])] <- 1
+             if(symmetric) sector[-gridind(xp$dx1[1]),
+                                  -gridind(xp$dx1[2]),
+                                  -gridind(xp$dx1[3])] <- 1
+
+             kwghts <- kwghts*array(sector,xp$dx1)
+          }
           kwghts <- kwghts/sum(kwghts)
        }
        kwghts
@@ -143,6 +166,19 @@ ICIsmooth <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0, sig
    dy <- dim(y)
    if(is.null(dy)) dy <- n
    d <- length(dy)
+   if(d==1&nsector>2-symmetric){
+      warning(paste("ICIsmooth: only nsector%in%c(1,",(2-symmetric),") implemented in 1D\n 
+                    using nsector=",2-symmetric,sep=""))
+      nsector <- (2-symmetric)
+   } 
+   if(d>2&nsector>1&nsector!=4*(2-symmetric)){
+      warning(paste("ICIsmooth: nsector%in%c(1,",4*(2-symmetric),") implemented in 3D\n 
+            using nsector=",4*(2-symmetric),sep=""))
+      nsector <- 4*(2-symmetric)
+   }
+   if(sector<1||sector>nsector){
+      warning("ICIsmooth: illegal value of sector, setting sector=1")
+   }
    if(length(m)<d) m <- rep(m,d)
    if(is.null(thresh)) {
       thresh <- sqrt((d+2*sum(m))/2)+qnorm(1-beta/2)
@@ -224,9 +260,15 @@ ICIcombined <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0,
    dy <- dim(y)
    if(is.null(dy)) dy <- n
    d <- length(dy)
-   if(d>2&nsector>1) {
-      warning("nsector>1 not yet implemented in 3D")
-      nsector <- 1
+   if(d==1&nsector>2-symmetric){
+      warning(paste("ICIcombined: only nsector%in%c(1,",(2-symmetric),") implemented in 1D\n 
+                    using nsector=",2-symmetric,sep=""))
+      nsector <- (2-symmetric)
+   } 
+   if(d>2&nsector>1&nsector!=4*(2-symmetric)){
+      warning(paste("ICIcombined: nsector%in%c(1,",4*(2-symmetric),") implemented in 3D\n 
+            using nsector=",4*(2-symmetric),sep=""))
+      nsector <- 4*(2-symmetric)
    }
    if(is.null(sigma)) sigma <- median(abs(y[-1]-y[-n]))/.9538
    if(nsector==1){

@@ -205,7 +205,7 @@ C  compute second order derivatives
             yhat(i1,i2,i3)=y(i1,i2,i3)
          END DO
       END DO
-      i2 = n3
+      i3 = n3
       DO i1=1,n1
          DO i2=1,n2
             yhat(i1,i2,i3)=y(i1,i2,i3)

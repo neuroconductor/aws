@@ -33,8 +33,8 @@ C
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmin,
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),hhom(n,2)
       integer ih,j1,k,iind,jind,dlw,clw,jw1,
-     2        dp1,dp2,ihs,csw,dsw,l
-      real*8 bii(5),sij,swj(5),swj2(5),swj0(5),swjy(5),z1,wj,
+     2        dp1,dp2,ihs,csw,dsw,l,iindl,jindl
+      real*8 bii(5),sij,swj(5),swj2(5),swj0(5),swjy(5),z1,wj,wj2,
      1       hakt2,thij(3),thi(3),zz(5),lwj,yj,hs2,hs,z,cc,spf,
      2       hhommax,hhommin,az1,hfixmax,hnfix,ssij,spmax,
      3       hhomimin,hhomimax
@@ -85,11 +85,16 @@ C    nothing to do, final estimate is already fixed by control
          hhommax=hakt
          hhommin=hakt
          hfixmax=max(hhomimin,hhomimax)
+C         call dcopy(dp1,theta(iind),n,thi,1)
+         iindl=iind
          DO k=1,dp1
-            thi(k)=theta(iind+(k-1)*n)
+            thi(k)=theta(iindl)
+            iindl=iind+n
          END DO
+         iindl=iind
          DO k=1,dp2
-            bii(k)=bi(iind+(k-1)*n)/lambda
+            bii(k)=bi(iindl)/lambda
+            iindl=iindl+n
          END DO
 C   scaling of sij outside the loop
          DO jw1=1,dlw
@@ -102,8 +107,10 @@ C   scaling of sij outside the loop
             zz(3)=z1*z1
             az1=abs(z1)
             IF (aws.and.(z1.le.-hhomimin.or.z1.ge.hhomimax)) THEN
+               jindl=jind
                DO k=1,dp1
-                  thij(k)=theta(jind+(k-1)*n)
+                  thij(k)=theta(jindl)
+                  jindl=jindl+n
                END DO
                thij(1)=thij(1)-thij(2)*z1
                IF (dp1.gt.2) THEN
@@ -175,15 +182,20 @@ C
                zz(4)=z1*zz(3)
                zz(5)=z1*zz(4)
             END IF
+C            call daxpy(dp2,lwj,zz,1,swj0,1)
             DO k=1,dp2
                swj0(k)=swj0(k)+lwj*zz(k)
             END DO
             if(wj.le.0.d0) CYCLE  
+C            call daxpy(dp2,wj,zz,1,swj,1)
+            wj2=wj*wj
+C            call daxpy(dp2,wj2,zz,1,swj2,1)            
             DO k=1,dp2
                swj(k)=swj(k)+wj*zz(k)
-               swj2(k)=swj2(k)+wj*wj*zz(k)
+               swj2(k)=swj2(k)+wj2*zz(k)
             END DO
-            yj=y(j1)
+            yj=wj*y(j1)
+C            call daxpy(dp1,yj,zz,1,swjy,1)
             DO l=1,dp1
                swjy(l)=swjy(l)+wj*zz(l)*yj
             END DO
@@ -201,26 +213,35 @@ C
                zz(4)=z1*zz(3)
                zz(5)=z1*zz(4)
             END IF
+C            call daxpy(dp2,lwj,zz,1,swj0,1)
             DO k=1,dp2
                swj0(k)=swj0(k)+lwj*zz(k)
             END DO
             if(wj.le.0.d0) CYCLE  
+C            call daxpy(dp2,wj,zz,1,swj,1)
+            wj2=wj*wj
+C            call daxpy(dp2,wj2,zz,1,swj2,1)            
             DO k=1,dp2
                swj(k)=swj(k)+wj*zz(k)
-               swj2(k)=swj2(k)+wj*wj*zz(k)
+               swj2(k)=swj2(k)+wj2*zz(k)
             END DO
-            yj=y(j1)
+            yj=wj*y(j1)
+C            call daxpy(dp1,yj,zz,1,swjy,1)
             DO l=1,dp1
                swjy(l)=swjy(l)+wj*zz(l)*yj
             END DO
          END DO
+         iindl=iind
          DO k=1,dp1
-            ai(iind+(k-1)*n)=swjy(k)
+            ai(iindl)=swjy(k)
+            iindl=iindl+n
          END DO
+         iindl=iind
          DO k=1,dp2
-            bi(iind+(k-1)*n)=swj(k)
-            bi2(iind+(k-1)*n)=swj2(k)
-            bi0(iind+(k-1)*n)=swj0(k)
+            bi(iindl)=swj(k)
+            bi2(iindl)=swj2(k)
+            bi0(iindl)=swj0(k)
+            iindl=iindl+n
          END DO
          hhom(iind,1)=hhommin
          hhom(iind,2)=hhommax
@@ -266,8 +287,8 @@ C
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,hhom(1),
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),si(1),spmin
       integer ih,j1,k,iind,jind,dlw,clw,jw1,
-     2        dp1,dp2,ihs,csw,dsw,l
-      real*8 bii(5),sij,swj(5),swj2(5),swj0(5),swjy(5),z1,wj,
+     2        dp1,dp2,ihs,csw,dsw,l,iindl,jindl
+      real*8 bii(5),sij,swj(5),swj2(5),swj0(5),swjy(5),z1,wj,wj2,
      1       hakt2,thij(3),thi(3),zz(5),lwj,yj,hs2,hs,z,cc,spf,hhomi,
      2       hhommax,az1,hfixmax,hnfix
 C   arrays with variable length are organized as 
@@ -315,11 +336,16 @@ C    nothing to do, final estimate is already fixed by control
          hhomi=hhomi
          hhommax=hakt
          hfixmax=hhomi
+C         call dcopy(dp1,theta(iind),n,thi,1)
+         iindl=iind
          DO k=1,dp1
-            thi(k)=theta(iind+(k-1)*n)
+            thi(k)=theta(iindl)
+            iindl=iindl+n
          END DO
+         iindl=iind
          DO k=1,dp2
-            bii(k)=bi(iind+(k-1)*n)/lambda
+            bii(k)=bi(iindl)/lambda
+            iindl=iindl+n
          END DO
 C   scaling of sij outside the loop
          DO jw1=1,dlw
@@ -332,8 +358,10 @@ C   scaling of sij outside the loop
             zz(3)=z1*z1
             az1=abs(z1)
             IF (aws.and.az1.ge.hhomi) THEN
+               jindl=jind
                DO k=1,dp1
-                  thij(k)=theta(jind+(k-1)*n)
+                  thij(k)=theta(jindl)
+                  jindl=jindl+n
                END DO
                thij(1)=thij(1)-thij(2)*z1
                IF (dp1.gt.2) THEN
@@ -396,26 +424,35 @@ C
                zz(4)=z1*zz(3)
                zz(5)=z1*zz(4)
             END IF
+C            call daxpy(dp2,lwj,zz,1,swj0,1)
             DO k=1,dp2
                swj0(k)=swj0(k)+lwj*zz(k)
             END DO
             if(wj.le.0.d0) CYCLE  
+            call daxpy(dp2,wj,zz,1,swj,1)
+            wj2=wj*wj
+C            call daxpy(dp2,wj2,zz,1,swj2,1)            
             DO k=1,dp2
                swj(k)=swj(k)+wj*zz(k)
-               swj2(k)=swj2(k)+wj*wj*zz(k)
+               swj2(k)=swj2(k)+wj2*zz(k)
             END DO
-            yj=y(j1)
+            yj=wj*y(j1)
+C            call daxpy(dp1,yj,zz,1,swjy,1)
             DO l=1,dp1
                swjy(l)=swjy(l)+wj*zz(l)*yj
             END DO
          END DO
+         iindl=iind
          DO k=1,dp1
-            ai(iind+(k-1)*n)=swjy(k)
+            ai(iindl)=swjy(k)
+            iindl=iindl+n
          END DO
+         iindl=iind
          DO k=1,dp2
-            bi(iind+(k-1)*n)=swj(k)
-            bi2(iind+(k-1)*n)=swj2(k)
-            bi0(iind+(k-1)*n)=swj0(k)
+            bi(iindl)=swj(k)
+            bi2(iindl)=swj2(k)
+            bi0(iindl)=swj0(k)
+            iindl=iindl+n
          END DO
          hhom(iind)=hhommax
          if(lfix.and.hakt-hfixmax.ge.hnfix) THEN
@@ -461,10 +498,10 @@ C
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),hhom(1)
       integer ih,ih1,i1,i2,j1,j2,k,n,
      1        iind,jind,jind2,jwind,jwind2,dlw,clw,jw1,jw2,
-     2        dp1,dp2,ihs,csw,dsw,l,dlw2
+     2        dp1,dp2,ihs,csw,dsw,l,dlw2,iindl,jindl
       real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
      1       hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf,hhomi,
-     2       hhommax,az1,hfixmax,hnfix
+     2       hhommax,az1,hfixmax,hnfix,wj2
 C   arrays with variable length are organized as 
 C   theta(n1,n2,dp1)
 C   bi(n1,n2,dp2)
@@ -522,11 +559,15 @@ C    nothing to do, final estimate is already fixed by control
             hhomi=hhomi*hhomi-1
             hhommax=hakt2
             hfixmax=hhomi
+            iindl=iind
             DO k=1,dp2
-               bii(k)=bi(iind+(k-1)*n)/lambda
+               bii(k)=bi(iindl)/lambda
+               iindl=iindl+n
             END DO
+            iindl=iind
             DO k=1,dp1
-               thi(k)=theta(iind+(k-1)*n)
+               thi(k)=theta(iindl)
+               iindl=iindl+n
             END DO
 C   scaling of sij outside the loop
             DO jw1=1,dlw2
@@ -559,8 +600,10 @@ C  get rest of directional differences
                         zz(4)=z1*z1
                         zz(5)=z1*z2
                      END IF
+                     jindl=jind
                      DO k=1,dp1
-                        thij(k)=theta(jind+(k-1)*n)
+                        thij(k)=theta(jindl)
+                        jindl=jindl+n
                      END DO
                      IF(dp1.gt.1) THEN
                         thij(1)=thij(1)-thij(2)*z1-thij(3)*z2
@@ -651,27 +694,36 @@ C
                      zz(13)=z1*zz(9)
                      zz(14)=z1*zz(10)
                   END IF
+C                  call daxpy(dp2,lwj,zz,1,swj0,1)
                   DO k=1,dp2
                      swj0(k)=swj0(k)+lwj*zz(k)
                   END DO
                   if(wj.le.0.d0) CYCLE  
+C                  call daxpy(dp2,wj,zz,1,swj,1)
+                  wj2=wj*wj
+C                  call daxpy(dp2,wj2,zz,1,swj2,1)            
                   DO k=1,dp2
                      swj(k)=swj(k)+wj*zz(k)
-                     swj2(k)=swj2(k)+wj*wj*zz(k)
+                     swj2(k)=swj2(k)+wj2*zz(k)
                   END DO
                   wjy=wj*y(jind)
+C                  call daxpy(dp1,wjy,zz,1,swjy,1)
                   DO l=1,dp1
                      swjy(l)=swjy(l)+wjy*zz(l)
                   END DO
                END DO
             END DO
+            iindl=iind
             DO k=1,dp1
-               ai(iind+(k-1)*n)=swjy(k)
+               ai(iindl)=swjy(k)
+               iindl=iindl+n
             END DO
+            iindl=iind
             DO k=1,dp2
-               bi(iind+(k-1)*n)=swj(k)
-               bi2(iind+(k-1)*n)=swj2(k)
-               bi0(iind+(k-1)*n)=swj0(k)
+               bi(iindl)=swj(k)
+               bi2(iindl)=swj2(k)
+               bi0(iindl)=swj0(k)
+               iindl=iindl+n
             END DO
             hhom(iind)=sqrt(hhommax)
             IF(lfix.and.hakt-sqrt(hfixmax).ge.hnfix) THEN
@@ -718,10 +770,10 @@ C
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),si(1),hhom(1)
       integer ih,ih1,i1,i2,j1,j2,k,n,
      1        iind,jind,jind2,jwind,jwind2,dlw,clw,jw1,jw2,
-     2        dp1,dp2,ihs,csw,dsw,l,dlw2
+     2        dp1,dp2,ihs,csw,dsw,l,dlw2,iindl,jindl
       real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
      1       hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf,hhomi,
-     2       hhommax,az1,hfixmax,hnfix
+     2       hhommax,az1,hfixmax,hnfix,wj2
 C   arrays with variable length are organized as 
 C   theta(n1,n2,dp1)
 C   bi(n1,n2,dp2)
@@ -779,11 +831,15 @@ C    nothing to do, final estimate is already fixed by control
             hhomi=hhomi*hhomi
             hhommax=hakt2
             hfixmax=hhomi
+            iindl=iind
             DO k=1,dp2
-               bii(k)=bi(iind+(k-1)*n)/lambda
+               bii(k)=bi(iindl)/lambda
+               iindl=iindl+n
             END DO
+            iindl=iind
             DO k=1,dp1
-               thi(k)=theta(iind+(k-1)*n)
+               thi(k)=theta(iindl)
+               iindl=iindl+n
             END DO
 C   scaling of sij outside the loop
             DO jw1=1,dlw2
@@ -817,8 +873,10 @@ C  get rest of directional differences
                         zz(4)=z1*z1
                         zz(5)=z1*z2
                      END IF
+                     jindl=jind
                      DO k=1,dp1
-                        thij(k)=theta(jind+(k-1)*n)
+                        thij(k)=theta(jindl)
+                        jindl=jindl+n
                      END DO
                      IF(dp1.gt.1) THEN
                         thij(1)=thij(1)-thij(2)*z1-thij(3)*z2
@@ -906,27 +964,36 @@ C
                      zz(13)=z1*zz(9)
                      zz(14)=z1*zz(10)
                   END IF
+C                  call daxpy(dp2,lwj,zz,1,swj0,1)
                   DO k=1,dp2
                      swj0(k)=swj0(k)+lwj*zz(k)
                   END DO
                   if(wj.le.0.d0) CYCLE
+C                  call daxpy(dp2,wj,zz,1,swj,1)
+                  wj2=wj*wj
+C                  call daxpy(dp2,wj2,zz,1,swj2,1)            
                   DO k=1,dp2
                      swj(k)=swj(k)+wj*zz(k)
-                     swj2(k)=swj2(k)+wj*wj*zz(k)
+                     swj2(k)=swj2(k)+wj2*zz(k)
                   END DO
                   wjy=wj*y(jind)
-                  DO l=1,dp1
+C                  call daxpy(dp1,wjy,zz,1,swjy,1)
+                 DO l=1,dp1
                      swjy(l)=swjy(l)+wjy*zz(l)
                   END DO
                END DO
             END DO
+            iindl=iind
             DO k=1,dp1
-               ai(iind+(k-1)*n)=swjy(k)
+               ai(iindl)=swjy(k)
+               iindl=iindl+n
             END DO
+            iindl=iind
             DO k=1,dp2
-               bi(iind+(k-1)*n)=swj(k)
-               bi2(iind+(k-1)*n)=swj2(k)
-               bi0(iind+(k-1)*n)=swj0(k)
+               bi(iindl)=swj(k)
+               bi2(iindl)=swj2(k)
+               bi0(iindl)=swj0(k)
+               iindl=iindl+n
             END DO
             hhom(iind)=sqrt(hhommax)
             IF(lfix.and.hakt-sqrt(hfixmax).ge.hnfix) THEN
