@@ -32,6 +32,9 @@ lpaws <- function(y,degree=1,hmax=NULL,aws=TRUE,memory=FALSE,lkern="Triangle",
                   aggkern="Uniform",sigma2=NULL,hw=NULL,
                   ladjust=1,u=NULL,graph=FALSE,demo=FALSE)
 { 
+OMP.NUM.THREADS <- as.numeric(Sys.getenv("OMP_NUM_THREADS"))
+if(is.na(OMP.NUM.THREADS)) OMP.NUM.THREADS <- 1
+useomp <- OMP.NUM.THREADS>1
 #
 #          Auxilary functions
 #
@@ -218,10 +221,6 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
       lambda <- lambda*sigma2*2 
       cpar$tau1 <- cpar$tau1*sigma2*2 
       cpar$tau2 <- cpar$tau2*sigma2*2 
-    } else if (length(sigma2)!=n) {
-      cpar$tau1 <- cpar$tau1*sigma2*2 
-      cpar$tau2 <- cpar$tau2*sigma2*2 
-      lambda <- lambda*2 
     } else {
       #   heteroskedastic Gaussian case
       if (length(sigma2)!=n) stop("sigma2 does not have length 1 or same length as img")
@@ -265,13 +264,13 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
       # heteroskedastic Gaussian case
       zobj <- switch(d,
                      .Fortran("awsph1",
-		       as.double(y),
+                       as.double(y),
                        as.double(sigma2),
                        fix=as.logical(fix),
                        as.integer(nfix),
                        as.integer(n),
                        as.integer(degree),
-		                 as.double(hw),
+                       as.double(hw),
                        hakt=as.double(hakt),
                        hhom=as.double(hhom),
                        as.double(lambda0),
@@ -289,14 +288,14 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
                        as.integer(ind),
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")],
                      .Fortran("awsph2",
-		                 as.double(y),
+                       as.double(y),
                        as.double(sigma2),
                        fix=as.logical(fix),
                        as.integer(nfix),
                        as.integer(n1),
                        as.integer(n2),
                        as.integer(degree),
-		                 as.double(hw),
+                       as.double(hw),
                        hakt=as.double(hakt),
                        hhom=as.double(hhom),
                        as.double(lambda0),
@@ -315,14 +314,62 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")])
     } else {
       # all other cases
+      sufficient.memory <- switch(d,hakt<1000&(hakt+hw)<1005,
+                                    hakt<20&(hakt+hw)<22)
+      if(useomp&sufficient.memory){
       zobj <- switch(d,
-                     .Fortran("awsp1b",
-		                 as.double(y),
+                     .Fortran("awsp1p",
+                      as.double(y),
                        fix=as.logical(fix),
                        as.integer(nfix),
                        as.integer(n),
                        as.integer(degree),
-		                 as.double(hw),
+                       as.double(hw),
+                       hakt=as.double(hakt),
+                       hhom=as.double(hhom),
+                       as.double(lambda0),
+                       as.double(theta),
+                       bi=as.double(bi),
+                       bi2=double(n*dp2),
+                       bi0=double(n*dp2),
+                       ai=double(n*dp1),
+                       as.integer(lkern),
+                       as.double(0.25),
+                       double(twohp1),# array for location weights
+                       double(twohhwp1),# array for smoothed location weights
+                       as.integer(ind),
+                       PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")],
+                     .Fortran("awsp2p",
+                       as.double(y),
+                       fix=as.logical(fix),
+                       as.integer(nfix),
+                       as.integer(n1),
+                       as.integer(n2),
+                       as.integer(degree),
+                       as.double(hw),
+                       hakt=as.double(hakt),
+                       hhom=as.double(hhom),
+                       as.double(lambda0),
+                       as.double(theta),
+                       bi=as.double(bi),
+                       bi2=double(n*dp2),
+                       bi0=double(n*dp2),
+                       ai=double(n*dp1),
+                       as.integer(lkern),
+                       as.double(0.25),
+                       double(twohp1*twohp1),# array for location weights
+                       double(twohhwp1*twohhwp1),# array for smoothed location weights
+                       as.integer(ind),
+                       PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")])
+      } else {
+      zobj <- switch(d,
+                     .Fortran("awsp1",
+                      as.double(y),
+                       fix=as.logical(fix),
+                       as.integer(nfix),
+                       as.integer(n),
+                       as.integer(degree),
+                       as.double(hw),
                        hakt=as.double(hakt),
                        hhom=as.double(hhom),
                        as.double(lambda0),
@@ -340,13 +387,13 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
                        as.integer(ind),
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")],
                      .Fortran("awsp2",
-		                 as.double(y),
+                       as.double(y),
                        fix=as.logical(fix),
                        as.integer(nfix),
                        as.integer(n1),
                        as.integer(n2),
                        as.integer(degree),
-		                 as.double(hw),
+                       as.double(hw),
                        hakt=as.double(hakt),
                        hhom=as.double(hhom),
                        as.double(lambda0),
@@ -363,6 +410,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
                        double(twohhwp1*twohhwp1),# array for smoothed general weights
                        as.integer(ind),
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")])
+    }
     }
     gc()
     dim(zobj$ai) <- c(switch(d,n,dy),dp1)
