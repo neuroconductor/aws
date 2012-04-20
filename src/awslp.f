@@ -459,7 +459,6 @@ C   bi(n,dp2)
 C   arrays of fixed length correspond to degr=2
 C   first set dimensions for arrays depending on degree
       aws=lambda.lt.1.d20
-      call dblepr("lambda",6,lambda,1)
       lfix=nfix.gt.(degr+1)
       hnfix=nfix
       hnfix=max(hnfix,.2d0*hakt)
@@ -499,7 +498,6 @@ C    nothing to do, final estimate is already fixed by control
          hhomi=hhomi
          hhommax=hakt
          hfixmax=hhomi
-C         call dcopy(dp1,theta(iind),n,thi,1)
          iindl=iind
          DO k=1,dp1
             thi(k)=theta(iindl)
@@ -657,7 +655,7 @@ C
      1       bi2(1),hakt,lw(1),hw,slw(1),si(1),spmin
       integer ih,j1,k,iind,jind,dlw,clw,jw1,dp1,dp2,ihs,csw,dsw,
      1       iindl,jindl
-      real*8 bii(5),sij,swj(5),swj2(5),swj0(5),swjy(5),z1,wj,wj2,
+      real*8 bii(5),sij,swj(5),swj2(5),swj0(5),swjy(3),z1,wj,wj2,
      1       hakt2,thij(3),thi(3),zz(5),lwj,yj,hs2,hs,z,cc,spf,hhomi,
      2       hhommax,az1,hfixmax,hnfix,w(1999),sw(2009)
 C   arrays with variable length are organized as 
@@ -666,7 +664,6 @@ C   bi(n,dp2)
 C   arrays of fixed length correspond to degr=2
 C   first set dimensions for arrays depending on degree
       aws=lambda.lt.1.d20
-      call dblepr("lambda",6,lambda,1)
       lfix=nfix.gt.(degr+1)
       hnfix=nfix
       hnfix=max(hnfix,.2d0*hakt)
@@ -827,7 +824,6 @@ C
          if(lfix.and.hakt-hfixmax.ge.hnfix) THEN
             fix(iind)=.TRUE.
          END IF
-         call rchkusr()
       END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
@@ -1061,20 +1057,16 @@ C
                      zz(13)=z1*zz(9)
                      zz(14)=z1*zz(10)
                   END IF
-C                  call daxpy(dp2,lwj,zz,1,swj0,1)
                   DO k=1,dp2
                      swj0(k)=swj0(k)+lwj*zz(k)
                   END DO
                   if(wj.le.0.d0) CYCLE  
-C                  call daxpy(dp2,wj,zz,1,swj,1)
-                  wj2=wj*wj
-C                  call daxpy(dp2,wj2,zz,1,swj2,1)            
+                  wj2=wj*wj           
                   DO k=1,dp2
                      swj(k)=swj(k)+wj*zz(k)
                      swj2(k)=swj2(k)+wj2*zz(k)
                   END DO
                   wjy=wj*y(jind)
-C                  call daxpy(dp1,wjy,zz,1,swjy,1)
                   DO l=1,dp1
                      swjy(l)=swjy(l)+wjy*zz(l)
                   END DO
@@ -1334,20 +1326,16 @@ C
                      zz(13)=z1*zz(9)
                      zz(14)=z1*zz(10)
                   END IF
-C                  call daxpy(dp2,lwj,zz,1,swj0,1)
                   DO k=1,dp2
                      swj0(k)=swj0(k)+lwj*zz(k)
                   END DO
                   if(wj.le.0.d0) CYCLE  
-C                  call daxpy(dp2,wj,zz,1,swj,1)
-                  wj2=wj*wj
-C                  call daxpy(dp2,wj2,zz,1,swj2,1)            
+                  wj2=wj*wj         
                   DO k=1,dp2
                      swj(k)=swj(k)+wj*zz(k)
                      swj2(k)=swj2(k)+wj2*zz(k)
                   END DO
                   wjy=wj*y(jind)
-C                  call daxpy(dp1,wjy,zz,1,swjy,1)
                   DO l=1,dp1
                      swjy(l)=swjy(l)+wjy*zz(l)
                   END DO
@@ -1602,20 +1590,16 @@ C
                      zz(13)=z1*zz(9)
                      zz(14)=z1*zz(10)
                   END IF
-C                  call daxpy(dp2,lwj,zz,1,swj0,1)
                   DO k=1,dp2
                      swj0(k)=swj0(k)+lwj*zz(k)
                   END DO
                   if(wj.le.0.d0) CYCLE
-C                  call daxpy(dp2,wj,zz,1,swj,1)
-                  wj2=wj*wj
-C                  call daxpy(dp2,wj2,zz,1,swj2,1)            
+                  wj2=wj*wj       
                   DO k=1,dp2
                      swj(k)=swj(k)+wj*zz(k)
                      swj2(k)=swj2(k)+wj2*zz(k)
                   END DO
                   wjy=wj*y(jind)
-C                  call daxpy(dp1,wjy,zz,1,swjy,1)
                  DO l=1,dp1
                      swjy(l)=swjy(l)+wjy*zz(l)
                   END DO
@@ -1728,7 +1712,6 @@ C  first stochastic term
       cc=0.0d0
       call smwghts2(lw,hakt,hw,slw,dlw,dsw,cc)
 C  now stochastic term
-      zz(1)=1.d0
       call rchkusr()
 C$OMP PARALLEL DEFAULT(SHARED) 
 C$OMP& PRIVATE(i1,i2,iind,hhomi,hhommax,hfixmax,k,jw2,
@@ -1741,6 +1724,7 @@ C$OMP DO SCHEDULE(DYNAMIC,1)
             iind=i1+(i2-1)*n1
             IF (fix(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
+            zz(1)=1.d0
             hhomi=hhom(iind)
             hhomi=hhomi*hhomi
             hhommax=hakt2
@@ -1878,20 +1862,16 @@ C
                      zz(13)=z1*zz(9)
                      zz(14)=z1*zz(10)
                   END IF
-C                  call daxpy(dp2,lwj,zz,1,swj0,1)
                   DO k=1,dp2
                      swj0(k)=swj0(k)+lwj*zz(k)
                   END DO
                   if(wj.le.0.d0) CYCLE
-C                  call daxpy(dp2,wj,zz,1,swj,1)
-                  wj2=wj*wj
-C                  call daxpy(dp2,wj2,zz,1,swj2,1)            
+                  wj2=wj*wj    
                   DO k=1,dp2
                      swj(k)=swj(k)+wj*zz(k)
                      swj2(k)=swj2(k)+wj2*zz(k)
                   END DO
                   wjy=wj*y(jind)
-C                  call daxpy(dp1,wjy,zz,1,swjy,1)
                  DO l=1,dp1
                      swjy(l)=swjy(l)+wjy*zz(l)
                   END DO
@@ -1913,7 +1893,6 @@ C                  call daxpy(dp1,wjy,zz,1,swjy,1)
             IF(lfix.and.hakt-sqrt(hfixmax).ge.hnfix) THEN
                fix(iind)=.TRUE.
             END IF
-            call rchkusr()
          END DO
       END DO
 C$OMP END DO NOWAIT

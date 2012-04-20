@@ -264,8 +264,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
                                     hakt<25&(hakt+hw)<28)
     if (length(sigma2)==n) {
       # heteroskedastic Gaussian case
-      if(useomp&sufficient.memory){
-      zobj <- switch(d,
+      zobj <- if(useomp&sufficient.memory) switch(d,
                      .Fortran("awsph1p",
                        as.double(y),
                        as.double(sigma2),
@@ -311,8 +310,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
                        double(twohhwp1*twohhwp1),# array for smoothed location weights
                        as.integer(ind),
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")])
-      } else {
-      zobj <- switch(d,
+           else switch(d,
                      .Fortran("awsph1",
                        as.double(y),
                        as.double(sigma2),
@@ -362,11 +360,9 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
                        double(twohhwp1*twohhwp1),# array for smoothed general weights
                        as.integer(ind),
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")])
-          }
     } else {
       # all other cases
-      if(useomp&sufficient.memory){
-      zobj <- switch(d,
+      zobj <- if(useomp&sufficient.memory) switch(d,
                      .Fortran("awsp1p",
                       as.double(y),
                        fix=as.logical(fix),
@@ -410,8 +406,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
                        double(twohhwp1*twohhwp1),# array for smoothed location weights
                        as.integer(ind),
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")])
-      } else {
-      zobj <- switch(d,
+       else  switch(d,
                      .Fortran("awsp1",
                       as.double(y),
                        fix=as.logical(fix),
@@ -459,7 +454,6 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
                        double(twohhwp1*twohhwp1),# array for smoothed general weights
                        as.integer(ind),
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")])
-    }
     }
     gc()
     dim(zobj$ai) <- c(switch(d,n,dy),dp1)
