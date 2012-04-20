@@ -315,7 +315,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
     } else {
       # all other cases
       sufficient.memory <- switch(d,hakt<1000&(hakt+hw)<1005,
-                                    hakt<20&(hakt+hw)<22)
+                                    hakt<25&(hakt+hw)<28)
       if(useomp&sufficient.memory){
       zobj <- switch(d,
                      .Fortran("awsp1p",
