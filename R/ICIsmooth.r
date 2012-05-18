@@ -144,7 +144,7 @@ kernsm<-function (y, h = 1, kern="Gaussian", m=0, nsector=1, sector=1, symmetric
     ypar <- expand.x.par(y,h)
     yext <- expand.x(y,ypar)
     kwghts <- lkern(ypar,kern,m,nsector,sector,symmetric)
-    yhat <- Re(fft(fft(yext) * fft(kwghts),inv=TRUE))/prod(ypar$dx1)
+    yhat <- Re(fft(fft(yext) * fft(kwghts),inverse=TRUE))/prod(ypar$dx1)
     ilow <- ypar$ilow
     iup <- ypar$iup
     yhat <- switch(ypar$d,yhat[ilow:iup],

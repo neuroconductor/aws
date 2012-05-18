@@ -1,9 +1,5 @@
 ########## risk()
 
-risk <- function(y, ...) cat("Data extraction not defined for this class:",class(y),"\n")
-
-setGeneric("risk", function(y, ...) standardGeneric("risk"))
-
 setMethod("risk","aws",function(y, u=0){
 riskyhat(extract(y,"yhat")$yhat,u)
 })
@@ -28,10 +24,6 @@ riskyhat(y,u)
 })
 
 ########## extract()
-
-extract <- function(x, ...) cat("Data extraction not defined for this class:",class(x),"\n")
-
-setGeneric("extract", function(x, ...) standardGeneric("extract"))
 
 setMethod("extract","aws",function(x, what="y"){
   what <- tolower(what) 

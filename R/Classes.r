@@ -175,7 +175,8 @@ varmodel="Constant",vcoef=NULL,mask=logical(0),data=list(NULL)){
                         call = call)
             )
 }
-awssegmentobj <- function(y,theta,segment,var,level,delta,hmax,sigma2,lkern,lambda,ladjust,aws,memory,
+awssegmentobj <- function(y,theta,segment,var,level,delta,hmax,sigma2,
+          lkern,lambda,ladjust,aws,memory,
 call,homogen=FALSE,earlystop=FALSE,family="Gaussian",degree=0,
 x=numeric(0),ni=as.integer(1),xmin=numeric(0),xmax=numeric(0),
 wghts=numeric(0),scorr=0,mae=numeric(0),shape=numeric(0),

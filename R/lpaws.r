@@ -391,12 +391,14 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
                        as.integer(n1),
                        as.integer(n2),
                        as.integer(degree),
+                       as.integer(dp1),
+                       as.integer(dp2),
                        as.double(hw),
                        hakt=as.double(hakt),
                        hhom=as.double(hhom),
                        as.double(lambda0),
-                       as.double(theta),
-                       bi=as.double(bi),
+                       as.double(aperm(theta,c(d+1,1:d))),
+                       bi=as.double(aperm(bi,c(d+1,1:d))),
                        bi2=double(n*dp2),
                        bi0=double(n*dp2),
                        ai=double(n*dp1),
@@ -456,11 +458,15 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")])
     }
     gc()
-    dim(zobj$ai) <- c(switch(d,n,dy),dp1)
-    dim(zobj$bi) <- c(switch(d,n,dy),dp2)
+    dim(zobj$ai) <- c(dp1,switch(d,n,dy))
+    dim(zobj$bi) <- dim(zobj$bi0) <- dim(zobj$bi2) <- c(dp2,switch(d,n,dy))
+    zobj$ai <- aperm(zobj$ai,c(2:(d+1),1))
+    zobj$bi <- aperm(zobj$bi,c(2:(d+1),1))
+    zobj$bi2 <- aperm(zobj$bi2,c(2:(d+1),1))
+    zobj$bi0 <- aperm(zobj$bi0,c(2:(d+1),1))
     if (hakt>n^(1/d)/2) zobj$bi0 <- zobj$bi0<-biold
     biold <- zobj$bi0
-    dim(zobj$bi0)<-c(switch(d,n,dy),dp2)
+    dim(zobj$bi0)<-c(dp2,switch(d,n,dy))
     if(!homogen) zobj$hhom<- switch(d,rep(1,2*n),rep(1,n))
     tobj <- updtheta(d,zobj,fix,cpar,aggkern,bikm1,bi2km1,thetakm1)
     if(!is.null(zobj$hhom)) hhom <- zobj$hhom else switch(d,rep(1,2*n),rep(1,n))

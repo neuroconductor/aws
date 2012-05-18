@@ -4,7 +4,8 @@ Date: 2012-04-03
 Title: Adaptive Weights Smoothing
 Author: Joerg Polzehl <polzehl@wias-berlin.de>
 Maintainer: Joerg Polzehl <polzehl@wias-berlin.de>
-Depends: R (>= 2.14.0), methods
+Depends: R (>= 2.14.0), methods, awsMethods
+Suggests: spMC
 Description: The package contains R-functions implementing the
              Propagation-Separation Approach to adaptive smoothing as 
              described in J. Polzehl and V. Spokoiny (2006), 

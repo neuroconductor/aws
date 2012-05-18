@@ -865,7 +865,7 @@ C
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),hhom(1)
       integer ih,ih1,i1,i2,j1,j2,k,n,
      1        iind,jind,jind2,jwind,jwind2,dlw,clw,jw1,jw2,
-     2        dp1,dp2,ihs,csw,dsw,l,dlw2,iindl
+     2        dp1,dp2,ihs,csw,dsw,dlw2,iindl
       real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
      1       hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf,hhomi,
      2       hhommax,az1,hfixmax,hnfix,wj2
@@ -1067,8 +1067,8 @@ C
                      swj2(k)=swj2(k)+wj2*zz(k)
                   END DO
                   wjy=wj*y(jind)
-                  DO l=1,dp1
-                     swjy(l)=swjy(l)+wjy*zz(l)
+                  DO k=1,dp1
+                     swjy(k)=swjy(k)+wjy*zz(k)
                   END DO
                END DO
             END DO
@@ -1095,8 +1095,8 @@ C
 C   Perform one iteration in local polynomial  aws (gridded), 2D
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine awsp2p(y,fix,nfix,n1,n2,degr,hw,hakt,hhom,lambda,
-     1              theta,bi,bi2,bi0,ai,kern,spmin,lw,slw,ind)
+      subroutine awsp2p(y,fix,nfix,n1,n2,degr,dp1,dp2,hw,hakt,hhom,
+     1              lambda,theta,bi,bi2,bi0,ai,kern,spmin,lw,slw,ind)
 C
 C   y        observed values of regression function
 C   fix      logical TRUE fro points where we have nothing to do
@@ -1120,17 +1120,17 @@ C
       implicit logical (a-z)
       external kldistp,lkern
       real*8 kldistp,lkern
-      integer n1,n2,kern,degr,ind(1),nfix
+      integer n1,n2,kern,degr,ind(1),nfix,dp1,dp2
       logical aws,fix(1),lfix
-      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmin,
-     1       bi2(1),hakt,lw(1),slw(1),hw,hhom(1)
+      real*8 y(1),theta(dp1,1),bi(dp2,1),bi0(dp2,1),ai(dp1,1),lambda,
+     1       spmin,bi2(dp2,1),hakt,lw(1),slw(1),hw,hhom(1)
       integer ih,ih1,i1,i2,j1,j2,k,n,
      1        iind,jind,jind2,jwind,jwind2,dlw,clw,jw1,jw2,
-     2        dp1,dp2,ihs,csw,dsw,l,dlw2,iindl
+     2        ihs,csw,dsw,dlw2
       real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
      1       hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf,hhomi,
      2       hhommax,az1,hfixmax,hnfix,wj2,w(2401),sw(3025)
-C restricted to hakt < 20 and hakt+hw < 22
+C restricted to hakt < 25 and hakt+hw < 28
 C   arrays with variable length are organized as 
 C   theta(n1,n2,dp1)
 C   bi(n1,n2,dp2)
@@ -1182,11 +1182,11 @@ C
 C$OMP PARALLEL DEFAULT(SHARED) 
 C$OMP& PRIVATE(i1,i2,iind,hhomi,hhommax,hfixmax,k,jw2,
 C$OMP&         j2,jind2,jwind2,z2,ih1,jw1,j1,jind,jwind,wj,z1,
-C$OMP&         az1,sij,z,cc,lwj,wj2,wjy,iindl,
+C$OMP&         az1,sij,z,cc,lwj,wj2,wjy,
 C$OMP&         zz,w,sw,bii,thi,thij,swj,swj2,swj0,swjy)
-C$OMP DO SCHEDULE(DYNAMIC,1)
-      DO i2=1,n2
+C$OMP DO SCHEDULE(DYNAMIC)
          DO i1=1,n1
+      DO i2=1,n2
             iind=i1+(i2-1)*n1
             IF (fix(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
@@ -1195,10 +1195,10 @@ C    nothing to do, final estimate is already fixed by control
             hhommax=hakt2
             hfixmax=hhomi
             DO k=1,dp2
-               bii(k)=bi(iind+(k-1)*n)/lambda
+               bii(k)=bi(k,iind)/lambda
             END DO
             DO k=1,dp1
-               thi(k)=theta(iind+(k-1)*n)
+               thi(k)=theta(k,iind)
             END DO
 C   scaling of sij outside the loop
             DO k=1,dlw2
@@ -1234,7 +1234,7 @@ C  get rest of directional differences
                         zz(5)=z1*z2
                      END IF
                      DO k=1,dp1
-                        thij(k)=theta(jind+(k-1)*n)
+                        thij(k)=theta(k,jind)
                      END DO
                      IF(dp1.gt.1) THEN
                         thij(1)=thij(1)-thij(2)*z1-thij(3)*z2
@@ -1336,19 +1336,18 @@ C
                      swj2(k)=swj2(k)+wj2*zz(k)
                   END DO
                   wjy=wj*y(jind)
-                  DO l=1,dp1
-                     swjy(l)=swjy(l)+wjy*zz(l)
+                  DO k=1,dp1
+                     swjy(k)=swjy(k)+wjy*zz(k)
                   END DO
                END DO
             END DO
             DO k=1,dp1
-               ai(iind+(k-1)*n)=swjy(k)
+               ai(k,iind)=swjy(k)
             END DO
             DO k=1,dp2
-               iindl=iind+(k-1)*n
-               bi(iindl)=swj(k)
-               bi2(iindl)=swj2(k)
-               bi0(iindl)=swj0(k)
+               bi(k,iind)=swj(k)
+               bi2(k,iind)=swj2(k)
+               bi0(k,iind)=swj0(k)
             END DO
             hhom(iind)=sqrt(hhommax)
             IF(lfix.and.hakt-sqrt(hfixmax).ge.hnfix) THEN
@@ -1396,7 +1395,7 @@ C
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),si(1),hhom(1)
       integer ih,ih1,i1,i2,j1,j2,k,n,
      1        iind,jind,jind2,jwind,jwind2,dlw,clw,jw1,jw2,
-     2        dp1,dp2,ihs,csw,dsw,l,dlw2,iindl,jindl
+     2        dp1,dp2,ihs,csw,dsw,dlw2,iindl,jindl
       real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
      1       hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf,hhomi,
      2       hhommax,az1,hfixmax,hnfix,wj2
@@ -1600,8 +1599,8 @@ C
                      swj2(k)=swj2(k)+wj2*zz(k)
                   END DO
                   wjy=wj*y(jind)
-                 DO l=1,dp1
-                     swjy(l)=swjy(l)+wjy*zz(l)
+                 DO k=1,dp1
+                     swjy(k)=swjy(k)+wjy*zz(k)
                   END DO
                END DO
             END DO
@@ -1662,10 +1661,11 @@ C
      1       bi2(1),hakt,lw(1),hw,slw(1),si(1),hhom(1)
       integer ih,ih1,i1,i2,j1,j2,k,n,
      1        iind,jind,jind2,jwind,jwind2,dlw,clw,jw1,jw2,
-     2        dp1,dp2,ihs,csw,dsw,l,dlw2,iindl,jindl
+     2        dp1,dp2,ihs,csw,dsw,dlw2,iindl,jindl
       real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
      1       hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf,hhomi,
      2       hhommax,az1,hfixmax,hnfix,wj2,w(2401),sw(3025)
+C   restricted to hakt < 25 and hakt+hw < 28
 C   arrays with variable length are organized as 
 C   theta(n1,n2,dp1)
 C   bi(n1,n2,dp2)
@@ -1872,8 +1872,8 @@ C
                      swj2(k)=swj2(k)+wj2*zz(k)
                   END DO
                   wjy=wj*y(jind)
-                 DO l=1,dp1
-                     swjy(l)=swjy(l)+wjy*zz(l)
+                 DO k=1,dp1
+                     swjy(k)=swjy(k)+wjy*zz(k)
                   END DO
                END DO
             END DO

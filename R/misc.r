@@ -1,3 +1,33 @@
+######################################################################
+#
+#  set numer of cores (code from package spMC)
+#
+#####################################################################
+setCores1 <-
+function(n) {
+  # Set number of CPU cores which will be used by the package
+  #
+  #     n number of CPU cores
+
+  if (!missing(n)) {
+    if (is.numeric(n)) {
+      n <- as.integer(ceiling(n))
+      n <- .C('setNumSlaves', n = as.integer(n), DUP = FALSE, PACKAGE = "aws")$n
+    }
+  }
+  n <- 0L
+  crTot <- 0L
+  n <- .C('getNumSlaves', n = as.integer(n), DUP = FALSE, PACKAGE = "aws")$n
+  if (n <= 1L) {
+    cat("Parallel computation will not perform. CPU cores in use: 1.\n")
+  }
+  else {
+    crTot <- .C('getNumCores', n = as.integer(crTot), DUP = FALSE, PACKAGE = "aws")$n
+    cat("Parallel computation will perform.\n")
+    cat("  Total CPU cores available: ", crTot, ".\n", sep = "")
+    cat("  CPU cores in use: ", n, ".\n", sep = "")
+  }
+}
 #########################################################################
 #
 #   binning in 1D -- 3D (adapted from binning function in package sm
@@ -119,7 +149,7 @@ list(yy=t(yy),ind=ind)
                                                  Quadratic=3,
                                                  Cubic=4)))
        bi <- sum(kern)
-       yhat<-Re(fft(fft(yy) * fft(kern),inv=TRUE))[z$ind]/dyy/bi
+       yhat<-Re(fft(fft(yy) * fft(kern),inverse=TRUE))[z$ind]/dyy/bi
        bi <- bi*switch(lkern,h[1]*beta(.5,switch(lkern,Uniform=1,
                                                  Triangle=2,
                                                  Quadratic=3,
@@ -137,7 +167,7 @@ list(yy=t(yy),ind=ind)
                                                  Triangle=2,
                                                  Quadratic=3,
                                                  Cubic=4)))
-       yhat<-t(Re(mvfft(mvfft(yy) * fft(kern1),inv=TRUE))[z$ind,]/dyy1/sum(kern1))
+       yhat<-t(Re(mvfft(mvfft(yy) * fft(kern1),inverse=TRUE))[z$ind,]/dyy1/sum(kern1))
        z<-extend.y(yhat,h[2],2)
        yy <- z$yy
        dyy2 <- dim(yy)[1]
@@ -149,7 +179,7 @@ list(yy=t(yy),ind=ind)
                                                  Triangle=2,
                                                  Quadratic=3,
                                                  Cubic=4)))
-       yhat<-t(Re(mvfft(mvfft(yy) * fft(kern2),inv=TRUE))[z$ind,]/dyy2/sum(kern2))
+       yhat<-t(Re(mvfft(mvfft(yy) * fft(kern2),inverse=TRUE))[z$ind,]/dyy2/sum(kern2))
        bi <- sum(outer(kern1,kern2))*switch(lkern,h[1]*h[2]*beta(.5,switch(lkern,Uniform=1,
                                                  Triangle=2,
                                                  Quadratic=3,
@@ -168,7 +198,7 @@ list(yy=t(yy),ind=ind)
                                                  Triangle=2,
                                                  Quadratic=3,
                                                  Cubic=4)))
-      yhat<-Re(mvfft(mvfft(yy) * fft(kern1),inv=TRUE))[z$ind,]/dyy1/sum(kern1)
+      yhat<-Re(mvfft(mvfft(yy) * fft(kern1),inverse=TRUE))[z$ind,]/dyy1/sum(kern1)
       dim(yhat) <- dy
       yhat <- aperm(yhat,c(2,1,3))
       dim(yhat) <- c(dy[2],dy[1]*dy[3])
@@ -183,7 +213,7 @@ list(yy=t(yy),ind=ind)
                                                  Triangle=2,
                                                  Quadratic=3,
                                                  Cubic=4)))
-      yhat<-Re(mvfft(mvfft(yy) * fft(kern2),inv=TRUE))[z$ind,]/dyy2/sum(kern2)
+      yhat<-Re(mvfft(mvfft(yy) * fft(kern2),inverse=TRUE))[z$ind,]/dyy2/sum(kern2)
       dim(yhat) <- c(dy[2],dy[1],dy[3])
       yhat <- aperm(yhat,c(3,2,1))
       dim(yhat) <- c(dy[3],dy[1]*dy[2])
@@ -198,7 +228,7 @@ list(yy=t(yy),ind=ind)
                                                  Triangle=2,
                                                  Quadratic=3,
                                                  Cubic=4)))
-      yhat<-Re(mvfft(mvfft(yy) * fft(kern3),inv=TRUE))[z$ind,]/dyy3/sum(kern3)
+      yhat<-Re(mvfft(mvfft(yy) * fft(kern3),inverse=TRUE))[z$ind,]/dyy3/sum(kern3)
       dim(yhat) <- c(dy[3],dy[1],dy[2])
       yhat <- aperm(yhat,c(2,3,1))
       bi <- sum(outer(outer(kern1,kern2),kern3))*switch(lkern,h[1]*h[2]*h[3]*beta(.5,switch(lkern,Uniform=1,
@@ -250,7 +280,7 @@ list(yy=t(yy),ind=ind)
        dyy <- length(yy)
        kern <- dnorm(grid(dyy), 0, 2 * h[1]/dyy)
        bi <- sum(kern)
-       yhat<-Re(fft(fft(yy) * fft(kern),inv=TRUE))[z$ind]/dyy/bi
+       yhat<-Re(fft(fft(yy) * fft(kern),inverse=TRUE))[z$ind]/dyy/bi
        bi <- bi/dnorm(0,0,2 * h[1]/dyy)
     }
     if(d==2){
@@ -258,12 +288,12 @@ list(yy=t(yy),ind=ind)
        yy <- z$yy
        dyy1 <- dim(yy)[1]
        kern1 <- dnorm(grid(dyy1), 0, 2 * h[1]/dyy1)
-       yhat<-t(Re(mvfft(mvfft(yy) * fft(kern1),inv=TRUE))[z$ind,]/dyy1/sum(kern1))
+       yhat<-t(Re(mvfft(mvfft(yy) * fft(kern1),inverse=TRUE))[z$ind,]/dyy1/sum(kern1))
        z<-extend.y(yhat,h[2],2)
        yy <- z$yy
        dyy2 <- dim(yy)[1]
        kern2 <- dnorm(grid(dyy2), 0, 2 * h[2]/dyy2)
-       yhat<-t(Re(mvfft(mvfft(yy) * fft(kern2),inv=TRUE))[z$ind,]/dyy2/sum(kern2))
+       yhat<-t(Re(mvfft(mvfft(yy) * fft(kern2),inverse=TRUE))[z$ind,]/dyy2/sum(kern2))
        bi <- sum(outer(kern1,kern2))/dnorm(0,0,2 * h[1]/dyy1)/dnorm(0,0,2 * h[2]/dyy2)
     }
     if(d==3){
@@ -272,7 +302,7 @@ list(yy=t(yy),ind=ind)
       yy <- z$yy
       dyy1 <- dim(yy)[1]
       kern1 <- dnorm(grid(dyy1), 0, 2 * h[1]/dyy1)
-      yhat<-Re(mvfft(mvfft(yy) * fft(kern1),inv=TRUE))[z$ind,]/dyy1/sum(kern1)
+      yhat<-Re(mvfft(mvfft(yy) * fft(kern1),inverse=TRUE))[z$ind,]/dyy1/sum(kern1)
       dim(yhat) <- dy
       yhat <- aperm(yhat,c(2,1,3))
       dim(yhat) <- c(dy[2],dy[1]*dy[3])
@@ -280,7 +310,7 @@ list(yy=t(yy),ind=ind)
       yy <- z$yy
       dyy2 <- dim(yy)[1]
       kern2 <- dnorm(grid(dyy2), 0, 2 * h[2]/dyy2)
-      yhat<-Re(mvfft(mvfft(yy) * fft(kern2),inv=TRUE))[z$ind,]/dyy2/sum(kern2)
+      yhat<-Re(mvfft(mvfft(yy) * fft(kern2),inverse=TRUE))[z$ind,]/dyy2/sum(kern2)
       dim(yhat) <- c(dy[2],dy[1],dy[3])
       yhat <- aperm(yhat,c(3,2,1))
       dim(yhat) <- c(dy[3],dy[1]*dy[2])
@@ -288,7 +318,7 @@ list(yy=t(yy),ind=ind)
       yy <- z$yy
       dyy3 <- dim(yy)[1]
       kern3 <- dnorm(grid(dyy3), 0, 2 * h[3]/dyy3)
-      yhat<-Re(mvfft(mvfft(yy) * fft(kern3),inv=TRUE))[z$ind,]/dyy3/sum(kern3)
+      yhat<-Re(mvfft(mvfft(yy) * fft(kern3),inverse=TRUE))[z$ind,]/dyy3/sum(kern3)
       dim(yhat) <- c(dy[3],dy[1],dy[2])
       yhat <- aperm(yhat,c(2,3,1))
       bi <- sum(outer(outer(kern1,kern2),kern3))/dnorm(0,0,2 * h[1]/dyy1)/dnorm(0,0,2 * h[2]/dyy2)/dnorm(0,0,2 * h[3]/dyy3)
@@ -592,34 +622,34 @@ list(yy=t(yy),ind=ind)
        yy <- z$yy
        dy <- length(yy)
        kern <- dnorm(grid(dy), 0, 2 * h/dy)
-       yhat<-Re(fft(fft(yy) * fft(kern),inv=TRUE))[z$ind]/dy/sum(kern)
+       yhat<-Re(fft(fft(yy) * fft(kern),inverse=TRUE))[z$ind]/dy/sum(kern)
     }
     if(length(dy)==2){
        z<-extend.y(y,h,2)
        yy <- z$yy
        dy <- dim(yy)
       kern <- dnorm(grid(dy[1]), 0, 2 * h/dy[1])
-      yhat<-t(Re(mvfft(mvfft(yy) * fft(kern),inv=TRUE))[z$ind,]/dy[1]/sum(kern))
+      yhat<-t(Re(mvfft(mvfft(yy) * fft(kern),inverse=TRUE))[z$ind,]/dy[1]/sum(kern))
        z<-extend.y(yhat,h,2)
        yy <- z$yy
        dy <- dim(yy)
       kern <- dnorm(grid(dy[1]), 0, 2 * h/dy[1])
-      yhat<-t(Re(mvfft(mvfft(yy) * fft(kern),inv=TRUE))[z$ind,]/dy[1]/sum(kern))
+      yhat<-t(Re(mvfft(mvfft(yy) * fft(kern),inverse=TRUE))[z$ind,]/dy[1]/sum(kern))
     }
     if(length(dy)==3){
       kern <- dnorm(grid(dy[1]), 0, 2 * h/dy[1])
       dim(y) <- c(dy[1],dy[2]*dy[3])
-      yhat<-Re(mvfft(mvfft(y) * fft(kern),inv=TRUE))/dy[1]
+      yhat<-Re(mvfft(mvfft(y) * fft(kern),inverse=TRUE))/dy[1]
       dim(yhat) <- dy
       yhat <- aperm(yhat,c(2,1,3))
       dim(yhat) <- c(dy[2],dy[1]*dy[3])
       kern <- dnorm(grid(dy[2]), 0, 2 * h/dy[2])
-      yhat<-Re(mvfft(mvfft(yhat)* fft(kern),inv=TRUE))/dy[2]
+      yhat<-Re(mvfft(mvfft(yhat)* fft(kern),inverse=TRUE))/dy[2]
       dim(yhat) <- c(dy[2],dy[1],dy[3])
       yhat <- aperm(yhat,c(3,2,1))
       dim(yhat) <- c(dy[3],dy[1]*dy[2])
       kern <- dnorm(grid(dy[3]), 0, 2 * h/dy[3])
-      yhat<-Re(mvfft(mvfft(yhat)* fft(kern),inv=TRUE))/dy[3]
+      yhat<-Re(mvfft(mvfft(yhat)* fft(kern),inverse=TRUE))/dy[3]
       dim(yhat) <- c(dy[3],dy[1],dy[2])
       yhat <- aperm(yhat,c(2,3,1))
       }
