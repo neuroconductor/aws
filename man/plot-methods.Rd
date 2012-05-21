@@ -6,32 +6,43 @@
 \alias{plot,awssegment-method}
 \alias{plot,ICIsmooth-method}
 \alias{plot,kernsm-method}
-\title{ ~~ Methods for Function \code{plot} in Package \pkg{graphics} ~~}
+\title{Methods for Function `plot' from package 'graphics' in Package `aws'}
 \description{
- ~~ Methods for function \code{plot} in package \pkg{graphics} ~~
+Visualization of objects of class \code{"aws"}, \code{"awsswgment"}, 
+\code{"kernsm"} and \code{"ICIsmooth"}
 }
 \section{Methods}{
 \describe{
 
 \item{\code{signature(x = "ANY")}}{
-%%  ~~describe this method here~~
+Generic function: see \code{\link[graphics]{plot}}. 
 }
 
 \item{\code{signature(x = "aws")}}{
-%%  ~~describe this method here~~
+Visualization of objects of class \code{"aws"}
 }
 
 \item{\code{signature(x = "awssegment")}}{
-%%  ~~describe this method here~~
+Visualization of objects of class \code{"awssegment"}
+
 }
 
 \item{\code{signature(x = "ICIsmooth")}}{
-%%  ~~describe this method here~~
+Visualization of objects of class \code{"ICIsmooth"}
 }
 
 \item{\code{signature(x = "kernsm")}}{
-%%  ~~describe this method here~~
+Visualization of objects of class \code{"kernsm"}
 }
 }}
+\author{ 
+  J\"org Polzehl \email{polzehl@wias-berlin.de}
+}
+\seealso{ 
+  \code{\linkS4class{aws}}, 
+  \code{\linkS4class{awssegment}}, 
+  \code{\linkS4class{ICIsmooth}}
+  \code{\linkS4class{kernsm}}
+}
 \keyword{methods}
-\keyword{ ~~ other possible keyword(s) ~~ }
+\keyword{ hplot }

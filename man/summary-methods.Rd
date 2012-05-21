@@ -6,32 +6,46 @@
 \alias{summary,awssegment-method}
 \alias{summary,ICIsmooth-method}
 \alias{summary,kernsm-method}
-\title{ ~~ Methods for Function \code{summary} in Package \pkg{base} ~~}
+\title{Methods for Function `summary' from package 'base' in Package `aws' }
 \description{
- ~~ Methods for function \code{summary} in package \pkg{base} ~~
+The method provides summary information for objects of class \code{"aws"}. }
+\arguments{
+  \item{object}{ Object of class \code{"dti"}, \code{"dtiData"}, \code{"dtiTensor"}, \code{"dwiMixtensor"}, \code{"dtiIndices"},  \code{"dwiQball"} or \code{"dwiFiber"}. }
+  \item{\dots}{ Additional arguments in \code{\dots} are passed to function \code{quantile}, e.g. argument \code{probs} may be specified here.}
 }
 \section{Methods}{
 \describe{
 
 \item{\code{signature(object = "ANY")}}{
-%%  ~~describe this method here~~
+Generic function: see \code{\link[base]{summary}}.
 }
 
 \item{\code{signature(object = "aws")}}{
-%%  ~~describe this method here~~
+The function provides summary information for objects of class \code{"aws"}
 }
 
 \item{\code{signature(object = "awssegment")}}{
-%%  ~~describe this method here~~
+The function provides summary information for objects of class \code{"awssegment"}
 }
 
 \item{\code{signature(object = "ICIsmooth")}}{
-%%  ~~describe this method here~~
+The function provides summary information for objects of class \code{"ICIsmooth"}
+
 }
 
 \item{\code{signature(object = "kernsm")}}{
-%%  ~~describe this method here~~
+The function provides summary information for objects of class \code{"kernsm"}
+
 }
 }}
+\author{ 
+  J\"org Polzehl \email{polzehl@wias-berlin.de}
+}
+\seealso{ 
+  \code{\linkS4class{aws}}, 
+  \code{\linkS4class{awssegment}}, 
+  \code{\linkS4class{ICIsmooth}}
+  \code{\linkS4class{kernsm}}
+}
 \keyword{methods}
-\keyword{ ~~ other possible keyword(s) ~~ }
+\keyword{ utilities }

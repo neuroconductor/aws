@@ -13,6 +13,12 @@ the stagewise aggregation approach, see
 
     Belomestny, D. and Spokoiny, V. (2007). Spatial aggregation of local likelihood estimates with applications to classification,  Ann. Statist.  25 ,  2287--2311. 
 
+As an alternative procedure the package now includes an implementation of
+the Intersection of Confidence Intervals (ICI) methods from
+
+     Katkovnik, V.  Egiazarian, K. and  Astola, J. (2006), Local Approximation Techniques in Signal And Image Processing},
+     SPIE Society of Photo-Optical Instrumentation Engin., PM157, Chapter 6.
+
 
 The library has been reimplementated using S4-classes. Functionality has been rearranged. 
 Functions now handle 1D/2D/3D data (if implemented for the specified model).
