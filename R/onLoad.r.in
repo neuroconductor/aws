@@ -1,13 +1,7 @@
 .onLoad <- function(lib, pkg){
   if(@HAS_OPENMP@)
   {
-    num_threads <- as.integer(Sys.getenv("OMP_NUM_THREADS", unset=0))
-
-    if(num_threads <= 0){
-      packageStartupMessage("Environment variable OMP_NUM_THREADS is not set or invalid.\n OpenMP behavior is undefined. Please refer to the README file.")
-    }
-    else if(num_threads == 1){
-      packageStartupMessage("Environment variable OMP_NUM_THREADS is 1.\n This may decrease computing performance. Please refer to the README file.\n")     
-    }
+     setCores(1)
+     packageStartupMessage("\nUse the function setCores() to change the number of CPU cores.\n")
   }
 }
