@@ -240,20 +240,20 @@ C  first stochastic term
          END DO
       END DO
       call rchkusr()
-      DO i3=1,n3
-         DO i2=1,n2
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,hhom,n1,n2,n3,hakt2,hmax2,theta
 C$OMP& ,lwght,wght,y,fix)
-C$OMP& FIRSTPRIVATE(ih1,i2,ih2,i3,lambda,aws
+C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws
 C$OMP& ,model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3)
-C$OMP& PRIVATE(iind,hhomi,hhommax,thetai,bii,bii0,swj
-C$OMP& ,swj2,swj0,swjy,sij,i1,wj
+C$OMP& PRIVATE(i1,i2,i3,iind,hhomi,hhommax,thetai,bii,bii0,swj
+C$OMP& ,swj2,swj0,swjy,sij,wj
 C$OMP& ,j3,jw3,jind3,z3,jwind3
 C$OMP& ,j2,jw2,jind2,z2,jwind2
 C$OMP& ,j1,jw1,jind,z1)
-C$OMP DO SCHEDULE(DYNAMIC,1)
-             DO i1=1,n1
+C$OMP DO SCHEDULE(GUIDED)
+      DO i1=1,n1
+         DO i2=1,n2
+             DO i3=1,n3
                iind=i1+(i2-1)*n1+(i3-1)*n1*n2
                hhomi=hhom(iind)
                hhomi=hhomi*hhomi
@@ -316,11 +316,10 @@ C  first stochastic term
                bi0(iind)=swj0
                hhom(iind)=sqrt(hhommax)
             END DO
-C$OMP END DO NOWAIT
-C$OMP END PARALLEL
-         call rchkusr()
          END DO
       END DO
+C$OMP END DO NOWAIT
+C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2,hhom)
       RETURN
       END
@@ -401,20 +400,20 @@ C  first stochastic term
          END DO
       END DO
       call rchkusr()
-      DO i3=1,n3
-         DO i2=1,n2
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,si2,vred,n1,n2,n3,hakt2,hakt,hmax2,theta
 C$OMP& ,lwght,wght,y,fix)
-C$OMP& FIRSTPRIVATE(ih1,i2,ih2,i3,lambda,aws
+C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws
 C$OMP& ,model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3)
 C$OMP& PRIVATE(iind,thetai,bii,bii0,swj
-C$OMP& ,swj2,swj0,swjy,sij,sv1,sv2,i1,wj
+C$OMP& ,swj2,swj0,swjy,sij,sv1,sv2,i1,i2,i3,wj
 C$OMP& ,j3,jw3,jind3,z3,jwind3
 C$OMP& ,j2,jw2,jind2,z2,jwind2
 C$OMP& ,j1,jw1,jind,z1)
-C$OMP DO SCHEDULE(DYNAMIC,1)
-             DO i1=1,n1
+C$OMP DO SCHEDULE(GUIDED)
+      DO i1=1,n1
+         DO i2=1,n2
+             DO i3=1,n3
                iind=i1+(i2-1)*n1+(i3-1)*n1*n2
                IF (fix(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
@@ -472,11 +471,10 @@ C  first stochastic term
                bi0(iind)=swj0
                vred(iind)=sv2/sv1/sv1
             END DO
-C$OMP END DO NOWAIT
-C$OMP END PARALLEL
-         call rchkusr()
          END DO
       END DO
+C$OMP END DO NOWAIT
+C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2,vred)
       RETURN
       END
@@ -558,20 +556,20 @@ C  first stochastic term
          END DO
       END DO
       call rchkusr()
-      DO i3=1,n3
-         DO i2=1,n2
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,si2,hhom,n1,n2,n3,hakt2,hmax2,theta
 C$OMP& ,lwght,wght,y,fix,mask,vred,gi)
-C$OMP& FIRSTPRIVATE(ih1,i2,ih2,i3,lambda,aws
+C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws
 C$OMP& ,model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3)
 C$OMP& PRIVATE(iind,hhomi,hhommax,thetai,bii,bii0,swj
-C$OMP& ,swj2,swj0,swjy,sij,sv1,sv2,i1,wj
+C$OMP& ,swj2,swj0,swjy,sij,sv1,sv2,i1,i2,i3,wj
 C$OMP& ,j3,jw3,jind3,z3,jwind3
 C$OMP& ,j2,jw2,jind2,z2,jwind2
 C$OMP& ,j1,jw1,jind,z1,z)
-C$OMP DO SCHEDULE(DYNAMIC,1)
-             DO i1=1,n1
+C$OMP DO SCHEDULE(GUIDED)
+      DO i1=1,n1
+         DO i2=1,n2
+             DO i3=1,n3
                iind=i1+(i2-1)*n1+(i3-1)*n1*n2
                hhomi=hhom(iind)
                hhomi=hhomi*hhomi
@@ -645,11 +643,10 @@ C
                gi(iind)=sv1
                vred(iind)=sv2/sv1/sv1
             END DO
-C$OMP END DO NOWAIT
-C$OMP END PARALLEL
-         call rchkusr()
          END DO
       END DO
+C$OMP END DO NOWAIT
+C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2,hhom,gi,vred)
       RETURN
       END

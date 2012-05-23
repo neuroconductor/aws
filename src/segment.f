@@ -27,9 +27,11 @@ C
      1       bi2(1),hakt,lwght(1),si2(1),vred(1),spmin,gi(1),
      2       level,delta,pvalue(1),beta,thresh,ext,varest(1),fov
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
-     1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3
-      real*8 bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0,
-     1        sv1,sv2,spf,z,a,b,thi,s2i,si,ti,cofh,extthr
+     1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,n12,
+     2        segmi
+      real*8 bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0,pvi,
+     1        sv1,sv2,spf,z,a,b,thi,s2i,si,ti,cofh,extthr,wght1,wght2,
+     2        si2j
       hakt2=hakt*hakt
       spf=1.d0/(1.d0-spmin)
       ih1=hakt
@@ -42,6 +44,9 @@ C
       ih1=hakt
       if(n3.eq.1) ih3=0
       if(n2.eq.1) ih2=0
+      n12=n1*n2
+      wght1=wght(1)
+      wght2=wght(2)
       clw1=ih1+1
       clw2=ih2+1
       clw3=ih3+1
@@ -54,16 +59,16 @@ C
       extthr=thresh+ext
       DO j3=1,dlw3
          if(n3.gt.1) THEN
-            z3=(clw3-j3)*wght(2)
+            z3=(clw3-j3)*wght2
             z3=z3*z3
-            ih2=sqrt(hakt2-z3)/wght(1)
+            ih2=sqrt(hakt2-z3)/wght1
             jind3=(j3-1)*dlw1*dlw2
          ELSE
             jind3=0
          END IF
          DO j2=clw2-ih2,clw2+ih2
             if(n2.gt.1) THEN
-               z2=(clw2-j2)*wght(1)
+               z2=(clw2-j2)*wght1
                z2=z3+z2*z2
                ih1=sqrt(hakt2-z2)
                jind2=jind3+(j2-1)*dlw1
@@ -87,7 +92,7 @@ C  first stochastic term
       DO i1=1,n1
          DO i2=1,n2
             DO i3=1,n3
-               iind=i1+(i2-1)*n1+(i3-1)*n1*n2
+               iind=i1+(i2-1)*n1+(i3-1)*n12
                if(fix(iind)) CYCLE
                thi = theta(iind)
                s2i = si2(iind)
@@ -105,21 +110,23 @@ C we need to assign a value to segment before we can fix the decision
          END DO
       END DO
       END IF
-      DO i3=1,n3
 C$OMP PARALLEL DEFAULT(NONE)
-C$OMP& SHARED(thetan,bi,bi0,bi2,si2,n1,n2,n3,hakt2,theta
-C$OMP& ,lwght,wght,y,fix,vred,gi,segm,segmn,pvalue,varest)
-C$OMP& FIRSTPRIVATE(ih1,ih2,i3,lambda,aws,beta,fov,a,b
-C$OMP& ,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,thresh)
-C$OMP& PRIVATE(iind,bii,bii0,swj,thi,cofh
-C$OMP& ,swj2,swj0,swjy,si,sij,sv1,sv2,i1,i2,wj
+C$OMP& SHARED(thetan,bi,bi0,bi2,si2,n1,n2,n3,theta,kern,hakt
+C$OMP& ,lwght,y,fix,vred,gi,segm,segmn,pvalue,varest)
+C$OMP& FIRSTPRIVATE(lambda,aws,beta,fov,a,b,hakt2,n12,wght1,wght2
+C$OMP& ,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,thresh,ih1,ih2)
+C$OMP& PRIVATE(iind,bii,bii0,swj,thi,cofh,segmi,pvi
+C$OMP& ,swj2,swj0,swjy,si,sij,sv1,sv2,i1,i2,i3,wj
 C$OMP& ,j3,jw3,jind3,z3,jwind3
 C$OMP& ,j2,jw2,jind2,z2,jwind2
-C$OMP& ,j1,jw1,jind,z1,z)
-C$OMP DO SCHEDULE(DYNAMIC,1)
+C$OMP& ,j1,jw1,jind,z1,z,si2j)
+C$OMP DO SCHEDULE(GUIDED)
+      DO i1=1,n1
          DO i2=1,n2
-             DO i1=1,n1
-               iind=i1+(i2-1)*n1+(i3-1)*n1*n2
+             DO i3=1,n3
+               iind=i1+(i2-1)*n1+(i3-1)*n12
+               segmi=segm(iind)
+               pvi=pvalue(iind)
                IF (fix(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
                thi=theta(iind)
@@ -135,16 +142,16 @@ C   scaling of sij outside the loop
                DO jw3=1,dlw3
                   j3=jw3-clw3+i3
                   if(j3.lt.1.or.j3.gt.n3) CYCLE
-                  jind3=(j3-1)*n1*n2
-                  z3=(clw3-jw3)*wght(2)
+                  jind3=(j3-1)*n12
+                  z3=(clw3-jw3)*wght2
                   z3=z3*z3
-                  if(n2.gt.1) ih2=sqrt(hakt2-z3)/wght(1)
+                  if(n2.gt.1) ih2=sqrt(hakt2-z3)/wght1
                   jwind3=(jw3-1)*dlw1*dlw2
                   DO jw2=clw2-ih2,clw2+ih2
                      j2=jw2-clw2+i2
                      if(j2.lt.1.or.j2.gt.n2) CYCLE
                      jind2=(j2-1)*n1+jind3
-                     z2=(clw2-jw2)*wght(1)
+                     z2=(clw2-jw2)*wght1
                      z2=z3+z2*z2
                      ih1=sqrt(hakt2-z2)
                      jwind2=jwind3+(jw2-1)*dlw1
@@ -155,16 +162,14 @@ C  first stochastic term
                         jind=j1+jind2
                         wj=lwght(jw1+jwind2)
                         swj0=swj0+wj*si2(jind)
-                        z1=(clw1-jw1)
-                        z1=z2+z1*z1
                         IF (aws) THEN
 C
 C      gaussian case only
 C
                            z=(thi-theta(jind))
                            sij=bii*z*z
-                           IF(segm(iind)*segm(jind).gt.0)
-     1                        sij=max(pvalue(iind),pvalue(jind))*sij
+                           IF(segmi*segm(jind).gt.0)
+     1                        sij=max(pvi,pvalue(jind))*sij
                            IF (sij.gt.1.d0) CYCLE
                            IF (sij.gt.spmin) THEN
                                wj=wj*(1.d0-spf*(sij-spmin))
@@ -172,9 +177,10 @@ C
                         END IF
                         sv1=sv1+wj
                         sv2=sv2+wj*wj
-                        swj=swj+wj*si2(jind)
-                        swj2=swj2+wj*wj*si2(jind)
-                        swjy=swjy+wj*si2(jind)*y(jind)
+                        si2j=si2(jind)*wj
+                        swj=swj+si2j
+                        swj2=swj2+wj*si2j
+                        swjy=swjy+si2j*y(jind)
                      END DO
                   END DO
                END DO
@@ -198,10 +204,9 @@ C    both are equivalent for  homogeneous si2
                vred(iind)=sv2/sv1/sv1
             END DO
          END DO
+      END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
-         call rchkusr()
-      END DO
 C$OMP FLUSH(thetan,bi,bi0,bi2,gi,vred,varest,segmn)
       RETURN
       END
