@@ -1,0 +1,17 @@
+citHeader("To cite aws in publications use:")
+
+citEntry(entry = "Article",
+  title        = "Propagation-separation approach for local likelihood estimation",
+  author       = personList(as.person("Karsten Tabelow"),
+                   as.person("J\\\"org Polzehl"),as.person("Vladimir Spokoiny")),
+  journal      = "Probab. Theory Related Fields",
+  year         = "2006",
+  volume       = "135",
+  number       = "3",
+  pages        = "335-362",
+
+  textVersion  =
+         paste("Joerg Polzehl, Vladimir Spokoiny (2016).",
+        "Propagation-separation approach for local likelihood estimation",
+        "Probab. Theory Related Fields, 135(3), 335-362.")
+)
