@@ -2,10 +2,11 @@
 \alias{setCores}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-%%  ~~function to do ... ~~
+Set the number of cores to use for openMP.
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+The function sets the number of cores used in openMP parallelization
+in part of the Fortran code.
 }
 \usage{
 setCores(n)
@@ -13,66 +14,31 @@ setCores(n)
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{n}{
-%%     ~~Describe \code{n} here~~
+   number of cores to use. If \code{n} is missing the actual number of cores in use
+   is reported.
 }
 }
 \details{
-%%  ~~ If necessary, more details than the description above ~~
+ The number of cores is restricted to integers between 1 (default)
+ and the number of available cores. 
+ openMP parallelization is currenly used in functions
+ \code{aws}, \code{aws.gaussian}, \code{aws.irreg} and \code{aws.segment}.
+ Currenly we observe a significant speedup in \code{aws} with up to 
+ 6-8 cores but only limited improvements in \code{aws.segment}. 
 }
 \value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
-%% ...
-}
-\references{
-%% ~put references to the literature/web site here ~
+The function returns the number of cores in use.
 }
 \author{
-%%  ~~who you are~~
+Felix Anker (anker@wias-berlin.de)
 }
 \note{
-%%  ~~further notes~~
+#   This function is a slightly modified version of
+#   function setCores in package spMC version 0.2.2
+#   written by Luca Sartore <drwolf85@gmail.com>
 }
 
-%% ~Make other sections like Warning with \section{Warning }{....} ~
-
-\seealso{
-%% ~~objects to See Also as \code{\link{help}}, ~~~
-}
-\examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
-
-## The function is currently defined as
-function (n) 
-{
-    if (!missing(n)) {
-        if (is.numeric(n)) {
-            n <- as.integer(ceiling(n))
-            n <- .C("setNumThreads", n = as.integer(n), DUP = FALSE, 
-                PACKAGE = "aws")$n
-        }
-    }
-    n <- 1L
-    crTot <- 0L
-    n <- .C("getNumThreads", n = as.integer(n), DUP = FALSE, 
-        PACKAGE = "aws")$n
-    if (n <= 1L) {
-        cat("Parallel computation will not perform. CPU cores in use: 1.\n")
-    }
-    else {
-        crTot <- .C("getNumCores", n = as.integer(crTot), DUP = FALSE, 
-            PACKAGE = "aws")$n
-        cat("Parallel computation will perform.\n")
-        cat("  Total CPU cores available: ", crTot, ".\n", sep = "")
-        cat("  CPU cores in use: ", n, ".\n", sep = "")
-    }
-  }
-}
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+\keyword{ sysdata }
+\keyword{ environment }

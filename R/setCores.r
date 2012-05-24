@@ -1,3 +1,8 @@
+#
+#   This function is a slightly modified version of
+#   function setCores in package spMC version 0.2.2
+#   written by Luca Sartore <drwolf85@gmail.com>
+#
 setCores <-
 function(n) {
   # Set number of CPU cores which will be used by the package
@@ -22,4 +27,5 @@ function(n) {
     cat("  Total CPU cores available: ", crTot, ".\n", sep = "")
     cat("  CPU cores in use: ", n, ".\n", sep = "")
   }
+  invisible(n)
 }

@@ -1,6 +1,6 @@
 Package: aws
-Version: 1.8-0
-Date: 2012-05-23
+Version: 1.9-0
+Date: 2012-05-24
 Title: Adaptive Weights Smoothing
 Author: Joerg Polzehl <polzehl@wias-berlin.de>
 Maintainer: Joerg Polzehl <polzehl@wias-berlin.de>
@@ -14,6 +14,6 @@ Description: The package contains R-functions implementing the
              regression estimation: Propagation-separation approach,
              WIAS-Preprint 998.
 License: GPL (>=2)
-Copyright:   This package is Copyright (C) 2005-2010 Weierstrass Institute 
+Copyright:   This package is Copyright (C) 2005-2012 Weierstrass Institute 
              for Applied Analysis and Stochastics.
 URL: http://www.wias-berlin.de/projects/matheon_a3/
