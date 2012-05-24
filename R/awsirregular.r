@@ -18,7 +18,7 @@ if(!(varmodel %in% c("Constant","Linear","Quadratic"))) stop("Model for variance
 #   binning for variance estimation
 #
 zbins<-binning(x,y,nbins=rep(n^(1/d)/2,d))
-given.var<-!is.null(sigma2)
+given.var <- !is.null(sigma2)
 if(!given.var) {
 sigma20 <- mean(zbins$devs[zbins$x.freq>1]/(zbins$x.freq[zbins$x.freq>1]-1))
 cat("Preliminary variance estimate:",sigma20,"\n")
