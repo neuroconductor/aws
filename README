@@ -33,9 +33,7 @@ AWS 1.7-0 or higher supports OpenMP. If you wish to enable multiprocessing via O
 - from R session
   install.packages("aws", configure.args="--enable-openmp")
 
-As an OpenMP standard, the environment variable 'OMP_NUM_THREADS' is used to determine the number of threads.
-If OMP_NUM_THREADS is not set or less or equal 0 the OpenMP behavior is implementation dependend and therefore undefinded.
-It is highly recommended to set OMP_NUM_THREADS to a value between (including) 2 and # of cores before starting a R session.
+To set the number of cores use the R-method setCores.
 
 Please notice that an OpenMP compiled version of AWS with OMP_NUM_THREADS=1 is usually slower than a pure AWS installation.
 

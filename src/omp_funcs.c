@@ -3,6 +3,11 @@
 #include <Rmath.h>
 #include <Rinternals.h>
 
+/**   This function is a slightly modified version of
+   function setCores in package spMC version 0.2.2
+   written by Luca Sartore <drwolf85@gmail.com>
+*/
+
 void getNumCores(int *n) {
   /* Get the max number of CPU cores
           *n - num of cores */

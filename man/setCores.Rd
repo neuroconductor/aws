@@ -33,9 +33,9 @@ The function returns the number of cores in use.
 Felix Anker (anker@wias-berlin.de)
 }
 \note{
-#   This function is a slightly modified version of
-#   function setCores in package spMC version 0.2.2
-#   written by Luca Sartore <drwolf85@gmail.com>
+   This function is a slightly modified version of
+   function setCores in package spMC version 0.2.2
+   written by Luca Sartore <drwolf85@gmail.com>
 }
 
 % Add one or more standard keywords, see file 'KEYWORDS' in the
