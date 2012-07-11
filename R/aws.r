@@ -123,16 +123,16 @@ zobj <- .Fortran("chaws",as.double(y),
                        as.double(lambda0),
                        as.double(tobj$theta),
                        bi=as.double(tobj$bi),
-		       bi2=double(n),
+		                 bi2=double(n),
                        bi0=as.double(zobj$bi0),
-		       vred=double(n),
+		                 vred=double(n),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
 	               as.double(0.25),
 		       double(prod(dlw)),
 		       as.double(wghts),
-		       PACKAGE="aws",DUP=FALSE)[c("bi","bi0","bi2","vred","ai","hakt")]
+		       PACKAGE="aws",DUP=TRUE)[c("bi","bi0","bi2","vred","ai","hakt")]
 vred[!tobj$fix]<-zobj$vred[!tobj$fix]
 } else {
 # all other cases
@@ -146,7 +146,7 @@ zobj <- .Fortran("caws",as.double(y),
                        as.double(lambda0),
                        as.double(tobj$theta),
                        bi=as.double(tobj$bi),
-		       bi2=double(n),
+		                 bi2=double(n),
                        bi0=as.double(zobj$bi0),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
@@ -154,7 +154,7 @@ zobj <- .Fortran("caws",as.double(y),
                        as.double(0.25),
 		       double(prod(dlw)),
 		       as.double(wghts),
-		       PACKAGE="aws",DUP=FALSE)[c("bi","bi0","bi2","ai","hakt","hhom")]
+		       PACKAGE="aws",DUP=TRUE)[c("bi","bi0","bi2","ai","hakt","hhom")]
 }
 if(family%in%c("Bernoulli","Poisson")) zobj<-regularize(zobj,family)
 dim(zobj$ai)<-dy
