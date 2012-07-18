@@ -137,7 +137,7 @@ hobj <- .Fortran("caws",as.double(y),
                        as.double(0.25),
 		       double(prod(dlw)),
 		       as.double(wghts),
-		       PACKAGE="aws",DUP=FALSE)[c("bi","ai")]
+		       PACKAGE="aws",DUP=TRUE)[c("bi","ai")]
 hobj$theta <- hobj$ai/hobj$bi
 dim(hobj$theta) <- dim(hobj$bi) <- dy
 #

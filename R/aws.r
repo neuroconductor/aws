@@ -536,7 +536,7 @@ pobj <- .Fortran("chaws",as.double(y),
 	               as.double(0.25),
 		       double(prod(dlw)),
 		       as.double(cpar$wghts),
-		       PACKAGE="aws",DUP=FALSE)[c("bi","ai","hakt")]
+		       PACKAGE="aws",DUP=TRUE)[c("bi","ai","hakt")]
 } else {
 # all other cases
 pobj <- .Fortran("caws",as.double(y),
@@ -557,7 +557,7 @@ pobj <- .Fortran("caws",as.double(y),
                        as.double(0.25),
 		       double(prod(dlw)),
 		       as.double(cpar$wghts),
-		       PACKAGE="aws",DUP=FALSE)[c("bi","ai","hakt")]
+		       PACKAGE="aws",DUP=TRUE)[c("bi","ai","hakt")]
 }
 if(family%in%c("Bernoulli","Poisson")) pobj<-regularize(pobj,family)
 ptheta <- pobj$ai/pobj$bi

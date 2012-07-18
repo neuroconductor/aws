@@ -263,15 +263,14 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
     twohhwp1<-2*trunc(hakt+hw)+1
     if (length(sigma2)==n) {
       # heteroskedastic Gaussian case
-      zobj <- switch(d,
-                     .Fortran("awsph1",
-		       as.double(y),
+      zobj <- switch(d,.Fortran("awsph1",
+		                 as.double(y),
                        as.double(sigma2),
                        fix=as.logical(fix),
                        as.integer(nfix),
                        as.integer(n),
                        as.integer(degree),
-		       as.double(hw),
+		                 as.double(hw),
                        hakt=as.double(hakt),
                        hhom=as.double(hhom),
                        as.double(lambda0),
@@ -289,14 +288,14 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
                        as.integer(ind),
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")],
                      .Fortran("awsph2",
-		       as.double(y),
+		                 as.double(y),
                        as.double(sigma2),
                        fix=as.logical(fix),
                        as.integer(nfix),
                        as.integer(n1),
                        as.integer(n2),
                        as.integer(degree),
-		       as.double(hw),
+		                 as.double(hw),
                        hakt=as.double(hakt),
                        hhom=as.double(hhom),
                        as.double(lambda0),
@@ -315,14 +314,13 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")])
     } else {
       # all other cases
-      zobj <- switch(d,
-                     .Fortran("awsp1b",
-		       as.double(y),
+      zobj <- switch(d,.Fortran("awsp1b",
+		                 as.double(y),
                        fix=as.logical(fix),
                        as.integer(nfix),
                        as.integer(n),
                        as.integer(degree),
-		       as.double(hw),
+		                 as.double(hw),
                        hakt=as.double(hakt),
                        hhom=as.double(hhom),
                        as.double(lambda0),
@@ -340,13 +338,13 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
                        as.integer(ind),
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")],
                      .Fortran("awsp2",
-		       as.double(y),
+		                 as.double(y),
                        fix=as.logical(fix),
                        as.integer(nfix),
                        as.integer(n1),
                        as.integer(n2),
                        as.integer(degree),
-		       as.double(hw),
+		                 as.double(hw),
                        hakt=as.double(hakt),
                        hhom=as.double(hhom),
                        as.double(lambda0),
@@ -440,7 +438,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
                        as.double(bi),
                        as.double(bi2),
                        var= double(n),
-                       DUPL=FALSE,package="aws")$var
+                       DUPL=TRUE,package="aws")$var
   dim(vartheta) <- dy
   if (length(sigma2)!=n) {
     vartheta <- sigma2[1]*vartheta

@@ -10,7 +10,7 @@ appropriate values for the parameter \code{lambda} in function \code{aws}.
 }
 \usage{
 awstestprop(dy, hmax, theta = 1, family = "Gaussian", lkern = "Triangle", 
-        aws = TRUE, memory = FALSE, shape = 2, ladjust = 1, seed = 1)
+        aws = TRUE, memory = FALSE, shape = 2, homogeneous=TRUE, ladjust = 1, seed = 1)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -39,6 +39,9 @@ logical: if TRUE stagewise aggregation is used as an additional
   \item{shape}{
 Allows to specify an additional shape parameter for certain family models. Currently only used for family="Variance", that is \eqn{\chi}-Square distributed observations
   with \code{shape} degrees of freedom.}
+  \item{homogeneous}{
+    if \code{homgeneous==FALSE} and \code{family==Gaussian} then create heterogeneous variances according to 
+    a chi-squared distribution with number of degrees of freedom given by \code{sphere}}
   \item{ladjust}{
 Factor to increase the default value of lambda }
   \item{seed}{

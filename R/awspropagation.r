@@ -1,5 +1,6 @@
 awstestprop <- function(dy,hmax,theta=1,family="Gaussian",
-                 lkern="Triangle",aws=TRUE,memory=FALSE,shape=2,ladjust=1,seed=1){
+                 lkern="Triangle",aws=TRUE,memory=FALSE,shape=2,
+                 homogeneous=TRUE,ladjust=1,seed=1){
 if(length(dy)>3) return("maximum array dimension is 3")
 nnn <- prod(dy)
 set.seed(seed)
@@ -19,7 +20,9 @@ hmax <- cpar$hmax
 shape <- cpar$shape
 d <- cpar$d
 n<-length(y)
-sigma2 <- 1
+if(!homogeneous&family=="Gaussian"){
+sigma2 <- array(rchisq(prod(dy),shape)/shape,dy)
+} else sigma2 <- 1
 zfamily <- awsfamily(family,y,sigma2,shape,0,lambda,cpar)
 cpar <- zfamily$cpar
 lambda <- zfamily$lambda
@@ -39,10 +42,8 @@ if(k>1) h[1:(k-1)] <- 1+(0:(k-2))*.001
 fix <- rep(FALSE,n)
 exceedence  <- exceedencena  <- matrix(0,61,kstar) # this is used to store exceedence probabilities for adaptive and nonadaptive estimates
 pofalpha <- matrix(0,55,kstar) # this is used to store exceedence probabilities 
-tobj<-list(bi= rep(1,n), bi2= rep(1,n), theta= y/shape, fix=fix)
-zobj<-zobj0<-list(ai=y, bi0= rep(1,n), bi=rep(1,n))
+zobj<-zobj0<-list(ai=y, bi0= rep(1,n), bi=rep(1,n),theta= y/shape)
 hhom <- rep(1,n)
-biold<-rep(1,n)
 lambda0<-1e50
 cat("Progress:")
 total <- cumsum(1.25^(1:kstar))/sum(1.25^(1:kstar))
@@ -59,25 +60,39 @@ dlw<-(2*trunc(hakt/c(1,wghts))+1)[1:d]
 #
 #   get nonadaptive estimate
 #
-zobj0 <- .Fortran("caws",as.double(y),
-                       as.logical(fix),
+if(!homogeneous&family=="Gaussian"){
+zobj0 <- .Fortran("chaws1",as.double(y),
+                       as.double(sigma2),
                        as.integer(n1),
                        as.integer(n2),
                        as.integer(n3),
                        hakt=as.double(hakt),
-                       hhom=as.double(hhom),
-                       as.double(1e50),
-                       as.double(tobj$theta),
                        bi=as.double(zobj0$bi),
-		       bi2=double(n),
+                       bi2=double(n),
+                       bi0=as.double(zobj0$bi0),
+                       double(n),#vred
+                       ai=as.double(zobj0$ai),
+                       as.integer(cpar$mcode),
+                       as.integer(lkern),
+                       double(prod(dlw)),
+                       as.double(wghts),
+                       PACKAGE="aws",DUP=TRUE)[c("bi","bi0","bi2","ai","hakt")]
+} else {
+zobj0 <- .Fortran("caws1",as.double(y),
+                       as.integer(n1),
+                       as.integer(n2),
+                       as.integer(n3),
+                       hakt=as.double(hakt),
+                       bi=as.double(zobj0$bi),
+		                 bi2=double(n),
                        bi0=as.double(zobj0$bi0),
                        ai=as.double(zobj0$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
-                       as.double(0.25),
-		       double(prod(dlw)),
+		                 double(prod(dlw)),
                        as.double(wghts),
                        PACKAGE="aws",DUP=TRUE)[c("bi","bi0","bi2","ai","hakt")]
+}
 if(family%in%c("Bernoulli","Poisson")) zobj0<-regularize(zobj0,family)
 yhat0 <- zobj0$ai/zobj0$bi
 dim(yhat0) <- dy
@@ -86,7 +101,7 @@ ind1 <- (ih+1):(dy[1]-ih)
 if(length(dy)>1) ind2 <- (ih+1):(dy[2]-ih)
 if(length(dy)>2) ind3 <- (ih+1):(dy[3]-ih)
 yhat0 <- switch(length(dy),yhat0[ind1],yhat0[ind1,ind2],yhat0[ind1,ind2,ind3])
-ni <- max(zobj0$bi)
+ni <- max(zobj0$bi0)
 KLdist0 <- switch(family,"Gaussian"=yhat0^2/2,
                          "Poisson"=(theta-yhat0+yhat0*(log(yhat0)-log(theta))),
                          "Exponential"=(log(yhat0)-1+1/yhat0),
@@ -98,6 +113,28 @@ for(i in 1:61) exceedencena[i,k] <- mean(ni*KLdist0>z[i])
 #
 #   get adaptive estimate
 #
+if(!homogeneous&family=="Gaussian"){
+zobj <- .Fortran("chaws",as.double(y),
+                       as.logical(fix),
+                       as.double(sigma2),
+                       as.integer(n1),
+                       as.integer(n2),
+                       as.integer(n3),
+                       hakt=as.double(hakt),
+                       as.double(lambda0),
+                       as.double(zobj$theta),
+                       bi=as.double(zobj$bi),
+                       bi2=double(n),
+                       bi0=as.double(zobj$bi0),
+                       double(n),#vred
+                       ai=as.double(zobj$ai),
+                       as.integer(cpar$mcode),
+                       as.integer(lkern),
+                       as.double(0.25),
+                       double(prod(dlw)),
+                       as.double(wghts),
+                       PACKAGE="aws",DUP=TRUE)[c("bi","bi0","bi2","ai","hakt")]
+} else {
 zobj <- .Fortran("caws",as.double(y),
                        as.logical(fix),
                        as.integer(n1),
@@ -106,28 +143,27 @@ zobj <- .Fortran("caws",as.double(y),
                        hakt=as.double(hakt),
                        hhom=as.double(hhom),
                        as.double(lambda0),
-                       as.double(tobj$theta),
-                       bi=as.double(tobj$bi),
-		       bi2=double(n),
+                       as.double(zobj$theta),
+                       bi=as.double(zobj$bi),
+		                 bi2=double(n),
                        bi0=as.double(zobj$bi0),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
                        as.double(0.25),
-		       double(prod(dlw)),
+		                 double(prod(dlw)),
                        as.double(wghts),
                        PACKAGE="aws",DUP=TRUE)[c("bi","bi0","bi2","ai","hakt")]
+}
 if(family%in%c("Bernoulli","Poisson")) zobj<-regularize(zobj,family)
 dim(zobj$ai)<-dy
 biold <- zobj$bi0
-tobj<-updtheta(zobj,tobj,cpar)
-dim(tobj$theta)<-dy
-dim(tobj$bi)<-dy
-dim(tobj$eta)<-dy
-dim(tobj$fix)<-dy
+zobj$theta <-zobj$ai/zobj$bi
+dim(zobj$theta)<-dy
+dim(zobj$bi)<-dy
 lambda0 <- lambda
-yhat <- tobj$theta
-bi <- tobj$bi
+yhat <- zobj$theta
+bi <- zobj$bi
 yhat <- switch(length(dy),yhat[ind1],yhat[ind1,ind2],yhat[ind1,ind2,ind3])
 KLdist1 <- switch(family,"Gaussian"=yhat^2/2,
                          "Poisson"=(theta-yhat+yhat*(log(yhat)-log(theta))),
@@ -138,28 +174,17 @@ KLdist1 <- switch(family,"Gaussian"=yhat^2/2,
                          "Variance"=shape/2*(log(yhat)-1+1/yhat))
 bi <- switch(length(dy),bi[ind1],bi[ind1,ind2],bi[ind1,ind2,ind3])
 for(i in 1:55) pofalpha[i,k] <- mean(KLdist1 > (1+alpha[i])*KLdist0)
-#if(k>1) contour(log(alpha),h[1:k],pofalpha[,1:k]^.2,n=50,ylab="h",xlab="ln(alpha)",
-#       main=paste(family,length(dy),"-dim. ladj=",ladjust," p^(.2)"))
 if(k>1) contour(log(alpha),h[1:k],pofalpha[,1:k],levels=c(.5,.2,.1,.05,.02,.01,.005,
                 .002,.001,.0005,.0002,.0001,.00005,.00002,.00001,.000005,.000002,.000001),
                        ylab="h",xlab="ln(alpha)",
        main=paste(family,length(dy),"-dim. ladj=",ladjust," p"))
-#KLdist <- switch(family,"Gaussian"=ni*yhat^2/2,
-#                         "Poisson"=ni*(theta-yhat+yhat*(log(yhat)-log(theta))),
-#                         "Exponential"=ni*(log(yhat)-1+1/yhat),
-#                         "Bernoulli"=ni*(yhat*log(yhat/theta)+
-#                                     (1-yhat)*log((1-yhat)/(1-theta))),
-#                         "Volatility"=ni*(log(yhat)-1+1/yhat)/2,
-#                         "Variance"=ni*shape/2*(log(yhat)-1+1/yhat))
 for(i in 1:61) exceedence[i,k] <- mean(ni*KLdist1>z[i])
-#if(k>1) contour(z,h[1:k],exceedence[,1:k]^.2,n=50,ylab="h",xlab="z",
-#       main=paste(family,length(dy),"-dim. ladj=",ladjust," Exceed. Prob.^(.2)"))
 if(k>1){
 contour(z,h[1:k],exceedence[,1:k],levels=c(.5,.2,.1,.05,.02,.01,.005,
-                .002,.001,.0005,.0002,.0001,.00005,.00002,.00001,.000005,.000002,.000001),ylab="h",xlab="z",
+                .002,.001,.0005,.0002,.0001,.00005,.00002,.00001,.000005,.000002,.000001,.0000005,.0000002,.0000001),ylab="h",xlab="z",
        main=paste(family,length(dy),"-dim. ladj=",ladjust," Exceed. Prob."))
 contour(z,h[1:k],exceedencena[,1:k],levels=c(.5,.2,.1,.05,.02,.01,.005,
-                .002,.001,.0005,.0002,.0001,.00005,.00002,.00001,.000005,.000002,.000001),ylab="h",xlab="z",
+                .002,.001,.0005,.0002,.0001,.00005,.00002,.00001,.000005,.000002,.000001,.0000005,.0000002,.0000001),ylab="h",xlab="z",
        main=paste(family,length(dy),"-dim. ladj=",ladjust," Exceed. Prob."),add=TRUE,col=2,lty=3)
        }
 if (max(total) >0) {
