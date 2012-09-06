@@ -513,7 +513,7 @@ list(cpar=cpar,lambda=lambda,y=y,sigma2=sigma2,h0=h0)
 #   AWS local constant Test for propagation condition 
 #
 ##################################################################################
-awstestprop <- function(y,family,tobj,zobj,sigma2,hakt,cpar,u,propagation){
+awstestprop.old <- function(y,family,tobj,zobj,sigma2,hakt,cpar,u,propagation){
 dlw<-(2*trunc(hakt/c(1,cpar$wghts))+1)[1:cpar$d]
 if(family=="Gaussian"&length(sigma2)==cpar$n){
 # heteroskedastic Gaussian case

@@ -10,7 +10,8 @@ appropriate values for the parameter \code{lambda} in function \code{aws}.
 }
 \usage{
 awstestprop(dy, hmax, theta = 1, family = "Gaussian", lkern = "Triangle", 
-        aws = TRUE, memory = FALSE, shape = 2, homogeneous=TRUE, ladjust = 1, seed = 1)
+        aws = TRUE, memory = FALSE, shape = 2, homogeneous=TRUE, ladjust = 1, seed = 1,
+                 minlevel=1e-6,maxz=25,diffz=.5)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -44,9 +45,10 @@ Allows to specify an additional shape parameter for certain family models. Curre
     a chi-squared distribution with number of degrees of freedom given by \code{sphere}}
   \item{ladjust}{
 Factor to increase the default value of lambda }
-  \item{seed}{
-Seed value for random generator.
-}
+  \item{seed}{Seed value for random generator.}
+  \item{minlevel}{Minimum exceedence probability to use in contour plots.}
+  \item{maxz}{Maximum of z-scale in plots.}
+  \item{diffz}{Gridlength in z}
 }
 \details{
 Estimates exceedence probabilities 

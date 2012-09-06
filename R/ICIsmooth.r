@@ -13,7 +13,7 @@ kernsm<-function (y, h = 1, kern="Gaussian", m=0, nsector=1, sector=1, symmetric
        dx <- dim(x)
        if(is.null(dx)) dx <- length(x)
        d <- length(dx)
-       if(length(h)<d) h <- rep(h[1],d)
+       if(length(h)<d) h <- pmax(.01,rep(h[1],d))
 #      zero-padding
        dx1 <- nextn(dx+2*h)
        ddx <- (dx1-dx)%/%2

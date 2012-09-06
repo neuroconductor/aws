@@ -691,7 +691,7 @@ C  first stochastic term
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,si2,vred,n1,n2,n3,hakt2,hakt,hmax2
 C$OMP& ,lwght,wght,y)
-C$OMP& FIRSTPRIVATE(ih1,ih2,model,dlw1,clw1,dlw2,clw2,dlw3,clw3)                        
+C$OMP& FIRSTPRIVATE(ih1,ih2,model,dlw1,clw1,dlw2,clw2,dlw3,clw3)
 C$OMP& PRIVATE(iind,swj,swj2,swjy,sv1,sv2,i1,i2,i3,wj
 C$OMP& ,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2
 C$OMP& ,j1,jw1,jind,z1)

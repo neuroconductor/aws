@@ -1,8 +1,13 @@
 awstestprop <- function(dy,hmax,theta=1,family="Gaussian",
                  lkern="Triangle",aws=TRUE,memory=FALSE,shape=2,
-                 homogeneous=TRUE,ladjust=1,seed=1){
+                 homogeneous=TRUE,varadapt=FALSE,ladjust=1,seed=1,
+                 minlevel=1e-6,maxz=25,diffz=.5){
 if(length(dy)>3) return("maximum array dimension is 3")
 nnn <- prod(dy)
+if(minlevel < 5/nnn) {
+minlevel <- 5/nn
+cat("minlevel reset to",minlevel,"due to insufficient size of test sample\n")
+}
 set.seed(seed)
 par(mfrow=c(1,2),mar=c(3,3,3,1),mgp=c(2,1,0))
 y <- array(switch(family,"Gaussian"=rnorm(nnn),
@@ -11,8 +16,11 @@ y <- array(switch(family,"Gaussian"=rnorm(nnn),
                          "Bernoulli"=rbinom(nnn,1,theta),
                          "Volatility"=rnorm(nnn),
                          "Variance"=rchisq(nnn,shape)/shape),dy)
-z <- seq(0,30,.5)
+z <- seq(0,maxz,diffz)
 alpha <- exp(seq(-10,3.5,.25))
+elevel <- trunc(log(1e-6,10))
+levels <- as.vector(outer(c(.5,.2,.1),10^(-0:elevel)))
+levels <- levels[levels>=minlevel]
 wghts <- switch(length(dy),c(0,0),c(1,0),c(1,1))
 cpar<-setawsdefaults(dy,mean(y),family,lkern,"Uniform",aws,memory,ladjust,hmax,shape,wghts)
 lambda <- cpar$lambda
@@ -40,8 +48,8 @@ kstar <- cpar$kstar
 h <- numeric(kstar)
 if(k>1) h[1:(k-1)] <- 1+(0:(k-2))*.001
 fix <- rep(FALSE,n)
-exceedence  <- exceedencena  <- matrix(0,61,kstar) # this is used to store exceedence probabilities for adaptive and nonadaptive estimates
-pofalpha <- matrix(0,55,kstar) # this is used to store exceedence probabilities 
+exceedence  <- exceedencena  <- matrix(0,length(z),kstar) # this is used to store exceedence probabilities for adaptive and nonadaptive estimates
+pofalpha <- matrix(0,length(alpha),kstar) # this is used to store exceedence probabilities 
 zobj<-zobj0<-list(ai=y, bi0= rep(1,n), bi=rep(1,n),theta= y/shape)
 hhom <- rep(1,n)
 lambda0<-1e50
@@ -109,7 +117,7 @@ KLdist0 <- switch(family,"Gaussian"=yhat0^2/2,
                                      (1-yhat0)*log((1-yhat0)/(1-theta))),
                          "Volatility"=(log(yhat0)-1+1/yhat0)/2,
                          "Variance"=shape/2*(log(yhat0)-1+1/yhat0))
-for(i in 1:61) exceedencena[i,k] <- mean(ni*KLdist0>z[i])
+for(i in 1:length(z)) exceedencena[i,k] <- mean(ni*KLdist0>z[i])
 #
 #   get adaptive estimate
 #
@@ -160,6 +168,7 @@ dim(zobj$ai)<-dy
 biold <- zobj$bi0
 zobj$theta <-zobj$ai/zobj$bi
 dim(zobj$theta)<-dy
+if(varadapt) zobj$bi <- zobj$bi^2/zobj$bi2
 dim(zobj$bi)<-dy
 lambda0 <- lambda
 yhat <- zobj$theta
@@ -173,30 +182,28 @@ KLdist1 <- switch(family,"Gaussian"=yhat^2/2,
                          "Volatility"=(log(yhat)-1+1/yhat)/2,
                          "Variance"=shape/2*(log(yhat)-1+1/yhat))
 bi <- switch(length(dy),bi[ind1],bi[ind1,ind2],bi[ind1,ind2,ind3])
-for(i in 1:55) pofalpha[i,k] <- mean(KLdist1 > (1+alpha[i])*KLdist0)
-if(k>1) contour(log(alpha),h[1:k],pofalpha[,1:k],levels=c(.5,.2,.1,.05,.02,.01,.005,
-                .002,.001,.0005,.0002,.0001,.00005,.00002,.00001,.000005,.000002,.000001),
+for(i in 1:length(alpha)) pofalpha[i,k] <- mean(KLdist1 > (1+alpha[i])*KLdist0)
+if(k>1) contour(log(alpha),h[1:k],pofalpha[,1:k],levels=levels,
                        ylab="h",xlab="ln(alpha)",
        main=paste(family,length(dy),"-dim. ladj=",ladjust," p"))
-for(i in 1:61) exceedence[i,k] <- mean(ni*KLdist1>z[i])
+for(i in 1:length(z)) exceedence[i,k] <- mean(ni*KLdist1>z[i])
 if(k>1){
-contour(z,h[1:k],exceedence[,1:k],levels=c(.5,.2,.1,.05,.02,.01,.005,
-                .002,.001,.0005,.0002,.0001,.00005,.00002,.00001,.000005,.000002,.000001,.0000005,.0000002,.0000001),ylab="h",xlab="z",
+contour(z,h[1:k],exceedence[,1:k],levels=levels,ylab="h",xlab="z",
        main=paste(family,length(dy),"-dim. ladj=",ladjust," Exceed. Prob."))
-contour(z,h[1:k],exceedencena[,1:k],levels=c(.5,.2,.1,.05,.02,.01,.005,
-                .002,.001,.0005,.0002,.0001,.00005,.00002,.00001,.000005,.000002,.000001,.0000005,.0000002,.0000001),ylab="h",xlab="z",
+contour(z,h[1:k],exceedencena[,1:k],levels=levels,ylab="h",xlab="z",
        main=paste(family,length(dy),"-dim. ladj=",ladjust," Exceed. Prob."),add=TRUE,col=2,lty=3)
        }
 if (max(total) >0) {
       cat(signif(total[k],2)*100,"% . ",sep="")
      }
 tpar <- if(family%in%c("Bernoulli","Poisson"))  paste("theta=",theta) else  ""
-cat(family,"(dim:",length(dy),tpar,") ni=",ni,"e-prob:",signif(exceedence[4*(1:15)+1,k],3),"\n")
-cat("p",signif(pofalpha[5*(1:11),k],3),"\n")
+cat(family,"(dim:",length(dy),tpar,") ni=",ni,"\n")
+#cat(family,"(dim:",length(dy),tpar,") ni=",ni,"e-prob:",signif(exceedence[4*(1:15)+1,k],3),"\n")
+#cat("p",signif(pofalpha[,k],3),"\n")
 cat("Quantile KLdist0 (.5,.75,.9,.95,.99,.995,.999,1)",signif(quantile(KLdist0,c(.5,.75,.9,.95,.99,.995,.999,1)),3),"\n")
 cat("Quantile KLdist1 (.5,.75,.9,.95,.99,.995,.999,1)",signif(quantile(KLdist1,c(.5,.75,.9,.95,.99,.995,.999,1)),3),"\n")
 k <- k+1
 gc()
 }
-list(h=h,z=z,prob=exceedence,probna=exceedencena,pofalpha=pofalpha)
+list(h=h,z=z,prob=exceedence,probna=exceedencena,pofalpha=pofalpha,levels=levels,alpha=alpha)
 }
