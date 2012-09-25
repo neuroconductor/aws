@@ -9,4 +9,4 @@ export(aws,lpaws,aws.irreg,aws.gaussian,aws.segment)
 export(awsdata,binning)
 export(awstestprop)
 export(kernsm,ICIsmooth,ICIcombined)
-export(setCores)
+

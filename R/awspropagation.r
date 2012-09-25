@@ -5,7 +5,7 @@ awstestprop <- function(dy,hmax,theta=1,family="Gaussian",
 if(length(dy)>3) return("maximum array dimension is 3")
 nnn <- prod(dy)
 if(minlevel < 5/nnn) {
-minlevel <- 5/nn
+minlevel <- 5/nnn
 cat("minlevel reset to",minlevel,"due to insufficient size of test sample\n")
 }
 set.seed(seed)

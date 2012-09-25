@@ -69,7 +69,7 @@ C$OMP& PRIVATE(iind,thetai,bii,bii0,swj
 C$OMP& ,swj2,swj0,swjy,sij,i1,wj
 C$OMP& ,j2,jw2,jind2,z2,jwind2
 C$OMP& ,j1,jw1,jind)
-C$OMP DO SCHEDULE(DYNAMIC,1)
+C$OMP DO SCHEDULE(GUIDED)
          DO i1=1,n1
             iind=i1+(i2-1)*n1
             if(.not.mask(iind)) CYCLE
@@ -196,7 +196,7 @@ C$OMP& PRIVATE(iind,thetai,bii,bii0,swj
 C$OMP& ,swj2,swj0,swjy,sij,sv1,sv2,i1,wj,wj0
 C$OMP& ,j2,jw2,jind2,z2,jwind2
 C$OMP& ,j1,jw1,jind)
-C$OMP DO SCHEDULE(DYNAMIC,1)
+C$OMP DO SCHEDULE(GUIDED)
              DO i1=1,n1
                iind=i1+(i2-1)*n1
                if(.not.mask(iind)) CYCLE

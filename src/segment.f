@@ -111,99 +111,95 @@ C we need to assign a value to segment before we can fix the decision
       END DO
       END IF
 C$OMP PARALLEL DEFAULT(NONE)
-C$OMP& SHARED(thetan,bi,bi0,bi2,si2,n1,n2,n3,theta,kern,hakt
-C$OMP& ,lwght,y,fix,vred,gi,segm,segmn,pvalue,varest)
-C$OMP& FIRSTPRIVATE(lambda,aws,beta,fov,a,b,hakt2,n12,wght1,wght2
-C$OMP& ,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,thresh,ih1,ih2)
-C$OMP& PRIVATE(iind,bii,bii0,swj,thi,cofh,segmi,pvi
-C$OMP& ,swj2,swj0,swjy,si,sij,sv1,sv2,i1,i2,i3,wj
-C$OMP& ,j3,jw3,jind3,z3,jwind3
-C$OMP& ,j2,jw2,jind2,z2,jwind2
-C$OMP& ,j1,jw1,jind,z1,z,si2j)
+C$OMP& SHARED(thetan,bi,bi0,bi2,si2,n1,n2,n3,theta,kern,hakt,
+C$OMP& lwght,y,fix,vred,gi,segm,segmn,pvalue,varest)
+C$OMP& FIRSTPRIVATE(lambda,aws,beta,fov,a,b,hakt2,n12,wght1,wght2,
+C$OMP& spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,thresh,ih1,ih2)
+C$OMP& PRIVATE(iind,bii,bii0,swj,thi,cofh,segmi,pvi,
+C$OMP& swj2,swj0,swjy,si,sij,sv1,sv2,i1,i2,i3,wj,j3,jw3,jind3,z3,
+C$OMP& jwind3,j2,jw2,jind2,z2,jwind2,j1,jw1,jind,z1,z,si2j)
 C$OMP DO SCHEDULE(GUIDED)
-      DO i1=1,n1
-         DO i2=1,n2
-             DO i3=1,n3
-               iind=i1+(i2-1)*n1+(i3-1)*n12
-               segmi=segm(iind)
-               pvi=pvalue(iind)
-               IF (fix(iind)) CYCLE
+      DO iind=1,n1*n2*n3
+         i1=mod(iind,n1)
+         if(i1.eq.0) i1=n1
+         i2=mod((iind-i1)/n1+1,n2)
+         if(i2.eq.0) i2=n2
+         i3=(iind-i1-(i2-1)*n1)/n1/n2+1         
+         segmi=segm(iind)
+         pvi=pvalue(iind)
+         IF (fix(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
-               thi=theta(iind)
-               bii=bi(iind)/lambda
+         thi=theta(iind)
+         bii=bi(iind)/lambda
 C   scaling of sij outside the loop
-               bii0=bi0(iind)
-               swj=0.d0
-               swj2=0.d0
-               swj0=0.d0
-               swjy=0.d0
-               sv1=0.d0
-               sv2=0.d0
-               DO jw3=1,dlw3
-                  j3=jw3-clw3+i3
-                  if(j3.lt.1.or.j3.gt.n3) CYCLE
-                  jind3=(j3-1)*n12
-                  z3=(clw3-jw3)*wght2
-                  z3=z3*z3
-                  if(n2.gt.1) ih2=sqrt(hakt2-z3)/wght1
-                  jwind3=(jw3-1)*dlw1*dlw2
-                  DO jw2=clw2-ih2,clw2+ih2
-                     j2=jw2-clw2+i2
-                     if(j2.lt.1.or.j2.gt.n2) CYCLE
-                     jind2=(j2-1)*n1+jind3
-                     z2=(clw2-jw2)*wght1
-                     z2=z3+z2*z2
-                     ih1=sqrt(hakt2-z2)
-                     jwind2=jwind3+(jw2-1)*dlw1
-                     DO jw1=clw1-ih1,clw1+ih1
+         bii0=bi0(iind)
+         swj=0.d0
+         swj2=0.d0
+         swj0=0.d0
+         swjy=0.d0
+         sv1=0.d0
+         sv2=0.d0
+         DO jw3=1,dlw3
+            j3=jw3-clw3+i3
+            if(j3.lt.1.or.j3.gt.n3) CYCLE
+            jind3=(j3-1)*n12
+            z3=(clw3-jw3)*wght2
+            z3=z3*z3
+            if(n2.gt.1) ih2=sqrt(hakt2-z3)/wght1
+            jwind3=(jw3-1)*dlw1*dlw2
+            DO jw2=clw2-ih2,clw2+ih2
+               j2=jw2-clw2+i2
+               if(j2.lt.1.or.j2.gt.n2) CYCLE
+               jind2=(j2-1)*n1+jind3
+               z2=(clw2-jw2)*wght1
+               z2=z3+z2*z2
+               ih1=sqrt(hakt2-z2)
+               jwind2=jwind3+(jw2-1)*dlw1
+               DO jw1=clw1-ih1,clw1+ih1
 C  first stochastic term
-                        j1=jw1-clw1+i1
-                        if(j1.lt.1.or.j1.gt.n1) CYCLE
-                        jind=j1+jind2
-                        wj=lwght(jw1+jwind2)
-                        swj0=swj0+wj*si2(jind)
-                        IF (aws) THEN
+                  j1=jw1-clw1+i1
+                  if(j1.lt.1.or.j1.gt.n1) CYCLE
+                  jind=j1+jind2
+                  wj=lwght(jw1+jwind2)
+                  swj0=swj0+wj*si2(jind)
+                  IF (aws) THEN
 C
 C      gaussian case only
 C
-                           z=(thi-theta(jind))
-                           sij=bii*z*z
-                           IF(segmi*segm(jind).gt.0)
-     1                        sij=max(pvi,pvalue(jind))*sij
-                           IF (sij.gt.1.d0) CYCLE
-                           IF (sij.gt.spmin) THEN
-                               wj=wj*(1.d0-spf*(sij-spmin))
-                           END IF
-                        END IF
-                        sv1=sv1+wj
-                        sv2=sv2+wj*wj
-                        si2j=si2(jind)*wj
-                        swj=swj+si2j
-                        swj2=swj2+wj*si2j
-                        swjy=swjy+si2j*y(jind)
-                     END DO
-                  END DO
+                     z=(thi-theta(jind))
+                     sij=bii*z*z
+                     IF(segmi*segm(jind).gt.0)
+     1                  sij=max(pvi,pvalue(jind))*sij
+                     IF (sij.gt.1.d0) CYCLE
+                     IF (sij.gt.spmin) wj=wj*(1.d0-spf*(sij-spmin))
+                  END IF
+                  sv1=sv1+wj
+                  sv2=sv2+wj*wj
+                  si2j=si2(jind)*wj
+                  swj=swj+si2j
+                  swj2=swj2+wj*si2j
+                  swjy=swjy+si2j*y(jind)
                END DO
-               thetan(iind)=swjy/swj
-               bi(iind)=swj
-               bi2(iind)=swj2
-               bi0(iind)=swj0
-               si=swj2/swj/swj
-               varest(iind)=si
-               cofh = sqrt(beta*log(si*si2(iind)*fov))
-C    both are equivalent for  homogeneous si2
-               si=sqrt(si)
-               IF((thi-a)/si+cofh.lt.-thresh) THEN
-                  segmn(iind)=-1
-               ELSE IF ((thi-b)/si-cofh.gt.thresh) THEN
-                  segmn(iind)=1
-               ELSE
-                  segmn(iind)=0
-               END IF               
-               gi(iind)=sv1
-               vred(iind)=sv2/sv1/sv1
             END DO
          END DO
+         thetan(iind)=swjy/swj
+         bi(iind)=swj
+         bi2(iind)=swj2
+         bi0(iind)=swj0
+         si=swj2/swj/swj
+         varest(iind)=si
+         cofh = sqrt(beta*log(si*si2(iind)*fov))
+C    both are equivalent for  homogeneous si2
+         si=sqrt(si)
+         IF((thi-a)/si+cofh.lt.-thresh) THEN
+            segmn(iind)=-1
+         ELSE IF ((thi-b)/si-cofh.gt.thresh) THEN
+            segmn(iind)=1
+         ELSE
+            segmn(iind)=0
+         END IF               
+         gi(iind)=sv1
+         vred(iind)=sv2/sv1/sv1
       END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
