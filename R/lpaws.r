@@ -255,6 +255,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
   #   run single steps to display intermediate results
   #
   k0 <- k-1
+  mc.cores <- setCores(,reprt=FALSE)
   while (k<=kstar) {
     hakt0 <- gethani(1,10,lkern,1.25^(k-1),wghts,1e-4)
     hakt <- gethani(1,10,lkern,1.25^k,wghts,1e-4)
@@ -282,9 +283,9 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
                        as.integer(lkern),
                        as.double(0.25),
                        double(twohp1),# array for location weights
-                       double(twohp1),# array for general weights
+                       double(twohp1*mc.cores),# array for general weights
                        double(twohhwp1),# array for smoothed location weights
-                       double(twohhwp1),# array for smoothed general weights
+                       double(twohhwp1*mc.cores),# array for smoothed general weights
                        as.integer(ind),
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")],
                      .Fortran("awsph2",
@@ -307,9 +308,9 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
                        as.integer(lkern),
                        as.double(0.25),
                        double(twohp1*twohp1),# array for location weights
-                       double(twohp1*twohp1),# array for general weights
+                       double(twohp1*twohp1*mc.cores),# array for general weights
                        double(twohhwp1*twohhwp1),# array for smoothed location weights
-                       double(twohhwp1*twohhwp1),# array for smoothed general weights
+                       double(twohhwp1*twohhwp1*mc.cores),# array for smoothed general weights
                        as.integer(ind),
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")])
     } else {
@@ -332,9 +333,9 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
                        as.integer(lkern),
                        as.double(0.25),
                        double(twohp1),# array for location weights
-                       double(twohp1),# array for general weights
+                       double(twohp1*mc.cores),# array for general weights
                        double(twohhwp1),# array for smoothed location weights
-                       double(twohhwp1),# array for smoothed general weights
+                       double(twohhwp1*mc.cores),# array for smoothed general weights
                        as.integer(ind),
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")],
                      .Fortran("awsp2",
@@ -356,9 +357,9 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
                        as.integer(lkern),
                        as.double(0.25),
                        double(twohp1*twohp1),# array for location weights
-                       double(twohp1*twohp1),# array for general weights
+                       double(twohp1*twohp1*mc.cores),# array for general weights
                        double(twohhwp1*twohhwp1),# array for smoothed location weights
-                       double(twohhwp1*twohhwp1),# array for smoothed general weights
+                       double(twohhwp1*twohhwp1*mc.cores),# array for smoothed general weights
                        as.integer(ind),
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom","fix")])
     }

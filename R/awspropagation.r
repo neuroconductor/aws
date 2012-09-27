@@ -9,7 +9,7 @@ minlevel <- 5/nnn
 cat("minlevel reset to",minlevel,"due to insufficient size of test sample\n")
 }
 set.seed(seed)
-par(mfrow=c(1,2),mar=c(3,3,3,1),mgp=c(2,1,0))
+par(mfrow=c(1,2),mar=c(3,3,3,3),mgp=c(2,1,0))
 y <- array(switch(family,"Gaussian"=rnorm(nnn),
                          "Poisson"=rpois(nnn,theta),
                          "Exponential"=rexp(nnn,1),
@@ -44,6 +44,7 @@ n2 <- switch(d,1,dy[2],dy[2])
 n3 <- switch(d,1,1,dy[3])
 maxvol <- cpar$maxvol
 k <- cpar$k
+# why not k <- 1  ???
 kstar <- cpar$kstar
 h <- numeric(kstar)
 if(k>1) h[1:(k-1)] <- 1+(0:(k-2))*.001
@@ -183,15 +184,24 @@ KLdist1 <- switch(family,"Gaussian"=yhat^2/2,
                          "Variance"=shape/2*(log(yhat)-1+1/yhat))
 bi <- switch(length(dy),bi[ind1],bi[ind1,ind2],bi[ind1,ind2,ind3])
 for(i in 1:length(alpha)) pofalpha[i,k] <- mean(KLdist1 > (1+alpha[i])*KLdist0)
-if(k>1) contour(log(alpha),h[1:k],pofalpha[,1:k],levels=levels,
-                       ylab="h",xlab="ln(alpha)",
+if(k>1) {
+contour(log(alpha),1:k,pofalpha[,1:k],levels=levels,
+                       ylab="step",xlab="ln(alpha)",
        main=paste(family,length(dy),"-dim. ladj=",ladjust," p"))
+       yaxp <- par("yaxp")
+       at <- unique(as.integer(seq(yaxp[1],yaxp[2],length=yaxp[3]+1)))
+       at <- at[at>0&at<=k]
+       axis(4,at=at,labels=as.character(signif(h[at],3)))
+       mtext("bandwidth",4,1.8)
+}
 for(i in 1:length(z)) exceedence[i,k] <- mean(ni*KLdist1>z[i])
 if(k>1){
-contour(z,h[1:k],exceedence[,1:k],levels=levels,ylab="h",xlab="z",
+contour(z,1:k,exceedence[,1:k],levels=levels,ylab="step",xlab="z",
        main=paste(family,length(dy),"-dim. ladj=",ladjust," Exceed. Prob."))
-contour(z,h[1:k],exceedencena[,1:k],levels=levels,ylab="h",xlab="z",
+contour(z,1:k,exceedencena[,1:k],levels=levels,ylab="step",xlab="z",
        main=paste(family,length(dy),"-dim. ladj=",ladjust," Exceed. Prob."),add=TRUE,col=2,lty=3)
+       axis(4,at=at,labels=as.character(signif(h[at],2)))
+       mtext("bandwidth",4,1.8)
        }
 if (max(total) >0) {
       cat(signif(total[k],2)*100,"% . ",sep="")

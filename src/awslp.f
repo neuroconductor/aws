@@ -33,11 +33,13 @@ C
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmin,
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),hhom(n,2)
       integer ih,j1,k,iind,jind,dlw,clw,jw1,
-     2        dp1,dp2,ihs,csw,dsw,l
+     2        dp1,dp2,ihs,csw,dsw,l,thrednr,trl,trs
       real*8 bii(5),sij,swj(5),swj2(5),swj0(5),swjy(5),z1,wj,
      1       hakt2,thij(3),thi(3),zz(5),lwj,yj,hs2,hs,z,cc,spf,
      2       hhommax,hhommin,az1,hfixmax,hnfix,ssij,spmax,
      3       hhomimin,hhomimax
+      integer omp_get_thread_num
+      external omp_get_thread_num
 C   arrays with variable length are organized as 
 C   theta(n,dp1)
 C   bi(n,dp2)
@@ -76,8 +78,21 @@ C   compute location weights first
       cc=0.0d0
       call smwghts1(lw,hakt,hw,slw,dlw,dsw,cc)
 C  now stochastic term
-      zz(1)=1.d0
+C$OMP PARALLEL DEFAULT(NONE)
+C$OMP& SHARED(y,fix,nfix,n,degr,hw,hakt,hhom,lambda,theta,
+C$OMP&        bi,bi2,bi0,ai,kern,spmin,lw,w,slw,sw,ind)
+C$OMP& FIRSTPRIVATE(aws,lfix,hnfix,ih,spf,spmax,dp1,dp2,hakt2,dlw,clw,
+C$OMP&        hs2,hs,ihs,csw,dsw)
+C$OMP& PRIVATE(j1,k,iind,jind,jw1,l,bii,sij,swj,swj2,swj0,swjy,z1,
+C$OMP&         wj,thij,thi,zz,lwj,yj,z,cc,hhommax,hhommin,az1,hfixmax, 
+C$OMP&         ssij,hhomimin,hhomimax,thrednr,trl,trs)
+C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n
+         thrednr = omp_get_thread_num()
+C         call intpr("nr of core",10,thrednr,1)
+         trl = thrednr*dlw
+         trs = thrednr*dsw
+         zz(1)=1.d0
          IF (fix(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
          hhomimin=hhom(iind,1)
@@ -93,7 +108,7 @@ C    nothing to do, final estimate is already fixed by control
          END DO
 C   scaling of sij outside the loop
          DO jw1=1,dlw
-            w(jw1)=0.d0
+            w(jw1+trl)=0.d0
             jind=jw1-clw+iind
             if(jind.lt.1.or.jind.gt.n) CYCLE
             wj=lw(jw1)
@@ -121,17 +136,17 @@ C
                   hfixmax=max(hfixmax,az1)
                   IF (sij.gt.spmin) THEN
                       ssij=1.d0-spf*(sij-spmin)
-                      w(jw1)=wj*ssij
+                      w(jw1+trl)=wj*ssij
                       if(z1.gt.0) THEN
                          hhommax=min(hhommax,az1)
                       ELSE
                          hhommin=min(hhommin,az1)
                       END IF
                   ELSE 
-                     w(jw1)=wj
+                     w(jw1+trl)=wj
                   END IF
                ELSE 
-                  w(jw1)=0.d0
+                  w(jw1+trl)=0.d0
                   if(z1.gt.0) THEN
                      hhommax=min(hhommax,az1)
                   ELSE
@@ -139,7 +154,7 @@ C
                   END IF
                END IF
             ELSE
-               w(jw1)=wj
+               w(jw1+trl)=wj
             END IF
          END DO
 C
@@ -148,12 +163,12 @@ C
          z=0.d0
          DO jw1=1,dlw
             if(jw1.eq.clw) CYCLE
-               z=z+w(jw1)
+               z=z+w(jw1+trl)
          END DO
          z=(2.d0-z/2.d0)*hw-1+z/2.d0
          z=max(.1d0,min(z,hw))
          cc=min(z-1.d0,1.d0/hakt)
-         call smwghts1(w,hakt,z,sw,dlw,dsw,cc)
+         call smwghts1(w(1+trl),hakt,z,sw(1+trs),dlw,dsw,cc)
          DO k=1,dp2
             swj(k)=0.d0
             swj2(k)=0.d0
@@ -167,7 +182,7 @@ C
             if(j1.lt.1.or.j1.gt.n) CYCLE
             z1=jw1-csw
             lwj=slw(jw1)
-            wj=sw(jw1)
+            wj=sw(jw1+trs)
             if(lwj.le.0.d0.and.wj.le.0.d0) CYCLE  
             zz(2)=z1
             zz(3)=z1*z1
@@ -193,7 +208,7 @@ C
             if(j1.lt.1.or.j1.gt.n) CYCLE
             z1=jw1-csw
             lwj=slw(jw1)
-            wj=sw(jw1)
+            wj=sw(jw1+trs)
             if(lwj.le.0.d0.and.wj.le.0.d0) CYCLE  
             zz(2)=z1
             zz(3)=z1*z1
@@ -227,8 +242,10 @@ C
          if(lfix.and.hakt-hfixmax.ge.hnfix) THEN
             fix(iind)=.TRUE.
          END IF
-         call rchkusr()
       END DO
+C$OMP END DO NOWAIT
+C$OMP END PARALLEL
+C$OMP FLUSH(ai,bi,bi0,bi2,hhom)
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -266,10 +283,12 @@ C
       real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,hhom(1),
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),si(1),spmin
       integer ih,j1,k,iind,jind,dlw,clw,jw1,
-     2        dp1,dp2,ihs,csw,dsw,l
+     2        dp1,dp2,ihs,csw,dsw,l,thrednr,trl,trs
       real*8 bii(5),sij,swj(5),swj2(5),swj0(5),swjy(5),z1,wj,
      1       hakt2,thij(3),thi(3),zz(5),lwj,yj,hs2,hs,z,cc,spf,hhomi,
      2       hhommax,az1,hfixmax,hnfix
+      integer omp_get_thread_num
+      external omp_get_thread_num
 C   arrays with variable length are organized as 
 C   theta(n,dp1)
 C   bi(n,dp2)
@@ -307,10 +326,22 @@ C   compute location weights first
       cc=0.0d0
       call smwghts1(lw,hakt,hw,slw,dlw,dsw,cc)
 C  now stochastic term
-      zz(1)=1.d0
+C$OMP PARALLEL DEFAULT(NONE)
+C$OMP& SHARED(y,si,fix,nfix,n,degr,hw,hakt,hhom,lambda,theta,
+C$OMP&        bi,bi2,bi0,ai,kern,spmin,lw,w,slw,sw,ind)
+C$OMP& FIRSTPRIVATE(aws,lfix,hnfix,ih,spf,spmax,dp1,dp2,hakt2,dlw,clw,
+C$OMP&        hs2,hs,ihs,csw,dsw)
+C$OMP& PRIVATE(j1,k,iind,jind,jw1,l,bii,sij,swj,swj2,swj0,swjy,z1,
+C$OMP&         wj,thij,thi,zz,lwj,yj,z,cc,hhommax,hhommin,az1,hfixmax, 
+C$OMP&         ssij,hhomi,hhomimin,hhomimax,thrednr,trl,trs)
+C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n
          IF (fix(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
+         thrednr = omp_get_thread_num()
+         trl = thrednr*dlw
+         trs = thrednr*dsw
+         zz(1)=1.d0
          hhomi=hhom(iind)
          hhomi=hhomi
          hhommax=hakt
@@ -323,7 +354,7 @@ C    nothing to do, final estimate is already fixed by control
          END DO
 C   scaling of sij outside the loop
          DO jw1=1,dlw
-            w(jw1)=0.d0
+            w(jw1+trl)=0.d0
             jind=jw1-clw+iind
             if(jind.lt.1.or.jind.gt.n) CYCLE
             wj=lw(jw1)*si(jind)
@@ -350,17 +381,17 @@ C
                IF (sij.le.1.d0) THEN
                   hfixmax=max(hfixmax,az1)
                   IF (sij.gt.spmin) THEN
-                     w(jw1)=wj*(1.d0-spf*(sij-spmin))
+                     w(jw1+trl)=wj*(1.d0-spf*(sij-spmin))
                       hhommax=min(hhommax,az1)
                   ELSE 
-                     w(jw1)=wj
+                     w(jw1+trl)=wj
                   END IF
                ELSE 
-                  w(jw1)=0.d0
+                  w(jw1+trl)=0.d0
                   hhommax=min(hhommax,az1)
                END IF
             ELSE
-               w(jw1)=wj     
+               w(jw1+trl)=wj     
             END IF
          END DO
 C
@@ -369,12 +400,12 @@ C
          z=0.d0
          DO jw1=1,dlw
             if(jw1.eq.clw) CYCLE
-               z=z+w(jw1)
+               z=z+w(jw1+trl)
          END DO
          z=(2.d0-z/2.d0)*hw-1+z/2.d0
          z=max(.1d0,min(z,hw))
          cc=min(z-1.d0,1.d0/hakt)
-         call smwghts1(w,hakt,z,sw,dlw,dsw,cc)
+         call smwghts1(w(1+trl),hakt,z,sw(1+trs),dlw,dsw,cc)
          DO k=1,dp2
             swj(k)=0.d0
             swj2(k)=0.d0
@@ -388,7 +419,7 @@ C
             if(j1.lt.1.or.j1.gt.n) CYCLE
             z1=jw1-csw
             lwj=slw(jw1)
-            wj=sw(jw1)
+            wj=sw(jw1+trs)
             if(lwj.le.0.d0.and.wj.le.0.d0) CYCLE  
             zz(2)=z1
             zz(3)=z1*z1
@@ -421,8 +452,10 @@ C
          if(lfix.and.hakt-hfixmax.ge.hnfix) THEN
             fix(iind)=.TRUE.
          END IF
-         call rchkusr()
       END DO
+C$OMP END DO NOWAIT
+C$OMP END PARALLEL
+C$OMP FLUSH(ai,bi,bi0,bi2,hhom)
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -461,10 +494,12 @@ C
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),hhom(1)
       integer ih,ih1,i1,i2,j1,j2,k,n,
      1        iind,jind,jind2,jwind,jwind2,dlw,clw,jw1,jw2,
-     2        dp1,dp2,ihs,csw,dsw,l,dlw2
+     2        dp1,dp2,ihs,csw,dsw,l,dlw2,thrednr,trl,trs
       real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
      1       hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf,hhomi,
      2       hhommax,az1,hfixmax,hnfix
+      integer omp_get_thread_num
+      external omp_get_thread_num
 C   arrays with variable length are organized as 
 C   theta(n1,n2,dp1)
 C   bi(n1,n2,dp2)
@@ -511,13 +546,31 @@ C  first stochastic term
       cc=0.0d0
       call smwghts2(lw,hakt,hw,slw,dlw,dsw,cc)
 C  now stochastic term
-      zz(1)=1.d0
       call rchkusr()
-      DO i2=1,n2
-         DO i1=1,n1
-            iind=i1+(i2-1)*n1
+C$OMP PARALLEL DEFAULT(NONE)
+C$OMP& SHARED(y,fix,nfix,n1,n2,degr,hw,hakt,hhom,lambda,theta,
+C$OMP&        bi,bi2,bi0,ai,kern,spmin,lw,w,slw,sw,ind)
+C$OMP& FIRSTPRIVATE(aws,lfix,hnfix,ih,spf,spmax,dp1,dp2,hakt2,dlw,clw,
+C$OMP&        hs2,hs,ihs,csw,dsw,dlw2,n)
+C$OMP& PRIVATE(j1,j2,k,iind,jind,jind2,jw1,l,bii,sij,swj,swj2,swj0,
+C$OMP&         swjy,z1,wj,thij,thi,zz,lwj,yj,z,cc,hhommax,hhommin, 
+C$OMP&         az1,hfixmax,ssij,hhomimin,hhomimax,thrednr,trl,trs,
+C$OMP&         hhomi,jwind,jwind2,ih1,i1,i2,z2,wjy)
+C$OMP DO SCHEDULE(GUIDED)
+C      DO i2=1,n2
+C         DO i1=1,n1
+C            iind=i1+(i2-1)*n1
+      DO iind=1,n
+         i1=mod(iind,n1)
+         if(i1.eq.0) i1=n1
+         i2=(iind-i1)/n1+1          
             IF (fix(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
+            zz(1)=1.d0
+            thrednr = omp_get_thread_num()
+C         call intpr("nr of core",10,thrednr,1)
+            trl = thrednr*dlw2
+            trs = thrednr*dsw*dsw
             hhomi=hhom(iind)
             hhomi=hhomi*hhomi-1
             hhommax=hakt2
@@ -530,7 +583,7 @@ C    nothing to do, final estimate is already fixed by control
             END DO
 C   scaling of sij outside the loop
             DO jw1=1,dlw2
-               w(jw1)=0.d0
+               w(jw1+trl)=0.d0
             END DO
             DO jw2=1,dlw
                j2=jw2-clw+i2
@@ -581,27 +634,27 @@ C
                      IF (sij.le.1.d0) THEN
                         hfixmax=max(hfixmax,az1)
                         IF (sij.gt.spmin) THEN
-                           w(jwind)=wj*(1.d0-spf*(sij-spmin))
+                           w(jwind+trl)=wj*(1.d0-spf*(sij-spmin))
                            hhommax=min(hhommax,az1)
                         ELSE 
-                           w(jwind)=wj
+                           w(jwind+trl)=wj
                         END IF
                      ELSE 
-                        w(jwind)=0.d0
+                        w(jwind+trl)=0.d0
                         hhommax=min(hhommax,az1)
                      END IF
                   ELSE
-                     w(jwind)=wj
+                     w(jwind+trl)=wj
                   END IF
                END DO
             END DO
 C
 C      Smooth the weights
 C
-            call testwgh2(w,dlw,dp1,hw,z)
+            call testwgh2(w(1+trl),dlw,dp1,hw,z)
             z=max(.1d0,min(z,hw))
             cc=min(z-1.d0,1.d0/hakt2)
-            call smwghts2(w,hakt,z,sw,dlw,dsw,cc)
+            call smwghts2(w(1+trl),hakt,z,sw(1+trs),dlw,dsw,cc)
             DO k=1,dp2
                swj(k)=0.d0
                swj2(k)=0.d0
@@ -632,7 +685,7 @@ C
                   jwind=jw1+jwind2
                   jind=j1+jind2
                   lwj=slw(jwind)
-                  wj=sw(jwind)
+                  wj=sw(jwind+trs)
                   IF(wj.lt.0.d0.or.wj.gt.1.d0) THEN
                      wj=max(0.d0,min(1.d0,wj))
                   END IF
@@ -677,9 +730,11 @@ C
             IF(lfix.and.hakt-sqrt(hfixmax).ge.hnfix) THEN
                fix(iind)=.TRUE.
             END IF
-            call rchkusr()
-         END DO
+C         END DO
       END DO
+C$OMP END DO NOWAIT
+C$OMP END PARALLEL
+C$OMP FLUSH(ai,bi,bi0,bi2,hhom,fix)
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -718,10 +773,12 @@ C
      1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),si(1),hhom(1)
       integer ih,ih1,i1,i2,j1,j2,k,n,
      1        iind,jind,jind2,jwind,jwind2,dlw,clw,jw1,jw2,
-     2        dp1,dp2,ihs,csw,dsw,l,dlw2
+     2        dp1,dp2,ihs,csw,dsw,l,dlw2,thrednr,trl,trs
       real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
      1       hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf,hhomi,
      2       hhommax,az1,hfixmax,hnfix
+      integer omp_get_thread_num
+      external omp_get_thread_num
 C   arrays with variable length are organized as 
 C   theta(n1,n2,dp1)
 C   bi(n1,n2,dp2)
@@ -768,13 +825,31 @@ C  first stochastic term
       cc=0.0d0
       call smwghts2(lw,hakt,hw,slw,dlw,dsw,cc)
 C  now stochastic term
-      zz(1)=1.d0
       call rchkusr()
-      DO i2=1,n2
-         DO i1=1,n1
-            iind=i1+(i2-1)*n1
+C$OMP PARALLEL DEFAULT(NONE)
+C$OMP& SHARED(y,si,fix,nfix,n1,n2,degr,hw,hakt,hhom,lambda,theta,
+C$OMP&        bi,bi2,bi0,ai,kern,spmin,lw,w,slw,sw,ind)
+C$OMP& FIRSTPRIVATE(aws,lfix,hnfix,ih,spf,spmax,dp1,dp2,hakt2,dlw,clw,
+C$OMP&        hs2,hs,ihs,csw,dsw,dlw2,n)
+C$OMP& PRIVATE(j1,j2,k,iind,jind,jind2,jw1,l,bii,sij,swj,swj2,swj0,
+C$OMP&         swjy,z1,wj,thij,thi,zz,lwj,yj,z,cc,hhommax,hhommin, 
+C$OMP&         az1,hfixmax,ssij,hhomimin,hhomimax,thrednr,trl,trs,
+C$OMP&         hhomi,jwind,jwind2,ih1,i1,i2,z2,wjy)
+C$OMP DO SCHEDULE(GUIDED)
+C      DO i2=1,n2
+C         DO i1=1,n1
+C            iind=i1+(i2-1)*n1
+      DO iind=1,n
+         i1=mod(iind,n1)
+         if(i1.eq.0) i1=n1
+         i2=(iind-i1)/n1+1          
             IF (fix(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
+            zz(1)=1.d0
+            thrednr = omp_get_thread_num()
+C         call intpr("nr of core",10,thrednr,1)
+            trl = thrednr*dlw2
+            trs = thrednr*dsw*dsw
             hhomi=hhom(iind)
             hhomi=hhomi*hhomi
             hhommax=hakt2
@@ -787,7 +862,7 @@ C    nothing to do, final estimate is already fixed by control
             END DO
 C   scaling of sij outside the loop
             DO jw1=1,dlw2
-               w(jw1)=0.d0
+               w(jw1+trl)=0.d0
             END DO
             DO jw2=1,dlw
                j2=jw2-clw+i2
@@ -839,27 +914,27 @@ C
                      IF (sij.le.1.d0) THEN
                         hfixmax=max(hfixmax,az1)
                         IF (sij.gt.spmin) THEN
-                           w(jwind)=wj*(1.d0-spf*(sij-spmin))
+                           w(jwind+trl)=wj*(1.d0-spf*(sij-spmin))
                            hhommax=min(hhommax,az1)
                         ELSE 
-                           w(jwind)=wj
+                           w(jwind+trl)=wj
                         END IF
                      ELSE 
-                        w(jwind)=0.d0
+                        w(jwind+trl)=0.d0
                         hhommax=min(hhommax,az1)
                      END IF
                   ELSE
-                  w(jwind)=wj
+                  w(jwind+trl)=wj
                   END IF
                END DO
             END DO
 C
 C      Smooth the weights
 C
-            call testwgh2(w,dlw,dp1,hw,z)
+            call testwgh2(w(1+trl),dlw,dp1,hw,z)
             z=max(.1d0,min(z,hw))
             cc=min(z-1.d0,1.d0/hakt2)
-            call smwghts2(w,hakt,z,sw,dlw,dsw,cc)
+            call smwghts2(w(1+trl),hakt,z,sw(1+trs),dlw,dsw,cc)
             DO k=1,dp2
                swj(k)=0.d0
                swj2(k)=0.d0
@@ -890,7 +965,7 @@ C
                   jwind=jw1+jwind2
                   jind=j1+jind2
                   lwj=slw(jwind)*si(jind)
-                  wj=sw(jwind)*si(jind)
+                  wj=sw(jwind+trs)*si(jind)
                   if(lwj.le.0.d0.and.wj.le.0.d0) CYCLE  
                   IF(dp1.gt.1) THEN
                      zz(2)=z1
@@ -932,9 +1007,11 @@ C
             IF(lfix.and.hakt-sqrt(hfixmax).ge.hnfix) THEN
                fix(iind)=.TRUE.
             END IF
-            call rchkusr()
-         END DO
+C         END DO
       END DO
+C$OMP END DO NOWAIT
+C$OMP END PARALLEL
+C$OMP FLUSH(ai,bi,bi0,bi2,hhom,fix)
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
