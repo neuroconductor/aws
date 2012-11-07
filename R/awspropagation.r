@@ -43,8 +43,8 @@ n1 <- switch(d,n,dy[1],dy[1])
 n2 <- switch(d,1,dy[2],dy[2])
 n3 <- switch(d,1,1,dy[3])
 maxvol <- cpar$maxvol
-k <- cpar$k
-# why not k <- 1  ???
+# k <- cpar$k
+k <- 1  
 kstar <- cpar$kstar
 h <- numeric(kstar)
 if(k>1) h[1:(k-1)] <- 1+(0:(k-2))*.001
@@ -56,6 +56,23 @@ hhom <- rep(1,n)
 lambda0<-1e50
 cat("Progress:")
 total <- cumsum(1.25^(1:kstar))/sum(1.25^(1:kstar))
+#
+#  get initial conditions for a comparison
+#
+exceedence0 <- numeric(length(z))
+pofalpha0 <- rep(0,length(alpha))
+KLdist0 <- switch(family,"Gaussian"=y^2/2,
+                         "Poisson"=(theta-y+y*(log(y)-log(theta))),
+                         "Exponential"=(log(y)-1+1/y),
+                         "Bernoulli"=(y*log(y/theta)+
+                                     (1-y)*log((1-y)/(1-theta))),
+                         "Volatility"=(log(y)-1+1/y)/2,
+                         "Variance"=shape/2*(log(y)-1+1/y))
+KLdist0[is.na(KLdist0)] <- 1e8
+for(i in 1:length(z)) exceedence0[i] <- mean(KLdist0>z[i])
+#
+#  now iterate
+#
 while (k<=kstar) {
       hakt0 <- gethani(1,1.25*hmax,lkern,1.25^(k-1),wghts,1e-4)
       hakt <- gethani(1,1.25*hmax,lkern,1.25^k,wghts,1e-4)
@@ -184,8 +201,7 @@ KLdist1 <- switch(family,"Gaussian"=yhat^2/2,
                          "Variance"=shape/2*(log(yhat)-1+1/yhat))
 bi <- switch(length(dy),bi[ind1],bi[ind1,ind2],bi[ind1,ind2,ind3])
 for(i in 1:length(alpha)) pofalpha[i,k] <- mean(KLdist1 > (1+alpha[i])*KLdist0)
-if(k>1) {
-contour(log(alpha),1:k,pofalpha[,1:k],levels=levels,
+contour(log(alpha),0:k,cbind(pofalpha0,pofalpha[,1:k]),levels=levels,
                        ylab="step",xlab="ln(alpha)",
        main=paste(family,length(dy),"-dim. ladj=",ladjust," p"))
        yaxp <- par("yaxp")
@@ -193,16 +209,13 @@ contour(log(alpha),1:k,pofalpha[,1:k],levels=levels,
        at <- at[at>0&at<=k]
        axis(4,at=at,labels=as.character(signif(h[at],3)))
        mtext("bandwidth",4,1.8)
-}
 for(i in 1:length(z)) exceedence[i,k] <- mean(ni*KLdist1>z[i])
-if(k>1){
-contour(z,1:k,exceedence[,1:k],levels=levels,ylab="step",xlab="z",
+contour(z,0:k,cbind(exceedence0,exceedence[,1:k]),levels=levels,ylab="step",xlab="z",
        main=paste(family,length(dy),"-dim. ladj=",ladjust," Exceed. Prob."))
-contour(z,1:k,exceedencena[,1:k],levels=levels,ylab="step",xlab="z",
+contour(z,0:k,cbind(exceedence0,exceedencena[,1:k]),levels=levels,ylab="step",xlab="z",
        main=paste(family,length(dy),"-dim. ladj=",ladjust," Exceed. Prob."),add=TRUE,col=2,lty=3)
        axis(4,at=at,labels=as.character(signif(h[at],2)))
        mtext("bandwidth",4,1.8)
-       }
 if (max(total) >0) {
       cat(signif(total[k],2)*100,"% . ",sep="")
      }
