@@ -61,14 +61,19 @@ total <- cumsum(1.25^(1:kstar))/sum(1.25^(1:kstar))
 #
 exceedence0 <- numeric(length(z))
 pofalpha0 <- rep(0,length(alpha))
+if(family=="Bernoulli") y0 <- (10*y+1)/12
+if(family=="Poisson") y0 <- y+.1
+#
+#  this corresponds to the regularization used to avoid Inf distances
+#
 KLdist0 <- switch(family,"Gaussian"=y^2/2,
-                         "Poisson"=(theta-y+y*(log(y)-log(theta))),
+                         "Poisson"=(theta-y0+y0*(log(y0)-log(theta))),
                          "Exponential"=(log(y)-1+1/y),
-                         "Bernoulli"=(y*log(y/theta)+
-                                     (1-y)*log((1-y)/(1-theta))),
+                         "Bernoulli"=(y0*log(y0/theta)+
+                                     (1-y0)*log((1-y0)/(1-theta))),
                          "Volatility"=(log(y)-1+1/y)/2,
                          "Variance"=shape/2*(log(y)-1+1/y))
-KLdist0[is.na(KLdist0)] <- 1e8
+#KLdist0[is.na(KLdist0)] <- 1e8
 for(i in 1:length(z)) exceedence0[i] <- mean(KLdist0>z[i])
 #
 #  now iterate
@@ -171,13 +176,13 @@ zobj <- .Fortran("caws",as.double(y),
                        as.double(lambda0),
                        as.double(zobj$theta),
                        bi=as.double(zobj$bi),
-		                 bi2=double(n),
+                       bi2=double(n),
                        bi0=as.double(zobj$bi0),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
                        as.double(0.25),
-		                 double(prod(dlw)),
+                       double(prod(dlw)),
                        as.double(wghts),
                        PACKAGE="aws",DUP=TRUE)[c("bi","bi0","bi2","ai","hakt")]
 }
@@ -214,7 +219,7 @@ contour(z,0:k,cbind(exceedence0,exceedence[,1:k]),levels=levels,ylab="step",xlab
        main=paste(family,length(dy),"-dim. ladj=",ladjust," Exceed. Prob."))
 contour(z,0:k,cbind(exceedence0,exceedencena[,1:k]),levels=levels,ylab="step",xlab="z",
        main=paste(family,length(dy),"-dim. ladj=",ladjust," Exceed. Prob."),add=TRUE,col=2,lty=3)
-       axis(4,at=at,labels=as.character(signif(h[at],2)))
+       axis(4,at=at,labels=as.character(signif(h[at],3)))
        mtext("bandwidth",4,1.8)
 if (max(total) >0) {
       cat(signif(total[k],2)*100,"% . ",sep="")

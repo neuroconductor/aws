@@ -375,7 +375,7 @@ if(is.null(shape)) shape<-1
 maxvol <- getvofh(hmax,lkern,wghts)
 kstar <- as.integer(log(maxvol)/log(1.25))
 if(aws||memory) k <- switch(d,1,3,6) else k <- kstar
-if(aws) cat("Running PS with lambda=",signif(lambda,3)," hmax=",hmax,"number of iterations:",kstar-k+1," memory step",if(memory) "ON" else "OFF","\n")
+if(aws) cat("Running PS with lambda=",signif(lambda,3)," hmax=",hmax,"number of iterations:",kstar," memory step",if(memory) "ON" else "OFF","\n")
 else cat("Stagewise aggregation \n")
 list(heta=heta,tau1=tau1,tau2=tau2,lambda=lambda,hmax=hmax,d=d,mcode=mcode,shape=shape,
      aggkern=aggkern,ktau=ktau,kstar=kstar,maxvol=maxvol,k=k,lkern=lkern,wghts=wghts)
@@ -450,9 +450,12 @@ list(theta=thetanew,bi=bi,bi2=bi2,eta=eta,fix=(tobj$fix|eta==1))
 #
 ####################################################################################
 regularize <- function(zobj,family){
-if(family%in%c("Bernoulli","Poisson")){
-zobj$ai <- 1/zobj$bi+zobj$ai
-zobj$bi <- 2/zobj$bi+zobj$bi
+if(family%in%c("Bernoulli")){
+zobj$ai <- .1/zobj$bi+zobj$ai
+zobj$bi <- .2/zobj$bi+zobj$bi
+}
+if(family%in%c("Poisson")){
+zobj$ai <- 0.1/zobj$bi+zobj$ai
 }
 zobj
 } 
