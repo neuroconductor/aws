@@ -113,7 +113,7 @@ function(object, ...){
     invisible(NULL)
 })
 setMethod("plot", "aws",
-function(x, y=NULL, what="yhat", col=grey(0:255/255),zind=NULL){
+function(x, what="yhat", col=grey(0:255/255),zind=NULL){
     if(length(what)>1){
        warning("what should be a single character")
        return(invisible(NULL))
@@ -192,7 +192,7 @@ function(object, ...){
 
 
 setMethod("plot", "awssegment",
-function(x, y=NULL, what="segment", col=grey(0:255/255),zind=NULL){
+function(x, what="segment", col=grey(0:255/255),zind=NULL){
     if(length(what)>1){
        warning("what should be a single character")
        return(invisible(NULL))
@@ -265,7 +265,7 @@ function(object, ...){
     invisible(NULL)
 })
 setMethod("plot", "kernsm",
-function(x, y=NULL, what="yhat", col=grey(0:255/255),zind=NULL){
+function(x, what="yhat", col=grey(0:255/255),zind=NULL){
     if(length(what)>1){
        warning("what should be a single character")
        return(invisible(NULL))
@@ -350,7 +350,7 @@ function(object, ...){
     invisible(NULL)
 })
 setMethod("plot", "ICIsmooth",
-function(x, y, what="yhat", col=grey(0:255/255),zind=NULL, ...){
+function(x, what="yhat", col=grey(0:255/255),zind=NULL, ...){
     if(length(what)>1){
        warning("what should be a single character")
        return(invisible(NULL))
