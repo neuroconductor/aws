@@ -50,7 +50,8 @@ readline("Enter for next step")
 
 z<-aws.segment(y+size*y1,level=0,delta=delta,hmax=10,graph=FALSE,ladjust=1,ext=0)
 dim(z@theta) <- dim(z@theta)[1:3]
-ergs<-c(sum(z@theta>0&size*y1>delta),sum(z@theta>0&size*y1<=delta),sum(z@theta==0&size*y1>delta),sum(z@theta==0&size*y1<=delta))
+ergs<-c(sum(z@segment>0&size*y1>delta),sum(z@segment>0&size*y1<=delta),sum(z@segment<=0&size*y1>delta),sum(z@segment<=0&size*y1<=delta))
+names(ergs) <-c("Correct alternative","False positive","False negative","Correct hypothesis")
 print(ergs)
 readline("Enter for next step")
 
@@ -58,7 +59,7 @@ if(exists("X11")) X11(,15,6.5)
 
 truesegm <- (size*y1>delta)-(size*y1<delta)
 par(mfrow=c(4,10),mar=c(2,2,2,1),mgp=c(2,1,0))
-for(i in 1:20) image(z@theta[,,i],col=grey((0:255)/255),main=paste("Segm.res.",i))
+for(i in 1:20) image(z@segment[,,i],col=grey((0:255)/255),main=paste("Segm.res.",i))
 for(i in 1:20) image(truesegm[,,i],col=grey((0:255)/255),main=paste("True segm.",i))
 
 if(! readline("keep files and device (N/Y) :") %in% c("y","Y")){ 

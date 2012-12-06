@@ -1,10 +1,11 @@
 Package: aws
-Version: 1.9-1
-Date: 2012-11-21
+Version: 1.9-2
+Date: 2012-12-06
 Title: Adaptive Weights Smoothing
-Author: Joerg Polzehl <polzehl@wias-berlin.de>
-Maintainer: Joerg Polzehl <polzehl@wias-berlin.de>
-Depends: R (>= 2.14.0), methods, awsMethods
+Authors@R:c(person("Joerg","Polzehl",role=c("aut","cre"),email="joerg.polzehl@wias-berlin.de"),person("Felix","Anker",role=c("ctb")))
+Author: Joerg Polzehl <joerg.polzehl@wias-berlin.de>, with contributions from Felix Anker.
+Maintainer: Joerg Polzehl <joerg.polzehl@wias-berlin.de>
+Depends: R (>= 2.14.0), methods, awsMethods (>= 1.0-1)
 Description: The package contains R-functions implementing the
              Propagation-Separation Approach to adaptive smoothing as 
              described in J. Polzehl and V. Spokoiny (2006), 

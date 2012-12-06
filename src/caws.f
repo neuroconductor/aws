@@ -67,10 +67,10 @@ C     computing dlog(theta) and dlog(1.d0-theta) outside the AWS-loops
 C     will reduces computational costs at the price of readability
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      real*8 function kldist(model,thi,thj,bi0)
+      real*8 function kldist(model,thi,thj)
       implicit logical (a-z)
       integer model
-      real*8 thi,thj,z,thij,bi0,eta,tthi
+      real*8 thi,thj,z,tthi
       IF (model.eq.1) THEN
 C        Gaussian
          z=thi-thj
@@ -78,17 +78,13 @@ C        Gaussian
       ELSE IF (model.eq.2) THEN
 C        Bernoulli
          kldist=0.d0
-         eta=0.5d0/bi0
-         thij=(1.d0-eta)*thj+eta*thi
          tthi=(1.d0-thi)
-         IF (thi.gt.1.d-10) kldist=kldist+thi*log(thi/thij)
-         IF (tthi.gt.1.d-10) kldist=kldist+tthi*log(tthi/(1.d0-thij))
+         IF (thi.gt.1.d-10) kldist=kldist+thi*log(thi/thj)
+         IF (tthi.gt.1.d-10) kldist=kldist+tthi*log(tthi/(1.d0-thj))
       ELSE IF (model.eq.3) THEN
 C        Poisson
          kldist=0.d0
-         eta=0.5d0/bi0
-         thij=(1.d0-eta)*thj+eta*thi
-         IF (thi.gt.1.d-10) kldist=thi*log(thi/thij)-thi+thij
+         IF (thi.gt.1.d-10) kldist=thi*log(thi/thj)-thi+thj
       ELSE IF (model.eq.4) THEN
 C        Exponential
          kldist=thi/thj-1.d0-log(thi/thj)
@@ -190,7 +186,7 @@ C
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12
-      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0,
+      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,
      1       hmax2,hhomi,hhommax,w1,w2
       hakt2=hakt*hakt
       spf=1.d0/(1.d0-spmin)
@@ -250,7 +246,7 @@ C$OMP& SHARED(ai,bi,bi0,bi2,hhom,n1,n2,n3,hakt2,hmax2,theta,
 C$OMP& ih3,lwght,wght,y,fix)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
 C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
-C$OMP& PRIVATE(i1,i2,i3,iind,hhomi,hhommax,thetai,bii,bii0,swj,swj2,
+C$OMP& PRIVATE(i1,i2,i3,iind,hhomi,hhommax,thetai,bii,swj,swj2,
 C$OMP& swj0,swjy,sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
 C$OMP& j1,jw1,jind,z1)
 C$OMP DO SCHEDULE(GUIDED)
@@ -268,7 +264,6 @@ C    nothing to do, final estimate is already fixed by control
          thetai=theta(iind)
          bii=bi(iind)/lambda
 C   scaling of sij outside the loop
-         bii0=bi0(iind)
          swj=0.d0
          swj2=0.d0
          swj0=0.d0
@@ -299,7 +294,7 @@ C  first stochastic term
                   z1=jw1
                   z1=z2+z1*z1
                   IF (aws.and.z1.ge.hhomi) THEN
-                     sij=bii*kldist(model,thetai,theta(jind),bii0)
+                     sij=bii*kldist(model,thetai,theta(jind))
                      IF (sij.gt.1.d0) THEN
                         hhommax=min(hhommax,z1)
                         CYCLE
@@ -497,7 +492,7 @@ C
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12
-      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0,
+      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,
      1        sv1,sv2,spf,w1,w2,wjsi2
       w1=wght(1)
       w2=wght(2)
@@ -555,7 +550,7 @@ C$OMP& SHARED(ai,bi,bi0,bi2,si2,vred,n1,n2,n3,hakt2,hakt,theta
 C$OMP& ,lwght,wght,y,fix)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,dlw12,n12
 C$OMP& ,model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,w1,w2)
-C$OMP& PRIVATE(iind,thetai,bii,bii0,swj
+C$OMP& PRIVATE(iind,thetai,bii,swj
 C$OMP& ,swj2,swj0,swjy,sij,sv1,sv2,i1,i2,i3,wj
 C$OMP& ,j3,jw3,jind3,z3,jwind3
 C$OMP& ,j2,jw2,jind2,z2,jwind2
@@ -572,7 +567,6 @@ C    nothing to do, final estimate is already fixed by control
          thetai=theta(iind)
          bii=bi(iind)/lambda
 C   scaling of sij outside the loop
-         bii0=bi0(iind)
          swj=0.d0
          swj2=0.d0
          swj0=0.d0
@@ -603,7 +597,7 @@ C  first stochastic term
                   wj=lwght(jw1+clw1+1+jwind2)
                   swj0=swj0+wj*si2(jind)      
                   IF (aws) THEN
-                     sij=bii*kldist(model,thetai,theta(jind),bii0)
+                     sij=bii*kldist(model,thetai,theta(jind))
                      IF (sij.gt.1.d0) CYCLE
                      IF (sij.gt.spmin) wj=wj*(1.d0-spf*(sij-spmin))
                   END IF
@@ -796,7 +790,7 @@ C
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12
-      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,bii0,
+      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,
      1        sv1,sv2,spf,z,hhomi,hhommax,hmax2,w1,w2
       hakt2=hakt*hakt
       spf=1.d0/(1.d0-spmin)
@@ -856,7 +850,7 @@ C$OMP& SHARED(ai,bi,bi0,bi2,si2,hhom,n1,n2,n3,hakt2,hmax2,theta
 C$OMP& ,lwght,wght,y,fix,mask,vred,gi)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,dlw12
 C$OMP& ,model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,w1,w2)
-C$OMP& PRIVATE(iind,hhomi,hhommax,thetai,bii,bii0,swj
+C$OMP& PRIVATE(iind,hhomi,hhommax,thetai,bii,swj
 C$OMP& ,swj2,swj0,swjy,sij,sv1,sv2,i1,i2,i3,wj
 C$OMP& ,j3,jw3,jind3,z3,jwind3
 C$OMP& ,j2,jw2,jind2,z2,jwind2
@@ -876,7 +870,6 @@ C    nothing to do, final estimate is already fixed by control
          thetai=theta(iind)
          bii=bi(iind)/lambda
 C   scaling of sij outside the loop
-         bii0=bi0(iind)
          swj=0.d0
          swj2=0.d0
          swj0=0.d0

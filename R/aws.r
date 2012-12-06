@@ -83,7 +83,6 @@ kstar <- cpar$kstar
 tobj<-list(bi= rep(1,n), bi2= rep(1,n), theta= y/shape, fix=rep(FALSE,n))
 zobj<-list(ai=y, bi0= rep(1,n))
 hhom <- rep(1,n)
-biold<-rep(1,n)
 if(family=="Gaussian"&length(sigma2)==n) vred<-rep(1,n)
 mae<-NULL
 lambda0<-1e50 # that removes the stochstic term for the first step, Initialization by kernel estimates
@@ -123,9 +122,9 @@ zobj <- .Fortran("chaws",as.double(y),
                        as.double(lambda0),
                        as.double(tobj$theta),
                        bi=as.double(tobj$bi),
-		                 bi2=double(n),
-                       bi0=as.double(zobj$bi0),
-		                 vred=double(n),
+                       bi2=double(n),
+                       bi0=double(n),
+                       vred=double(n),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
@@ -146,8 +145,8 @@ zobj <- .Fortran("caws",as.double(y),
                        as.double(lambda0),
                        as.double(tobj$theta),
                        bi=as.double(tobj$bi),
-		                 bi2=double(n),
-                       bi0=as.double(zobj$bi0),
+                       bi2=double(n),
+                       bi0=double(n),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
@@ -158,7 +157,6 @@ zobj <- .Fortran("caws",as.double(y),
 }
 if(family%in%c("Bernoulli","Poisson")) zobj<-regularize(zobj,family)
 dim(zobj$ai)<-dy
-biold <- zobj$bi0
 tobj<-updtheta(zobj,tobj,cpar)
 dim(tobj$theta)<-dy
 dim(tobj$bi)<-dy
@@ -510,68 +508,6 @@ if(family=="Variance"){
    cpar$tau2 <- cpar$tau2*2/cpar$shape 
 }
 list(cpar=cpar,lambda=lambda,y=y,sigma2=sigma2,h0=h0)
-}
-##################################################################################
-#
-#   AWS local constant Test for propagation condition 
-#
-##################################################################################
-awstestprop.old <- function(y,family,tobj,zobj,sigma2,hakt,cpar,u,propagation){
-dlw<-(2*trunc(hakt/c(1,cpar$wghts))+1)[1:cpar$d]
-if(family=="Gaussian"&length(sigma2)==cpar$n){
-# heteroskedastic Gaussian case
-pobj <- .Fortran("chaws",as.double(y),
-                       as.logical(tobj$fix),
-                       as.double(sigma2),
-                       as.integer(cpar$n1),
-                       as.integer(cpar$n2),
-                       as.integer(cpar$n3),
-                       hakt=as.double(hakt),
-                       as.double(1e40),
-                       as.double(tobj$theta),
-                       bi=as.double(tobj$bi),
-		       bi2=double(cpar$n),
-                       bi0=as.double(zobj$bi0),
-		       vred=double(cpar$n),
-                       ai=as.double(zobj$ai),
-                       as.integer(cpar$mcode),
-                       as.integer(cpar$lkern),
-	               as.double(0.25),
-		       double(prod(dlw)),
-		       as.double(cpar$wghts),
-		       PACKAGE="aws",DUP=TRUE)[c("bi","ai","hakt")]
-} else {
-# all other cases
-pobj <- .Fortran("caws",as.double(y),
-                       as.logical(tobj$fix),
-                       as.integer(cpar$n1),
-                       as.integer(cpar$n2),
-                       as.integer(cpar$n3),
-                       hakt=as.double(hakt),
-                       hhom=as.double(rep(1,cpar$n)),
-                       as.double(1e40),
-                       as.double(tobj$theta),
-                       bi=as.double(tobj$bi),
-		       bi2=double(cpar$n),
-                       bi0=as.double(zobj$bi0),
-                       ai=as.double(zobj$ai),
-                       as.integer(cpar$mcode),
-                       as.integer(cpar$lkern),
-                       as.double(0.25),
-		       double(prod(dlw)),
-		       as.double(cpar$wghts),
-		       PACKAGE="aws",DUP=TRUE)[c("bi","ai","hakt")]
-}
-if(family%in%c("Bernoulli","Poisson")) pobj<-regularize(pobj,family)
-ptheta <- pobj$ai/pobj$bi
-dim(ptheta) <- dim(y) 
-narisk <- sum(abs(ptheta-u))
-if(narisk==0) narisk<-1e10
-propagation <- c(propagation,sum(abs(tobj$theta-ptheta))/narisk)
-cat("Propagation with alpha=",max(propagation),"narisk",narisk,"awsrisk",sum(abs(tobj$theta-u)),"compare",sum(abs(tobj$theta-ptheta)),"\n")
-cat("alpha values:","\n")
-print(signif(propagation[-1],3))
-propagation
 }
 
 getvofh <- function(bw,lkern,wght){

@@ -26,7 +26,7 @@ C
      1       bi2(1),hakt,lwght(1),spmin,spf
       integer ih1,ih2,i1,i2,j1,j2,jw1,jw2,jwind2,
      1        iind,jind,jind2,clw1,clw2,dlw1,dlw2
-      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,wj,hakt2,bii0
+      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,wj,hakt2
       hakt2=hakt*hakt
       spf=1.d0/(1.d0-spmin)
       ih1=hakt
@@ -65,7 +65,7 @@ C$OMP& SHARED(ai,bi,bi0,bi2,n1,n2,hakt2,theta
 C$OMP& ,lwght,wght,y,fix,mask,ni)
 C$OMP& FIRSTPRIVATE(ih1,i2,lambda,aws
 C$OMP& ,model,dlw1,clw1,dlw2,clw2)
-C$OMP& PRIVATE(iind,thetai,bii,bii0,swj
+C$OMP& PRIVATE(iind,thetai,bii,swj
 C$OMP& ,swj2,swj0,swjy,sij,i1,wj
 C$OMP& ,j2,jw2,jind2,z2,jwind2
 C$OMP& ,j1,jw1,jind)
@@ -78,7 +78,6 @@ C    nothing to do, final estimate is already fixed by control
             thetai=theta(iind)
             bii=bi(iind)/lambda
 C   scaling of sij outside the loop
-            bii0=bi0(iind)
             swj=0.d0
             swj2=0.d0
             swj0=0.d0
@@ -100,7 +99,7 @@ C  first stochastic term
                   wj=lwght(jw1+jwind2)*ni(jind)
                   swj0=swj0+wj
                   IF (aws) THEN
-                    sij=bii*kldist(model,thetai,theta(jind),bii0,1.d0)
+                    sij=bii*kldist(model,thetai,theta(jind))
                      IF (sij.gt.1.d0) CYCLE
                      wj=wj*(1.d0-sij)
 C   if sij <= spmin  this just keeps the location penalty
@@ -152,7 +151,7 @@ C
      1       bi2(1),hakt,lwght(1),si2(1),vred(1),spmin
       integer ih1,ih2,i1,i2,j1,j2,jw1,jw2,jwind2,
      1        iind,jind,jind2,clw1,clw2,dlw1,dlw2
-      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,wj,hakt2,bii0,
+      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,wj,hakt2,
      1        sv1,sv2,spf,wj0
       hakt2=hakt*hakt
       spf=1.d0/(1.d0-spmin)
@@ -192,7 +191,7 @@ C$OMP& SHARED(ai,bi,bi0,bi2,si2,n1,n2,hakt2,theta
 C$OMP& ,lwght,wght,y,fix,mask,ni,vred)
 C$OMP& FIRSTPRIVATE(ih1,i2,lambda,aws
 C$OMP& ,model,dlw1,clw1,dlw2,clw2)
-C$OMP& PRIVATE(iind,thetai,bii,bii0,swj
+C$OMP& PRIVATE(iind,thetai,bii,swj
 C$OMP& ,swj2,swj0,swjy,sij,sv1,sv2,i1,wj,wj0
 C$OMP& ,j2,jw2,jind2,z2,jwind2
 C$OMP& ,j1,jw1,jind)
@@ -205,7 +204,6 @@ C    nothing to do, final estimate is already fixed by control
                thetai=theta(iind)
                bii=bi(iind)/lambda
 C   scaling of sij outside the loop
-               bii0=bi0(iind)
                swj=0.d0
                swj2=0.d0
                swj0=0.d0
@@ -229,7 +227,7 @@ C  first stochastic term
                      wj=lwght(jw1+jwind2)
                      swj0=swj0+wj*si2(jind)
                      IF (aws) THEN
-                  sij=bii*kldist(model,thetai,theta(jind),bii0)
+                  sij=bii*kldist(model,thetai,theta(jind))
                         IF (sij.gt.1.d0) CYCLE
                         wj=wj*(1.d0-sij)
                      END IF

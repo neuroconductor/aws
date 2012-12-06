@@ -64,8 +64,6 @@ A list with components
 \item{z}{\code{seq(0,30,.5)}, the quantiles exceedence probabilities refer to}
 \item{prob}{the matrix of exceedence probabilities, columns corresponding to \code{h}}
 \item{probna}{the matrix of exceedence probabilities for corresponding nonadaptive estimates, columns corresponding to \code{h}}
-\item{pofalpha}{the matrix of exceedence probabilities with respect to a grid of \code{alpha}
-      for the direct propagation condition}
 }
 \references{
 Becker (2013)

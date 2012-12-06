@@ -49,7 +49,7 @@ readline("Enter for next step")
 
 z<-aws.segment(y+size*y1,level=0,delta=delta,hmax=40,graph=TRUE)
 dim(z@theta) <- dim(z@theta)[1:2]
-ergs<-c(sum(z@theta>0&size*y1>delta),sum(z@theta>0&size*y1<=delta),sum(z@theta==0&size*y1>delta),sum(z@theta==0&size*y1<=delta))
+ergs<-c(sum(z@segment>0&size*y1>delta),sum(z@segment>0&size*y1<=delta),sum(z@segment<=0&size*y1>delta),sum(z@segment<=0&size*y1<=delta))
 names(ergs) <-c("Correct alternative","False positive","False negative","Correct hypothesis")
 print(ergs)
 readline("Enter for next step")
@@ -61,7 +61,7 @@ image(y+size*y1,col=grey((0:255)/255))
 title("Noisy image")
 image(truesegm) 
 title("True segmentation")
-image(z@theta) 
+image(z@segment) 
 title("Segmentation results")
 
 if(! readline("keep files and device (N/Y) :") %in% c("y","Y")){ 

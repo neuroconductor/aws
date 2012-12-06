@@ -25,17 +25,12 @@ Functions now handle 1D/2D/3D data (if implemented for the specified model).
 Functions for density estimation and tail-index estimation have been removed.
 Additional functionality includes local constant Gaussian models for
 irregular design (function aws.irreg) and Gaussian models with global mean-variance model (aws.gaussian).
+A revised strategy for parameter selection is now provided (function awstestprop).
 
-AWS 1.7-0 or higher supports OpenMP. If you wish to enable multiprocessing via OpenMP, install AWS with configure argument
-- from shell
-  R CMD INSTALL --configure-args='--enable-openmp' aws_<version>.tar.gz.
-
-- from R session
-  install.packages("aws", configure.args="--enable-openmp")
+AWS 1.9-0 or higher supports OpenMP.  
 
 To set the number of cores use the R-method setCores.
 
-Please notice that an OpenMP compiled version of AWS with OMP_NUM_THREADS=1 is usually slower than a pure AWS installation.
 
 
 Joerg Polzehl
