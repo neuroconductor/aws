@@ -7,6 +7,6 @@ exportClasses("aws","awssegment","kernsm","ICIsmooth")
 exportMethods("extract","print","summary","show","plot","risk")
 export(aws,lpaws,aws.irreg,aws.gaussian,aws.segment)
 export(awsdata,binning)
-export(awstestprop)
+export(awstestprop,exceedence,awsweights)
 export(kernsm,ICIsmooth,ICIcombined)
 

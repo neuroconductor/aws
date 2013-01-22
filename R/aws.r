@@ -31,7 +31,7 @@ aws <- function(y,hmax=NULL,aws=TRUE,memory=FALSE,family="Gaussian",
                 lkern="Triangle",homogen=TRUE,aggkern="Uniform",
                 sigma2=NULL,shape=NULL,scorr=0,
 		ladjust=1,wghts=NULL,u=NULL,graph=FALSE,demo=FALSE,
-                testprop=FALSE)
+                testprop=FALSE,maxni=FALSE)
 {
 #
 #   this version uses neighborhoods with an increase in potential 
@@ -81,6 +81,7 @@ maxvol <- cpar$maxvol
 k <- cpar$k
 kstar <- cpar$kstar
 tobj<-list(bi= rep(1,n), bi2= rep(1,n), theta= y/shape, fix=rep(FALSE,n))
+if(maxni) bi <- tobj$bi
 zobj<-list(ai=y, bi0= rep(1,n))
 hhom <- rep(1,n)
 if(family=="Gaussian"&length(sigma2)==n) vred<-rep(1,n)
@@ -159,6 +160,7 @@ if(family%in%c("Bernoulli","Poisson")) zobj<-regularize(zobj,family)
 dim(zobj$ai)<-dy
 tobj<-updtheta(zobj,tobj,cpar)
 dim(tobj$theta)<-dy
+if(maxni) bi <- tobj$bi <- pmax(bi,tobj$bi)
 dim(tobj$bi)<-dy
 dim(tobj$eta)<-dy
 dim(tobj$fix)<-dy
@@ -452,9 +454,7 @@ if(family%in%c("Bernoulli")){
 zobj$ai <- .1/zobj$bi+zobj$ai
 zobj$bi <- .2/zobj$bi+zobj$bi
 }
-if(family%in%c("Poisson")){
-zobj$ai <- 0.1/zobj$bi+zobj$ai
-}
+if(family%in%c("Poisson")) zobj$ai <- 0.1/zobj$bi+zobj$ai
 zobj
 } 
 ############################################################################

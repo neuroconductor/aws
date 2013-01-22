@@ -1,7 +1,7 @@
 awstestprop <- function(dy,hmax,theta=1,family="Gaussian",
                  lkern="Triangle",aws=TRUE,memory=FALSE,shape=2,
                  homogeneous=TRUE,varadapt=FALSE,ladjust=1,seed=1,
-                 minlevel=1e-6,maxz=25,diffz=.5){
+                 minlevel=1e-6,maxz=25,diffz=.5,maxni=FALSE,verbose=FALSE){
 if(length(dy)>3) return("maximum array dimension is 3")
 nnn <- prod(dy)
 if(minlevel < 5/nnn) {
@@ -17,6 +17,7 @@ y <- array(switch(family,"Gaussian"=rnorm(nnn),
                          "Volatility"=rnorm(nnn),
                          "Variance"=rchisq(nnn,shape)/shape),dy)
 z <- seq(0,maxz,diffz)
+nz <- length(z)
 elevel <- trunc(log(1e-6,10))
 levels <- as.vector(outer(c(.5,.2,.1),10^(-0:elevel)))
 levels <- levels[levels>=minlevel]
@@ -47,17 +48,15 @@ k <- 1
 kstar <- cpar$kstar
 h <- numeric(kstar)
 if(k>1) h[1:(k-1)] <- 1+(0:(k-2))*.001
-exceedence  <- exceedencena  <- matrix(0,length(z),kstar) # this is used to store exceedence probabilities for adaptive and nonadaptive estimates
+exceedence  <- exceedencena  <- matrix(0,nz,kstar) # this is used to store exceedence probabilities for adaptive and nonadaptive estimates
 zobj<-zobj0<-list(ai=y, bi=rep(1,n))
 yhat <- y/shape
 hhom <- rep(1,n)
 lambda0<-1e50
-cat("Progress:")
 total <- cumsum(1.25^(1:kstar))/sum(1.25^(1:kstar))
 #
 #  get initial conditions for a comparison
 #
-exceedence0 <- numeric(length(z))
 if(family=="Bernoulli") y0 <- (10*y+1)/12
 if(family=="Poisson") y0 <- y+.1
 #
@@ -70,12 +69,19 @@ KLdist0 <- switch(family,"Gaussian"=y^2/2,
                                      (1-y0)*log((1-y0)/(1-theta))),
                          "Volatility"=(log(y)-1+1/y)/2,
                          "Variance"=shape/2*(log(y)-1+1/y))
-#KLdist0[is.na(KLdist0)] <- 1e8
-for(i in 1:length(z)) exceedence0[i] <- mean(KLdist0>z[i])
+exceedence0 <- .Fortran("exceed",
+                           as.double(KLdist0),
+                           as.integer(length(KLdist0)),
+                           as.double(z),
+                           as.integer(nz),
+                           exprob=double(nz),
+                           PACKAGE="aws",DUP=FALSE)$exprob
 #
 #  now iterate
 #
+t0 <- Sys.time()
 while (k<=kstar) {
+      t1 <- Sys.time()
       hakt0 <- gethani(1,1.25*hmax,lkern,1.25^(k-1),wghts,1e-4)
       hakt <- gethani(1,1.25*hmax,lkern,1.25^k,wghts,1e-4)
       cat("step",k,"hakt",hakt,"\n")
@@ -137,7 +143,13 @@ KLdist0 <- switch(family,"Gaussian"=yhat0^2/2,
                                      (1-yhat0)*log((1-yhat0)/(1-theta))),
                          "Volatility"=(log(yhat0)-1+1/yhat0)/2,
                          "Variance"=shape/2*(log(yhat0)-1+1/yhat0))
-for(i in 1:length(z)) exceedencena[i,k] <- mean(KLdist0>z[i]/ni)
+exceedencena[,k] <- .Fortran("exceed",
+                           as.double(KLdist0),
+                           as.integer(length(KLdist0)),
+                           as.double(z/ni),
+                           as.integer(nz),
+                           exprob=double(nz),
+                           PACKAGE="aws",DUP=FALSE)$exprob
 #
 #   get adaptive estimate
 #
@@ -151,7 +163,7 @@ zobj <- .Fortran("chaws",as.double(y),
                        hakt=as.double(hakt),
                        as.double(lambda0),
                        as.double(yhat),
-                       bi=as.double(zobj$bi),
+                       bi=as.double(bi),
                        bi2=double(n),
                        double(n),
                        double(n),#vred
@@ -172,7 +184,7 @@ zobj <- .Fortran("caws",as.double(y),
                        hhom=as.double(hhom),
                        as.double(lambda0),
                        as.double(yhat),
-                       bi=as.double(zobj$bi),
+                       bi=as.double(bi),
                        bi2=double(n),
                        double(n),
                        ai=double(n),
@@ -185,7 +197,7 @@ zobj <- .Fortran("caws",as.double(y),
 }
 if(family%in%c("Bernoulli","Poisson")) zobj<-regularize(zobj,family)
 dim(zobj$ai)<-dy
-bi <- zobj$bi
+if(maxni) bi <- pmax(bi,zobj$bi) else bi <- zobj$bi
 yhat <-zobj$ai/bi
 dim(yhat)<-dy
 if(varadapt) bi <- bi^2/zobj$bi2
@@ -198,7 +210,14 @@ KLdist1 <- switch(family,"Gaussian"=yhat0^2/2,
                                      (1-yhat0)*log((1-yhat0)/(1-theta))),
                          "Volatility"=(log(yhat0)-1+1/yhat0)/2,
                          "Variance"=shape/2*(log(yhat0)-1+1/yhat0))
-for(i in 1:length(z)) exceedence[i,k] <- mean(KLdist1>z[i]/ni)
+exceedence[,k] <- .Fortran("exceed",
+                           as.double(KLdist1),
+                           as.integer(length(KLdist1)),
+                           as.double(z/ni),
+                           as.integer(nz),
+                           exprob=double(nz),
+                           PACKAGE="aws",DUP=FALSE)$exprob
+                           
 contour(z,0:k,cbind(exceedence0,exceedence[,1:k]),levels=levels,ylab="step",xlab="z",
        main=paste(family,length(dy),"-dim. ladj=",ladjust," Exceed. Prob."))
 contour(z,0:k,cbind(exceedence0,exceedencena[,1:k]),levels=levels,ylab="step",xlab="z",
@@ -209,15 +228,83 @@ contour(z,0:k,cbind(exceedence0,exceedencena[,1:k]),levels=levels,ylab="step",xl
        axis(4,at=at,labels=as.character(signif(h[at],3)))
        mtext("bandwidth",4,1.8)
 if (max(total) >0) {
-      cat(signif(total[k],2)*100,"% . ",sep="")
+      cat("Progress:",signif(total[k],2)*100,"% . ",sep="")
      }
+t2 <- Sys.time()
 tpar <- if(family%in%c("Bernoulli","Poisson"))  paste("theta=",theta) else  ""
-cat(family,"(dim:",length(dy),tpar,") ni=",ni,"\n")
-#cat(family,"(dim:",length(dy),tpar,") ni=",ni,"e-prob:",signif(exceedence[4*(1:15)+1,k],3),"\n")
-cat("Quantile KLdist0 (.5,.75,.9,.95,.99,.995,.999,1)",signif(quantile(KLdist0,c(.5,.75,.9,.95,.99,.995,.999,1)),3),"\n")
-cat("Quantile KLdist1 (.5,.75,.9,.95,.99,.995,.999,1)",signif(quantile(KLdist1,c(.5,.75,.9,.95,.99,.995,.999,1)),3),"\n")
+cat(family,"(dim:",length(dy),tpar,") ni=",ni," Time: Step",format(signif(difftime(t2,t1),3)),"Total",format(signif(difftime(t2,t0),3)),"\n")
 k <- k+1
 gc()
 }
-list(h=h,z=z,prob=exceedence,probna=exceedencena,levels=levels)
+list(h=h,z=z,prob=exceedence,probna=exceedencena,if(verbose) y0=y0,if(verbose) theta=theta, levels=levels, family=family)
+}
+
+exceedence <- function(awspropobj, level){
+y0 <- awspropobj$y0
+theta <- awspropobj$theta
+family <- awspropobj$family
+z <- level
+nz <- length(z)
+KLdist0 <- switch(family,"Gaussian"=y^2/2,
+                         "Poisson"=(theta-y0+y0*(log(y0)-log(theta))),
+                         "Exponential"=(log(y)-1+1/y),
+                         "Bernoulli"=(y0*log(y0/theta)+
+                                     (1-y0)*log((1-y0)/(1-theta))),
+                         "Volatility"=(log(y)-1+1/y)/2,
+                         "Variance"=shape/2*(log(y)-1+1/y))
+exceedence0 <- .Fortran("exceed",
+                           as.double(KLdist0),
+                           as.integer(length(KLdist0)),
+                           as.double(z),
+                           as.integer(nz),
+                           exprob=double(nz),
+                           PACKAGE="aws",DUP=FALSE)$exprob
+exceedence0
+}
+awsweights <- function(awsobj){
+if(awsobj@degree!=0 || awsobj@varmodel!="Constant"||
+any(awsobj@scorr!=0)) stop("Not implemented")
+y <- awsobj@y
+dy <- awsobj@dy
+n1 <- dy[1]
+ldy <- length(dy)
+if(is.null(ldy)) ldy <- 1
+if(ldy>1) n2 <- ldy[2] else n2 <- 1
+if(ldy==3) n3 <- ldy[3] else n3 <- 1
+n <- n1*n2*n3
+hakt <- awsobj@hmax
+hhom <- rep(1,n)
+lambda0 <- awsobj@lambda
+yhat <- awsobj@theta
+bi <- awsobj@ni
+mcode <- switch(awsobj@family,
+                Gaussian=1,
+		Bernoulli=2,
+		Poisson=3,
+		Exponential=4,
+		Volatility=4,
+		Variance=5)
+lkern <- awsobj@lkern
+dlw<-(2*trunc(hakt)+1)[1:ldy]
+zobj <- .Fortran("cawsw",as.double(y),
+                       as.logical(rep(FALSE,n)),
+                       as.integer(n),
+                       as.integer(n1),
+                       as.integer(n2),
+                       as.integer(n3),
+                       hakt=as.double(hakt),
+                       hhom=as.double(hhom),
+                       as.double(lambda0),
+                       as.double(yhat),
+                       bi=as.double(bi),
+                       bi2=double(n),
+                       double(n),
+                       ai=double(n),
+                       as.integer(mcode),
+                       as.integer(lkern),
+                       as.double(0.25),
+                       double(prod(dlw)),
+                       wghts=double(n*n),
+                       PACKAGE="aws",DUP=TRUE)$wghts
+array(zobj,c(dy,dy))
 }

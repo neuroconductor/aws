@@ -324,6 +324,170 @@ C$OMP FLUSH(ai,bi,bi0,bi2,hhom)
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
 C   Perform one iteration in local constant three-variate aws (gridded)
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      subroutine cawsw(y,fix,n,n1,n2,n3,hakt,hhom,lambda,theta,bi,bi2,
+     1                bi0,ai,model,kern,spmin,lwght,wght)
+C   compute weights for all combinations of design points
+C
+C   y        observed values of regression function
+C   n1,n2,n3    design dimensions
+C   hakt     actual bandwidth
+C   lambda   lambda or lambda*sigma2 for Gaussian models
+C   theta    estimates from last step   (input)
+C   bi       \sum  Wi   (output)
+C   ai       \sum  Wi Y     (output)
+C   model    specifies the probablilistic model for the KL-Distance
+C   kern     specifies the location kernel
+C
+      implicit logical (a-z)
+
+      external kldist,lkern
+      real*8 kldist,lkern
+      integer n,n1,n2,n3,model,kern
+      logical aws,fix(1)
+      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,
+     1       wght(n,n1,n2,n3),bi2(1),hakt,lwght(1),spmin,spf,hhom(1)
+      integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
+     1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
+     2        dlw12,n12
+      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,
+     1       hmax2,hhomi,hhommax,w1,w2
+      hakt2=hakt*hakt
+      spf=1.d0/(1.d0-spmin)
+      ih1=hakt
+      aws=lambda.lt.1d35
+C
+C   first calculate location weights
+C
+      ih3=hakt
+      ih2=hakt
+      ih1=hakt
+      if(n3.eq.1) ih3=0
+      if(n2.eq.1) ih2=0
+      clw1=ih1
+      clw2=ih2
+      clw3=ih3
+      dlw1=ih1+clw1+1
+      dlw2=ih2+clw2+1
+      dlw3=ih3+clw3+1
+      dlw12=dlw1*dlw2
+      n12=n1*n2
+      z2=0.d0
+      z3=0.d0
+      hmax2=0.d0
+      DO j3=-clw3,clw3
+         if(n3.gt.1) THEN
+            z3=j3*w2
+            z3=z3*z3
+            ih2=sqrt(hakt2-z3)/w1
+            jind3=(j3+clw3)*dlw12
+         ELSE
+            jind3=0
+         END IF
+         DO j2=-ih2,ih2
+            if(n2.gt.1) THEN
+               z2=j2*w1
+               z2=z3+z2*z2
+               ih1=sqrt(hakt2-z2)
+               jind2=jind3+(j2+clw2)*dlw1
+            ELSE
+               jind2=0
+            END IF
+            DO j1=-ih1,ih1
+C  first stochastic term
+               jind=j1+clw1+1+jind2
+               z1=j1
+               lwght(jind)=lkern(kern,(z1*z1+z2)/hakt2)
+               if(lwght(jind).gt.0.d0) hmax2=max(hmax2,z2+z1*z1)
+            END DO
+         END DO
+      END DO
+      call rchkusr()
+C$OMP PARALLEL DEFAULT(NONE)
+C$OMP& SHARED(ai,bi,bi0,bi2,hhom,n1,n2,n3,hakt2,hmax2,theta,
+C$OMP& ih3,lwght,wght,y,fix)
+C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
+C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
+C$OMP& PRIVATE(i1,i2,i3,iind,hhomi,hhommax,thetai,bii,swj,swj2,
+C$OMP& swj0,swjy,sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
+C$OMP& j1,jw1,jind,z1)
+C$OMP DO SCHEDULE(GUIDED)
+      DO iind=1,n1*n2*n3
+         i1=mod(iind,n1)
+         if(i1.eq.0) i1=n1
+         i2=mod((iind-i1)/n1+1,n2)
+         if(i2.eq.0) i2=n2
+         i3=(iind-i1-(i2-1)*n1)/n12+1         
+         hhomi=hhom(iind)
+         hhomi=hhomi*hhomi
+         hhommax=hmax2
+         IF (fix(iind)) CYCLE
+C    nothing to do, final estimate is already fixed by control 
+         thetai=theta(iind)
+         bii=bi(iind)/lambda
+C   scaling of sij outside the loop
+         swj=0.d0
+         swj2=0.d0
+         swj0=0.d0
+         swjy=0.d0
+         DO jw3=-clw3,clw3
+            j3=jw3+i3
+            if(j3.lt.1.or.j3.gt.n3) CYCLE
+            jwind3=(jw3+clw3)*dlw12
+            jind3=(j3-1)*n12
+            z3=jw3*w2
+            z3=z3*z3
+            if(n2.gt.1) ih2=sqrt(hakt2-z3)/w1
+            DO jw2=-ih2,ih2
+               j2=jw2+i2
+               if(j2.lt.1.or.j2.gt.n2) CYCLE
+               jwind2=jwind3+(jw2+clw2)*dlw1
+               jind2=(j2-1)*n1+jind3
+               z2=jw2*w1
+               z2=z3+z2*z2
+               ih1=sqrt(hakt2-z2)
+               DO jw1=-ih1,ih1
+C  first stochastic term
+                  j1=jw1+i1
+                  if(j1.lt.1.or.j1.gt.n1) CYCLE
+                  jind=j1+jind2
+                  wj=lwght(jw1+clw1+1+jwind2)
+                  swj0=swj0+wj
+                  z1=jw1
+                  z1=z2+z1*z1
+                  IF (aws.and.z1.ge.hhomi) THEN
+                     sij=bii*kldist(model,thetai,theta(jind))
+                     IF (sij.gt.1.d0) THEN
+                        hhommax=min(hhommax,z1)
+                        CYCLE
+                     END IF
+                     IF (sij.gt.spmin) THEN
+                        wj=wj*(1.d0-spf*(sij-spmin))
+                        hhommax=min(hhommax,z1)
+                     END IF
+                  END IF
+                  swj=swj+wj
+                  swj2=swj2+wj*wj
+                  swjy=swjy+wj*y(jind)
+                  wght(iind,j1,j2,j3) = wj
+               END DO
+            END DO
+         END DO
+         ai(iind)=swjy
+         bi(iind)=swj
+         bi2(iind)=swj2
+         bi0(iind)=swj0
+         hhom(iind)=sqrt(hhommax)
+      END DO
+C$OMP END DO NOWAIT
+C$OMP END PARALLEL
+C$OMP FLUSH(ai,bi,bi0,bi2,hhom)
+      RETURN
+      END
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C   Perform one iteration in local constant three-variate aws (gridded)
 C   used in awstestprop only 
 C   bi0 contains sum of weights (without invers variances) !!! 
 C   no lambda, fix, spmin, hhom, theta
