@@ -29,7 +29,7 @@
 #       
 aws <- function(y,hmax=NULL,aws=TRUE,memory=FALSE,family="Gaussian",
                 lkern="Triangle",homogen=TRUE,aggkern="Uniform",
-                sigma2=NULL,shape=NULL,scorr=0,
+                sigma2=NULL,shape=NULL,scorr=0,spmin=0.25,
 		ladjust=1,wghts=NULL,u=NULL,graph=FALSE,demo=FALSE,
                 testprop=FALSE,maxni=FALSE)
 {
@@ -129,7 +129,7 @@ zobj <- .Fortran("chaws",as.double(y),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
-	               as.double(0.25),
+	               as.double(spmin),
 		       double(prod(dlw)),
 		       as.double(wghts),
 		       PACKAGE="aws",DUP=TRUE)[c("bi","bi0","bi2","vred","ai","hakt")]
@@ -151,7 +151,7 @@ zobj <- .Fortran("caws",as.double(y),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
-                       as.double(0.25),
+                       as.double(spmin),
 		       double(prod(dlw)),
 		       as.double(wghts),
 		       PACKAGE="aws",DUP=TRUE)[c("bi","bi0","bi2","ai","hakt","hhom")]

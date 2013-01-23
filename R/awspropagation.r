@@ -1,6 +1,6 @@
 awstestprop <- function(dy,hmax,theta=1,family="Gaussian",
                  lkern="Triangle",aws=TRUE,memory=FALSE,shape=2,
-                 homogeneous=TRUE,varadapt=FALSE,ladjust=1,seed=1,
+                 homogeneous=TRUE,varadapt=FALSE,ladjust=1,spmin=0.25,seed=1,
                  minlevel=1e-6,maxz=25,diffz=.5,maxni=FALSE,verbose=FALSE){
 if(length(dy)>3) return("maximum array dimension is 3")
 nnn <- prod(dy)
@@ -172,7 +172,7 @@ zobj <- .Fortran("chaws",as.double(y),
                        ai=double(n),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
-                       as.double(0.25),
+                       as.double(spmin),
                        double(prod(dlw)),
                        as.double(wghts),
                        PACKAGE="aws",DUP=TRUE)[c("bi","bi2","ai","hakt")]
@@ -192,7 +192,7 @@ zobj <- .Fortran("caws",as.double(y),
                        ai=double(n),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
-                       as.double(0.25),
+                       as.double(spmin),
                        double(prod(dlw)),
                        as.double(wghts),
                        PACKAGE="aws",DUP=TRUE)[c("bi","bi2","ai","hakt")]
@@ -263,7 +263,7 @@ exceedence0 <- .Fortran("exceed",
                            PACKAGE="aws",DUP=FALSE)$exprob
 exceedence0
 }
-awsweights <- function(awsobj){
+awsweights <- function(awsobj,spmin=0.25){
 if(awsobj@degree!=0 || awsobj@varmodel!="Constant"||
 any(awsobj@scorr!=0)) stop("Not implemented")
 dy <- awsobj@dy
@@ -297,7 +297,7 @@ zobj <- .Fortran("cawsw",
                        bi=as.double(bi),
                        as.integer(mcode),
                        as.integer(lkern),
-                       as.double(0.25),
+                       as.double(spmin),
                        double(prod(dlw)),
                        wghts=double(n*n),
                        PACKAGE="aws",DUP=TRUE)$wghts
