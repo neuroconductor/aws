@@ -50,6 +50,7 @@ h <- numeric(kstar)
 if(k>1) h[1:(k-1)] <- 1+(0:(k-2))*.001
 exceedence  <- exceedencena  <- matrix(0,nz,kstar) # this is used to store exceedence probabilities for adaptive and nonadaptive estimates
 zobj<-zobj0<-list(ai=y, bi=rep(1,n))
+bi <- rep(1,n)
 yhat <- y/shape
 hhom <- rep(1,n)
 lambda0<-1e50
@@ -130,6 +131,7 @@ zobj0 <- .Fortran("caws1",as.double(y),
 if(family%in%c("Bernoulli","Poisson")) zobj0<-regularize(zobj0,family)
 yhat0 <- zobj0$ai/zobj0$bi
 dim(yhat0) <- dy
+bi <- zobj0$bi
 ih <- as.integer(hakt)
 ind1 <- (ih+1):(dy[1]-ih)
 if(length(dy)>1) ind2 <- (ih+1):(dy[2]-ih)
@@ -197,10 +199,10 @@ zobj <- .Fortran("caws",as.double(y),
 }
 if(family%in%c("Bernoulli","Poisson")) zobj<-regularize(zobj,family)
 dim(zobj$ai)<-dy
-if(maxni) bi <- pmax(bi,zobj$bi) else bi <- zobj$bi
-yhat <-zobj$ai/bi
+yhat <-zobj$ai/zobj$bi
 dim(yhat)<-dy
 if(varadapt) bi <- bi^2/zobj$bi2
+if(maxni) bi <- pmax(bi,zobj$bi) else bi <- zobj$bi
 lambda0 <- lambda
 yhat0 <- switch(length(dy),yhat[ind1],yhat[ind1,ind2],yhat[ind1,ind2,ind3])
 KLdist1 <- switch(family,"Gaussian"=yhat0^2/2,
@@ -264,16 +266,14 @@ exceedence0
 awsweights <- function(awsobj){
 if(awsobj@degree!=0 || awsobj@varmodel!="Constant"||
 any(awsobj@scorr!=0)) stop("Not implemented")
-y <- awsobj@y
 dy <- awsobj@dy
 n1 <- dy[1]
 ldy <- length(dy)
 if(is.null(ldy)) ldy <- 1
-if(ldy>1) n2 <- ldy[2] else n2 <- 1
-if(ldy==3) n3 <- ldy[3] else n3 <- 1
-n <- n1*n2*n3
+if(ldy>1) n2 <- dy[2] else n2 <- 1
+if(ldy==3) n3 <- dy[3] else n3 <- 1
 hakt <- awsobj@hmax
-hhom <- rep(1,n)
+n <- n1*n2*n3
 lambda0 <- awsobj@lambda
 yhat <- awsobj@theta
 bi <- awsobj@ni
@@ -285,21 +285,16 @@ mcode <- switch(awsobj@family,
 		Volatility=4,
 		Variance=5)
 lkern <- awsobj@lkern
-dlw<-(2*trunc(hakt)+1)[1:ldy]
-zobj <- .Fortran("cawsw",as.double(y),
-                       as.logical(rep(FALSE,n)),
-                       as.integer(n),
+hakt <- rep(hakt,ldy)
+dlw<-(2*trunc(hakt)+1)
+zobj <- .Fortran("cawsw",
                        as.integer(n1),
                        as.integer(n2),
                        as.integer(n3),
                        hakt=as.double(hakt),
-                       hhom=as.double(hhom),
                        as.double(lambda0),
                        as.double(yhat),
                        bi=as.double(bi),
-                       bi2=double(n),
-                       double(n),
-                       ai=double(n),
                        as.integer(mcode),
                        as.integer(lkern),
                        as.double(0.25),
