@@ -238,20 +238,22 @@ cat(family,"(dim:",length(dy),tpar,") ni=",ni," Time: Step",format(signif(diffti
 k <- k+1
 gc()
 }
-list(h=h,z=z,prob=exceedence,probna=exceedencena,if(verbose) y0=y0,if(verbose) theta=theta, levels=levels, family=family)
+if(family%in%c("Bernoulli","Poisson")) y <- y0
+
+list(h=h,z=z,prob=exceedence,probna=exceedencena,y=if(verbose) y else NULL , theta= if(verbose) theta=theta else NULL, levels=levels, family=family)
 }
 
 exceedence <- function(awspropobj, level){
-y0 <- awspropobj$y0
+y <- awspropobj$y
 theta <- awspropobj$theta
 family <- awspropobj$family
 z <- level
 nz <- length(z)
 KLdist0 <- switch(family,"Gaussian"=y^2/2,
-                         "Poisson"=(theta-y0+y0*(log(y0)-log(theta))),
+                         "Poisson"=(theta-y+y*(log(y)-log(theta))),
                          "Exponential"=(log(y)-1+1/y),
-                         "Bernoulli"=(y0*log(y0/theta)+
-                                     (1-y0)*log((1-y0)/(1-theta))),
+                         "Bernoulli"=(y*log(y/theta)+
+                                     (1-y)*log((1-y)/(1-theta))),
                          "Volatility"=(log(y)-1+1/y)/2,
                          "Variance"=shape/2*(log(y)-1+1/y))
 exceedence0 <- .Fortran("exceed",
