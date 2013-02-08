@@ -30,7 +30,7 @@
 aws <- function(y,hmax=NULL,aws=TRUE,memory=FALSE,family="Gaussian",
                 lkern="Triangle",homogen=TRUE,aggkern="Uniform",
                 sigma2=NULL,shape=NULL,scorr=0,spmin=0.25,
-		ladjust=1,wghts=NULL,u=NULL,graph=FALSE,demo=FALSE,
+                ladjust=1,wghts=NULL,u=NULL,graph=FALSE,demo=FALSE,
                 testprop=FALSE,maxni=FALSE)
 {
 #
@@ -129,10 +129,10 @@ zobj <- .Fortran("chaws",as.double(y),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
-	               as.double(spmin),
-		       double(prod(dlw)),
-		       as.double(wghts),
-		       PACKAGE="aws",DUP=TRUE)[c("bi","bi0","bi2","vred","ai","hakt")]
+                       as.double(spmin),
+                       double(prod(dlw)),
+                       as.double(wghts),
+                       PACKAGE="aws",DUP=TRUE)[c("bi","bi0","bi2","vred","ai","hakt")]
 vred[!tobj$fix]<-zobj$vred[!tobj$fix]
 } else {
 # all other cases
@@ -152,9 +152,9 @@ zobj <- .Fortran("caws",as.double(y),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
                        as.double(spmin),
-		       double(prod(dlw)),
-		       as.double(wghts),
-		       PACKAGE="aws",DUP=TRUE)[c("bi","bi0","bi2","ai","hakt","hhom")]
+                       double(prod(dlw)),
+                       as.double(wghts),
+                       PACKAGE="aws",DUP=TRUE)[c("bi","bi0","bi2","ai","hakt","hhom")]
 }
 if(family%in%c("Bernoulli","Poisson")) zobj<-regularize(zobj,family)
 dim(zobj$ai)<-dy
@@ -247,23 +247,23 @@ vartheta <- tobj$bi2/tobj$bi^2
 } else {
 vartheta <- switch(family,Gaussian=sigma2,
                           Bernoulli=tobj$theta*(1-tobj$theta),
-			  Poisson=tobj$theta,
-			  Exponential=tobj$theta^2,
-			  Volatility=2*tobj$theta,
-			  Variance=2*tobj$theta,0)*tobj$bi2/tobj$bi^2
+                          Poisson=tobj$theta,
+                          Exponential=tobj$theta^2,
+                          Volatility=2*tobj$theta,
+                          Variance=2*tobj$theta,0)*tobj$bi2/tobj$bi^2
 vred<-tobj$bi2/tobj$bi^2
 }
 sigma2 <- switch(family,Gaussian=sigma2,
-                          Bernoulli=tobj$theta*(1-tobj$theta),
-			  Poisson=tobj$theta,
-			  Exponential=tobj$theta^2,
-			  Volatility=2*tobj$theta,
-			  Variance=2*tobj$theta,0)
+                        Bernoulli=tobj$theta*(1-tobj$theta),
+                        Poisson=tobj$theta,
+                        Exponential=tobj$theta^2,
+                        Volatility=2*tobj$theta,
+                        Variance=2*tobj$theta,0)
 if( family=="Gaussian"){
 vartheta<-vartheta/Spatialvar.gauss(hakt/0.42445/4,h0+1e-5,d)*Spatialvar.gauss(hakt/0.42445/4,1e-5,d)
 }
 awsobj(y,tobj$theta,vartheta,hakt,sigma2,lkern,lambda,ladjust,aws,memory,
-              args,homogen,earlystop=FALSE,family=family,wghts=wghts,mae=mae,ni=tobj$bi)
+   args,homogen,earlystop=FALSE,family=family,wghts=wghts,mae=mae,ni=tobj$bi)
 }
 #######################################################################################
 #
@@ -294,24 +294,22 @@ if(aws) lambda <- ladjust*switch(family,
 Gaussian=switch(d,8.1,5.4,4.9),# see ladjgaussx.r in R/aws/ladj
 # old values          Bernoulli=switch(d,9.6,7.6,6.9),
 Bernoulli=switch(d,5.3,5,4.8),
-# old values          Exponential=switch(d,14.2,6.8,6.1),
-        	  Exponential=switch(d,7.1,6.1,5.5),
-# old values          Poisson=switch(d,9.6,7.6,6.9),
-	          Poisson=switch(d,7.7,6.1,5.9),# see ladjpoissonx.r in R/aws/ladj
-# old values          Volatility=switch(d,10,6.1,6.1),
+                  Exponential=switch(d,7.1,6.1,5.5),
+                  Poisson=switch(d,7.7,6.1,5.9),
                   Volatility=switch(d,5,4,3.7),
                   Variance=switch(d,12.8,6.1,6.1),
+                  NCchi=switch(d,11.3,6.1,.96),
                   switch(d,11.3,6.1,.96)) else lambda <- 1e50
 #
 #    determine heta for memory step
 #
 heta <- switch(family,   Gaussian=1.25,
-			 Bernoulli=5/meany/(1-meany),
-			 Exponential=20,
-			 Poisson=max(1.25,20/meany),
-                         Volatility=20,
-			 Variance=20,
-			 1.25)^(1/d)
+               Bernoulli=5/meany/(1-meany),
+               Exponential=20,
+               Poisson=max(1.25,20/meany),
+               Volatility=20,
+               Variance=20,
+               NCchi=1.25,1.25)^(1/d)
 ktau <- log(switch(d,100,15,5))
 #
 # stagewise aggregation 
@@ -332,14 +330,15 @@ if(!aws){
         cat("Neither PS nor Stagewise Aggregation is specified, compute kernel estimate with bandwidth hmax\n") 
     } else {
     tau <- switch(family,
-                            Gaussian=switch(d,.28,.21,.21),
-			    Bernoulli=switch(d,.36,.36,.36),
-			    Exponential=switch(d,1.3,1.3,1.3),
-			    Poisson=switch(d,.36,.21,.21),
-                            Volatility=switch(d,1.3,1.3,1.3),
-			    Variance=switch(d,1.3,1.3,1.3),
-			    switch(d,.28,.21,.21))
-}
+                  Gaussian=switch(d,.28,.21,.21),
+                  Bernoulli=switch(d,.36,.36,.36),
+                  Exponential=switch(d,1.3,1.3,1.3),
+                  Poisson=switch(d,.36,.21,.21),
+                  Volatility=switch(d,1.3,1.3,1.3),
+                  Variance=switch(d,1.3,1.3,1.3),
+                  NCchi=switch(d,.28,.21,.21),
+                  switch(d,.28,.21,.21))
+    }
 } else {
 #
 #   set appropriate value for tau (works for all families)
@@ -363,12 +362,12 @@ tau2<-tau1/2
 # uses a maximum of about 500, 450 and 520  points, respectively.
 mcode <- switch(family,
                 Gaussian=1,
-		Bernoulli=2,
-		Poisson=3,
-		Exponential=4,
-		Volatility=4,
-		Variance=5,
-		-1)
+                Bernoulli=2,
+                Poisson=3,
+                Exponential=4,
+                Volatility=4,
+                Variance=5,
+                NCchi=6,-1)
 if(mcode < 0) stop(paste("specified family ",family," not yet implemented"))
    lambda<-lambda*1.8
 if(is.null(shape)) shape<-1
@@ -395,12 +394,12 @@ KLdist <- function(mcode,th1,th2,bi0,shape){
    th12<-(1-0.5/bi0)*th2+0.5/bi0*th1
    z<-switch(mcode,(th1-th2)^2,
                 th1*log(th1/th12)+(1.-th1)*log((1.-th1)/(1.-th12)),
-		th1*log(th1/th12)-th1+th12,
-		th1/th2-1.-log(th1/th2),
-		shape/2*(th2/th1-1.)+(shape/2-1)*log(th1/th2))
+                th1*log(th1/th12)-th1+th12,
+                th1/th2-1.-log(th1/th2),
+                shape/2*(th2/th1-1.)+(shape/2-1)*log(th1/th2))
    z[is.na(z)]<-0
    z
-		}
+}
 ####################################################################################
 #
 #    Memory step for local constant aws
@@ -425,12 +424,13 @@ kstar<-cpar$ktau
 tau<-2*(tau1+tau2*max(kstar-log(hakt),0))
 theta<-tobj$theta
 thetanew[tobj$fix]<-theta[tobj$fix]
-eta<-switch(aggkern,"Uniform"=as.numeric(zobj$bi0/tau*
-                     KLdist(mcode,thetanew,theta,max(zobj$bi0),shape)>1),
-                    "Triangle"=pmin(1,zobj$bi0/tau*
-		     KLdist(mcode,thetanew,theta,max(zobj$bi0),shape)),
-		    as.numeric(zobj$bi0/tau*
-		     KLdist(mcode,thetanew,theta,max(zobj$bi0),shape)>1))
+eta<-switch(aggkern,
+            "Uniform"=as.numeric(zobj$bi0/tau*
+              KLdist(mcode,thetanew,theta,max(zobj$bi0),shape)>1),
+            "Triangle"=pmin(1,zobj$bi0/tau*
+              KLdist(mcode,thetanew,theta,max(zobj$bi0),shape)),
+             as.numeric(zobj$bi0/tau*
+              KLdist(mcode,thetanew,theta,max(zobj$bi0),shape)>1))
 eta[tobj$fix]<-1
 bi <- (1-eta)*bi + eta * tobj$bi
 bi2 <- (1-eta)*bi2 + eta * tobj$bi2
@@ -451,8 +451,8 @@ list(theta=thetanew,bi=bi,bi2=bi2,eta=eta,fix=(tobj$fix|eta==1))
 ####################################################################################
 regularize <- function(zobj,family){
 if(family%in%c("Bernoulli")){
-zobj$ai <- .1/zobj$bi+zobj$ai
-zobj$bi <- .2/zobj$bi+zobj$bi
+   zobj$ai <- .1/zobj$bi+zobj$ai
+   zobj$bi <- .2/zobj$bi+zobj$bi
 }
 if(family%in%c("Poisson")) zobj$ai <- 0.1/zobj$bi+zobj$ai
 zobj
@@ -476,8 +476,8 @@ if(family=="Gaussian") {
     if(is.null(sigma2)) {
         sigma2 <- IQRdiff(as.vector(y))^2
         if(scorr[1]>0) sigma2<-sigma2*Varcor.gauss(h0)
-	cat("Estimated variance: ", signif(sigma2,4),"\n")
-	}
+        cat("Estimated variance: ", signif(sigma2,4),"\n")
+    }
     if(length(sigma2)==1){
 #   homoskedastic Gaussian case
     lambda <- lambda*sigma2*2 
@@ -486,7 +486,7 @@ if(family=="Gaussian") {
     } else {
 #   heteroskedastic Gaussian case
     if(length(sigma2)!=length(y)) 
-	stop("sigma2 does not have length 1 or same length as y")
+       stop("sigma2 does not have length 1 or same length as y")
     lambda <- lambda*2 
     cpar$tau1 <- cpar$tau1*2 
     cpar$tau2 <- cpar$tau2*2 

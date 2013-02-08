@@ -89,7 +89,6 @@ dy <- switch(d,NULL,c(n1,n2))
 #  
 tobj<-list(bi= ni, bi2= ni^2, theta= yy/shape, fix=rep(FALSE,nn))
 zobj<-list(ai=yy, bi0= rep(1,nn))
-biold<-ni
 vred<-ni
 lambda0<-1e50 # that removes the stochstic term for the first step, initialization by kernel estimates
 #
@@ -158,7 +157,6 @@ zobj <- .Fortran("cgawsmas",as.double(yy),
 vred[!tobj$fix]<-zobj$vred[!tobj$fix]
 dim(zobj$ai)<-dy
 if(hakt>n1/2) zobj$bi0 <- rep(max(zobj$bi),n1*n2)
-biold <- zobj$bi0
 tobj<-updtheta(zobj,tobj,cpar)
 tobj$vred <- vred
 tobj$theta[tobj$bi==0]<-mean(tobj$theta[ni>0])

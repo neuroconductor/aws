@@ -110,7 +110,6 @@ interval,"\n",
 fix <- rep(FALSE,n)
 zobj<-list(ai=y, bi0= rep(1,n), bi2=rep(1,n), bi=rep(1,n), theta=y/shape, fix=rep(FALSE,n)  )
 segment <- array(0,c(n1,n2,n3))
-biold<-rep(1,n)
 vred<-rep(1,n)
 mae<-NULL
 lambda0<-1e50 # that removes the stochstic term for the first step, initialization by kernel estimates
@@ -129,15 +128,15 @@ hobj <- .Fortran("caws",as.double(y),
                        as.double(1e40),
                        as.double(zobj$theta),
                        bi=double(n),
-		                 double(n),
+                       double(n),
                        as.double(zobj$bi0),
                        ai=double(n),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
                        as.double(0.25),
-		       double(prod(dlw)),
-		       as.double(wghts),
-		       PACKAGE="aws",DUP=TRUE)[c("bi","ai")]
+                       double(prod(dlw)),
+                       as.double(wghts),
+                       PACKAGE="aws",DUP=TRUE)[c("bi","ai")]
 hobj$theta <- hobj$ai/hobj$bi
 dim(hobj$theta) <- dim(hobj$bi) <- dy
 #
@@ -168,15 +167,15 @@ zobj <- .Fortran("segment",as.double(y),
                        as.double(lambda0),
                        as.double(zobj$theta),
                        bi=as.double(zobj$bi),
-		                 bi2=double(n),
+                       bi2=double(n),
                        bi0=as.double(zobj$bi0),
-		                 gi=double(n),
-		                 vred=double(n),
+                       gi=double(n),
+                       vred=double(n),
                        theta=as.double(zobj$theta),
                        as.integer(lkern),
-	                    as.double(0.25),
-		                 double(prod(dlw)),
-		                 as.double(wghts),
+                       as.double(0.25),
+                       double(prod(dlw)),
+                       as.double(wghts),
                        pvalues=double(n),# array for pvalues
                        as.integer(segment),# previous segmentation array 
                        segment=as.integer(segment),# new array for segment (-1,0,1)
@@ -185,13 +184,13 @@ zobj <- .Fortran("segment",as.double(y),
                        as.double(ext),
                        as.double(fov),
                        varest=as.double(varest),
-		       PACKAGE="aws")[c("fix","bi","bi0","bi2","vred","pvalues","segment","theta","gi","hakt","varest")]
+                       PACKAGE="aws")[c("fix","bi","bi0","bi2","vred","pvalues",
+                       "segment","theta","gi","hakt","varest")]
 vred[!fix]<-zobj$vred[!fix]
 if(hakt>n1/2) zobj$bi0 <- rep(max(zobj$bi),n)
 pvalues <- zobj$pvalues
 segment <- zobj$segment
 varest <- zobj$varest
-biold <- zobj$bi0
 fix <- zobj$fix
 dim(zobj$theta) <- dim(zobj$gi) <- dim(pvalues) <- dim(segment) <- dim(fix) <- dim(zobj$bi) <- dy
 if(graph){

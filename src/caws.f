@@ -62,6 +62,8 @@ C          Model=1    Gaussian
 C          Model=2    Bernoulli   
 C          Model=3    Poisson   
 C          Model=4    Exponential   
+C          Model=5    Variance
+C          Model=6    Noncentral Chi (Gaussian approximation)
 C
 C     computing dlog(theta) and dlog(1.d0-theta) outside the AWS-loops 
 C     will reduces computational costs at the price of readability
@@ -70,7 +72,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 function kldist(model,thi,thj)
       implicit logical (a-z)
       integer model
-      real*8 thi,thj,z,tthi
+      real*8 thi,thj,z,tthi,a,b
       IF (model.eq.1) THEN
 C        Gaussian
          z=thi-thj
@@ -91,6 +93,19 @@ C        Exponential
       ELSE IF (model.eq.5) THEN
 C        Variance
          kldist=thi/thj-1.d0-log(thi/thj)
+      ELSE IF (model.eq.6) THEN
+C        Noncentral Chi with 2 df (Gaussian approximation)
+C         dfh = 1
+C         a = -0.356536d0+0.003803d0*dfh-0.701591d0*sqrt(dfh)
+C         b = -0.059703d0+0.029093d0*dfh+0.098401d0*sqrt(dfh)
+         a = -1.054324
+         b = 0.067791
+         z = (max(thi,1.253314)+a)**1.5d0
+         z = (z/(z+b))
+         z=max(0.6551366d0,z*z)
+C   thast the approximated standard deviation
+         z=(thi-thj)/z
+         kldist=z*z
       ELSE
 C        use Gaussian
          z=thi-thj

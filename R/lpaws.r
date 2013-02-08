@@ -35,14 +35,14 @@ lpaws <- function(y,degree=1,hmax=NULL,aws=TRUE,memory=FALSE,lkern="Triangle",
 #
 #          Auxilary functions
 #
-Pardist <- function(d,Bi0,dtheta){
+Pardist <- function(d,Bi,dtheta){
 #  local polynomial uni  mcode=1
 #  local polynomial bi   mcode=2
    dp1 <- switch(d,dim(dtheta)[2],dim(dtheta)[3])
-   dp2 <- switch(d,dim(Bi0)[2],dim(Bi0)[3])
+   dp2 <- switch(d,dim(Bi)[2],dim(Bi)[3])
    if(d==1){
       dist <- 0
-      for(i in 1:dp1) for(j in 1:dp1) dist <- dist+dtheta[,i]*Bi0[,i+j-1]*dtheta[,j]
+      for(i in 1:dp1) for(j in 1:dp1) dist <- dist+dtheta[,i]*Bi[,i+j-1]*dtheta[,j]
    }
    if(d==2){
          ind <- matrix(c(1, 2, 3, 4, 5, 6,
@@ -52,7 +52,7 @@ Pardist <- function(d,Bi0,dtheta){
                          5, 8, 9,12,13,14,
                          6, 9,10,13,14,15),6,6)[1:dp1,1:dp1,drop=FALSE]
                 dist <- 0
-                for(i in 1:dp1) for(j in 1:dp1) dist <- dist+dtheta[,,i]*Bi0[,,ind[i,j]]*dtheta[,,j]
+                for(i in 1:dp1) for(j in 1:dp1) dist <- dist+dtheta[,,i]*Bi[,,ind[i,j]]*dtheta[,,j]
    }
    dist
    }
@@ -231,7 +231,6 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
       sigma2 <- 1/sigma2 #  taking the invers yields simpler formulaes 
     }
 #  tobj <- list(bi= rep(1,n*dp2), bi2= rep(1,n*dp2), theta= rep(0,n*dp1), fix=rep(FALSE,n))
-  bi0old <- rep(1,n*dp2)
   bi <- array(rep(1,n*dp2),c(switch(d,n,dy),dp2))
   bi2 <- array(rep(0,n*dp2),c(switch(d,n,dy),dp2))
   bikm1 <- array(rep(1,n*dp2),c(switch(d,n,dy),dp2))

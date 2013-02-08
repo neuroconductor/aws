@@ -15,7 +15,11 @@ y <- array(switch(family,"Gaussian"=rnorm(nnn),
                          "Exponential"=rexp(nnn,1),
                          "Bernoulli"=rbinom(nnn,1,theta),
                          "Volatility"=rnorm(nnn),
-                         "Variance"=rchisq(nnn,shape)/shape),dy)
+                         "Variance"=rchisq(nnn,shape)/shape,
+                         "NCchi"=sqrt(rchisq(nnn,2,theta^2))),dy)
+#
+#   NCchi for noncentral chi with shape=degrees of freedom and theta =NCP
+#
 z <- seq(0,maxz,diffz)
 nz <- length(z)
 elevel <- trunc(log(1e-6,10))
@@ -63,13 +67,21 @@ if(family=="Poisson") y0 <- y+.1
 #
 #  this corresponds to the regularization used to avoid Inf distances
 #
+kldistnorm1 <- function(th1,y,df){
+require(gsl)
+L <- df/2
+m1 <- sqrt(pi/2)*gamma(L+1/2)/gamma(1.5)/gamma(L)*hyperg_1F1(-0.5,L, -th1^2/2, give=FALSE, strict=TRUE)
+(m1-y)^2/2/(2*L+th1^2-m1^2)
+}
 KLdist0 <- switch(family,"Gaussian"=y^2/2,
                          "Poisson"=(theta-y0+y0*(log(y0)-log(theta))),
                          "Exponential"=(log(y)-1+1/y),
                          "Bernoulli"=(y0*log(y0/theta)+
                                      (1-y0)*log((1-y0)/(1-theta))),
                          "Volatility"=(log(y)-1+1/y)/2,
-                         "Variance"=shape/2*(log(y)-1+1/y))
+                         "Variance"=shape/2*(log(y)-1+1/y),
+                         "NCchi"=kldistnorm1(theta,y,2)
+                         )
 exceedence0 <- .Fortran("exceed",
                            as.double(KLdist0),
                            as.integer(length(KLdist0)),
@@ -81,7 +93,7 @@ exceedence0 <- .Fortran("exceed",
 #  now iterate
 #
 t0 <- Sys.time()
-while (k<=kstar) {
+while (k<=kstar){
       t1 <- Sys.time()
       hakt0 <- gethani(1,1.25*hmax,lkern,1.25^(k-1),wghts,1e-4)
       hakt <- gethani(1,1.25*hmax,lkern,1.25^k,wghts,1e-4)
@@ -144,7 +156,8 @@ KLdist0 <- switch(family,"Gaussian"=yhat0^2/2,
                          "Bernoulli"=(yhat0*log(yhat0/theta)+
                                      (1-yhat0)*log((1-yhat0)/(1-theta))),
                          "Volatility"=(log(yhat0)-1+1/yhat0)/2,
-                         "Variance"=shape/2*(log(yhat0)-1+1/yhat0))
+                         "Variance"=shape/2*(log(yhat0)-1+1/yhat0),
+                         "NCchi"=kldistnorm1(theta,yhat0,2))
 exceedencena[,k] <- .Fortran("exceed",
                            as.double(KLdist0),
                            as.integer(length(KLdist0)),
@@ -211,7 +224,8 @@ KLdist1 <- switch(family,"Gaussian"=yhat0^2/2,
                          "Bernoulli"=(yhat0*log(yhat0/theta)+
                                      (1-yhat0)*log((1-yhat0)/(1-theta))),
                          "Volatility"=(log(yhat0)-1+1/yhat0)/2,
-                         "Variance"=shape/2*(log(yhat0)-1+1/yhat0))
+                         "Variance"=shape/2*(log(yhat0)-1+1/yhat0),
+                         "NCchi"=kldistnorm1(theta,yhat0,2))
 exceedence[,k] <- .Fortran("exceed",
                            as.double(KLdist1),
                            as.integer(length(KLdist1)),

@@ -88,7 +88,6 @@ n3 <- switch(d,1,1,dy[3])
 #wghts<-(wghts[2:3]/wghts[1])
 tobj<-list(bi= rep(1,n), bi2= rep(1,n), theta= y/shape, fix=!mask)
 zobj<-list(ai=y, bi0= rep(1,n))
-biold<-rep(1,n)
 vred<-rep(1,n)
 mae<-NULL
 lambda0<-1e50 # that removes the stochstic term for the first step, initialization by kernel estimates
@@ -107,15 +106,15 @@ hobj <- .Fortran("caws",as.double(y),
                        as.double(1e40),
                        as.double(tobj$theta),
                        bi=as.double(tobj$bi),
-		                 double(n),
+                       double(n),
                        as.double(zobj$bi0),
                        ai=as.double(zobj$ai),
                        as.integer(cpar$mcode),
                        as.integer(lkern),
                        as.double(0.25),
-		       double(prod(dlw)),
-		       as.double(wghts),
-		       PACKAGE="aws",DUP=TRUE)[c("bi","ai")]
+                       double(prod(dlw)),
+                       as.double(wghts),
+                       PACKAGE="aws",DUP=TRUE)[c("bi","ai")]
 hobj$theta <- hobj$ai/hobj$bi
 dim(hobj$theta) <- dim(hobj$bi) <- dy
 #
@@ -161,7 +160,6 @@ zobj <- .Fortran("cgaws",as.double(y),
 vred[!tobj$fix]<-zobj$vred[!tobj$fix]
 dim(zobj$ai)<-dy
 if(hakt>n1/2) zobj$bi0 <- rep(max(zobj$bi),n)
-biold <- zobj$bi0
 tobj<-updtheta(zobj,tobj,cpar)
 tobj$gi <- zobj$gi
 dim(tobj$theta)<-dy
