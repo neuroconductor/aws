@@ -248,7 +248,6 @@ C  first stochastic term
          END DO
       END DO
       call rchkusr()
-#ifdef _OPENMP 
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,hhom,n1,n2,n3,hakt2,hmax2,theta,
 C$OMP& ih3,lwght,wght,y,fix)
@@ -258,7 +257,6 @@ C$OMP& PRIVATE(i1,i2,i3,iind,hhomi,hhommax,thetai,bii,swj,swj2,
 C$OMP& swj0,swjy,sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
 C$OMP& j1,jw1,jind,z1)
 C$OMP DO SCHEDULE(GUIDED)
-#endif
       DO iind=1,n1*n2*n3
          i1=mod(iind,n1)
          if(i1.eq.0) i1=n1
@@ -324,12 +322,10 @@ C  first stochastic term
          bi2(iind)=swj2
          bi0(iind)=swj0
          hhom(iind)=sqrt(hhommax)
-      END DO
-#ifdef _OPENMP 
+      END DO 
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2,hhom)
-#endif
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -411,8 +407,7 @@ C  first stochastic term
             END DO
          END DO
       END DO
-      call rchkusr()
-#ifdef _OPENMP 
+      call rchkusr() 
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(bi,n1,n2,n3,hakt2,hmax2,theta,
 C$OMP& ih3,lwght,wght)
@@ -422,7 +417,6 @@ C$OMP& PRIVATE(i1,i2,i3,iind,thetai,bii,
 C$OMP& sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
 C$OMP& j1,jw1,jind,z1)
 C$OMP DO SCHEDULE(GUIDED)
-#endif
       DO iind=1,n1*n2*n3
          i1=mod(iind,n1)
          if(i1.eq.0) i1=n1
@@ -463,12 +457,10 @@ C  first stochastic term
                END DO
             END DO
          END DO
-      END DO
-#ifdef _OPENMP 
+      END DO 
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(wght)
-#endif
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -552,8 +544,7 @@ C  first stochastic term
             END DO
          END DO
       END DO
-      call rchkusr()
-#ifdef _OPENMP 
+      call rchkusr() 
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,n1,n2,n3,hakt2,hmax2
 C$OMP& ,lwght,wght,y)
@@ -562,7 +553,6 @@ C$OMP& n12,dlw12)
 C$OMP& PRIVATE(i1,i2,i3,iind,swj,swj2,swj0,swjy,wj
 C$OMP& ,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,j1,jw1,jind,z1)
 C$OMP DO SCHEDULE(GUIDED)
-#endif
       DO iind=1,n1*n2*n3
          i1=mod(iind,n1)
          if(i1.eq.0) i1=n1
@@ -609,12 +599,10 @@ C  first stochastic term
          bi(iind)=swj
          bi2(iind)=swj2
          bi0(iind)=swj0
-      END DO
-#ifdef _OPENMP 
+      END DO 
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2)
-#endif
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -698,8 +686,7 @@ C  first stochastic term
             END DO
          END DO
       END DO
-      call rchkusr()
-#ifdef _OPENMP 
+      call rchkusr() 
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,si2,vred,n1,n2,n3,hakt2,hakt,theta
 C$OMP& ,lwght,wght,y,fix)
@@ -711,7 +698,6 @@ C$OMP& ,j3,jw3,jind3,z3,jwind3
 C$OMP& ,j2,jw2,jind2,z2,jwind2
 C$OMP& ,j1,jw1,jind,z1,wjsi2)
 C$OMP DO SCHEDULE(GUIDED)
-#endif
       DO iind=1,n1*n2*n3
          i1=mod(iind,n1)
          if(i1.eq.0) i1=n1
@@ -771,12 +757,10 @@ C  first stochastic term
          bi2(iind)=swj2
          bi0(iind)=swj0
          vred(iind)=sv2/sv1/sv1
-      END DO
-#ifdef _OPENMP 
+      END DO 
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2,vred)
-#endif
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -857,8 +841,7 @@ C  first stochastic term
              END DO
          END DO
       END DO
-      call rchkusr()
-#ifdef _OPENMP 
+      call rchkusr() 
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,si2,vred,n1,n2,n3,hakt2,hakt
 C$OMP& ,lwght,wght,y)
@@ -868,7 +851,6 @@ C$OMP& PRIVATE(iind,swj,swj2,swjy,sv1,sv2,i1,i2,i3,wj
 C$OMP& ,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2
 C$OMP& ,j1,jw1,jind,z1)
 C$OMP DO SCHEDULE(GUIDED)
-#endif
       DO iind=1,n1*n2*n3
          i1=mod(iind,n1)
          if(i1.eq.0) i1=n1
@@ -915,12 +897,10 @@ C  first stochastic term
          bi2(iind)=swj2
          bi0(iind)=sv1
          vred(iind)=sv2/sv1/sv1
-      END DO
-#ifdef _OPENMP 
+      END DO 
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2,vred)
-#endif
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -1006,8 +986,7 @@ C  first stochastic term
             END DO
          END DO
       END DO
-      call rchkusr()
-#ifdef _OPENMP 
+      call rchkusr() 
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,si2,hhom,n1,n2,n3,hakt2,hmax2,theta
 C$OMP& ,lwght,wght,y,fix,mask,vred,gi)
@@ -1019,7 +998,6 @@ C$OMP& ,j3,jw3,jind3,z3,jwind3
 C$OMP& ,j2,jw2,jind2,z2,jwind2
 C$OMP& ,j1,jw1,jind,z1,z)
 C$OMP DO SCHEDULE(GUIDED)
-#endif
       DO iind=1,n1*n2*n3
          i1=mod(iind,n1)
          if(i1.eq.0) i1=n1
@@ -1096,11 +1074,9 @@ C
          hhom(iind)=sqrt(hhommax)
          gi(iind)=sv1
          vred(iind)=sv2/sv1/sv1
-      END DO
-#ifdef _OPENMP 
+      END DO 
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2,hhom,gi,vred)
-#endif
       RETURN
       END
