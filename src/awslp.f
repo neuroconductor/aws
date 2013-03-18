@@ -38,8 +38,10 @@ C
      1       hakt2,thij(3),thi(3),zz(5),lwj,yj,hs2,hs,z,cc,spf,
      2       hhommax,hhommin,az1,hfixmax,hnfix,ssij,spmax,
      3       hhomimin,hhomimax
+#ifdef _OPENMP 
       integer omp_get_thread_num
       external omp_get_thread_num
+#endif
 C   arrays with variable length are organized as 
 C   theta(n,dp1)
 C   bi(n,dp2)
@@ -78,6 +80,7 @@ C   compute location weights first
       cc=0.0d0
       call smwghts1(lw,hakt,hw,slw,dlw,dsw,cc)
 C  now stochastic term
+#ifdef _OPENMP 
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(y,fix,nfix,n,degr,hw,hakt,hhom,lambda,theta,
 C$OMP&        bi,bi2,bi0,ai,kern,spmin,lw,w,slw,sw,ind)
@@ -87,8 +90,11 @@ C$OMP& PRIVATE(j1,k,iind,jind,jw1,l,bii,sij,swj,swj2,swj0,swjy,z1,
 C$OMP&         wj,thij,thi,zz,lwj,yj,z,cc,hhommax,hhommin,az1,hfixmax, 
 C$OMP&         ssij,hhomimin,hhomimax,thrednr,trl,trs)
 C$OMP DO SCHEDULE(GUIDED)
+#endif
       DO iind=1,n
+#ifdef _OPENMP 
          thrednr = omp_get_thread_num()
+#endif
 C         call intpr("nr of core",10,thrednr,1)
          trl = thrednr*dlw
          trs = thrednr*dsw
@@ -243,9 +249,11 @@ C
             fix(iind)=.TRUE.
          END IF
       END DO
+#ifdef _OPENMP 
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2,hhom)
+#endif
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -287,8 +295,10 @@ C
       real*8 bii(5),sij,swj(5),swj2(5),swj0(5),swjy(5),z1,wj,
      1       hakt2,thij(3),thi(3),zz(5),lwj,yj,hs2,hs,z,cc,spf,hhomi,
      2       hhommax,az1,hfixmax,hnfix
+#ifdef _OPENMP 
       integer omp_get_thread_num
       external omp_get_thread_num
+#endif
 C   arrays with variable length are organized as 
 C   theta(n,dp1)
 C   bi(n,dp2)
@@ -326,6 +336,7 @@ C   compute location weights first
       cc=0.0d0
       call smwghts1(lw,hakt,hw,slw,dlw,dsw,cc)
 C  now stochastic term
+#ifdef _OPENMP 
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(y,si,fix,nfix,n,degr,hw,hakt,hhom,lambda,theta,
 C$OMP&        bi,bi2,bi0,ai,kern,spmin,lw,w,slw,sw,ind)
@@ -335,10 +346,13 @@ C$OMP& PRIVATE(j1,k,iind,jind,jw1,l,bii,sij,swj,swj2,swj0,swjy,z1,
 C$OMP&         wj,thij,thi,zz,lwj,yj,z,cc,hhommax,hhommin,az1,hfixmax, 
 C$OMP&         ssij,hhomi,hhomimin,hhomimax,thrednr,trl,trs)
 C$OMP DO SCHEDULE(GUIDED)
+#endif
       DO iind=1,n
          IF (fix(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
+#ifdef _OPENMP 
          thrednr = omp_get_thread_num()
+#endif
          trl = thrednr*dlw
          trs = thrednr*dsw
          zz(1)=1.d0
@@ -453,9 +467,11 @@ C
             fix(iind)=.TRUE.
          END IF
       END DO
+#ifdef _OPENMP 
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2,hhom)
+#endif
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -498,8 +514,10 @@ C
       real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
      1       hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf,hhomi,
      2       hhommax,az1,hfixmax,hnfix
+#ifdef _OPENMP 
       integer omp_get_thread_num
       external omp_get_thread_num
+#endif
 C   arrays with variable length are organized as 
 C   theta(n1,n2,dp1)
 C   bi(n1,n2,dp2)
@@ -547,6 +565,7 @@ C  first stochastic term
       call smwghts2(lw,hakt,hw,slw,dlw,dsw,cc)
 C  now stochastic term
       call rchkusr()
+#ifdef _OPENMP 
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(y,fix,nfix,n1,n2,degr,hw,hakt,hhom,lambda,theta,
 C$OMP&        bi,bi2,bi0,ai,kern,spmin,lw,w,slw,sw,ind)
@@ -557,6 +576,7 @@ C$OMP&         swjy,z1,wj,thij,thi,zz,lwj,yj,z,cc,hhommax,hhommin,
 C$OMP&         az1,hfixmax,ssij,hhomimin,hhomimax,thrednr,trl,trs,
 C$OMP&         hhomi,jwind,jwind2,ih1,i1,i2,z2,wjy)
 C$OMP DO SCHEDULE(GUIDED)
+#endif
 C      DO i2=1,n2
 C         DO i1=1,n1
 C            iind=i1+(i2-1)*n1
@@ -567,7 +587,9 @@ C            iind=i1+(i2-1)*n1
             IF (fix(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
             zz(1)=1.d0
+#ifdef _OPENMP 
             thrednr = omp_get_thread_num()
+#endif
 C         call intpr("nr of core",10,thrednr,1)
             trl = thrednr*dlw2
             trs = thrednr*dsw*dsw
@@ -732,9 +754,11 @@ C
             END IF
 C         END DO
       END DO
+#ifdef _OPENMP 
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2,hhom,fix)
+#endif
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -777,8 +801,10 @@ C
       real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
      1       hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf,hhomi,
      2       hhommax,az1,hfixmax,hnfix
+#ifdef _OPENMP 
       integer omp_get_thread_num
       external omp_get_thread_num
+#endif
 C   arrays with variable length are organized as 
 C   theta(n1,n2,dp1)
 C   bi(n1,n2,dp2)
@@ -826,6 +852,7 @@ C  first stochastic term
       call smwghts2(lw,hakt,hw,slw,dlw,dsw,cc)
 C  now stochastic term
       call rchkusr()
+#ifdef _OPENMP 
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(y,si,fix,nfix,n1,n2,degr,hw,hakt,hhom,lambda,theta,
 C$OMP&        bi,bi2,bi0,ai,kern,spmin,lw,w,slw,sw,ind)
@@ -836,6 +863,7 @@ C$OMP&         swjy,z1,wj,thij,thi,zz,lwj,yj,z,cc,hhommax,hhommin,
 C$OMP&         az1,hfixmax,ssij,hhomimin,hhomimax,thrednr,trl,trs,
 C$OMP&         hhomi,jwind,jwind2,ih1,i1,i2,z2,wjy)
 C$OMP DO SCHEDULE(GUIDED)
+#endif
 C      DO i2=1,n2
 C         DO i1=1,n1
 C            iind=i1+(i2-1)*n1
@@ -846,7 +874,9 @@ C            iind=i1+(i2-1)*n1
             IF (fix(iind)) CYCLE
 C    nothing to do, final estimate is already fixed by control 
             zz(1)=1.d0
+#ifdef _OPENMP 
             thrednr = omp_get_thread_num()
+#endif
 C         call intpr("nr of core",10,thrednr,1)
             trl = thrednr*dlw2
             trs = thrednr*dsw*dsw
@@ -1009,9 +1039,11 @@ C
             END IF
 C         END DO
       END DO
+#ifdef _OPENMP 
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2,hhom,fix)
+#endif
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

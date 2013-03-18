@@ -16,7 +16,43 @@ y <- array(switch(family,"Gaussian"=rnorm(nnn),
                          "Bernoulli"=rbinom(nnn,1,theta),
                          "Volatility"=rnorm(nnn),
                          "Variance"=rchisq(nnn,shape)/shape,
-                         "NCchi"=sqrt(rchisq(nnn,2,theta^2))),dy)
+                         "NCchi"=sqrt(rchisq(nnn,shape,theta^2))),dy)
+if(family=="NCchi"){
+require(gsl)
+##
+##  define functions to access sd and var of noncentral chi 
+##  as functions of the noncenttrality parameter or expectation 
+##
+sofmchi <- function(L){
+minlev <- sqrt(2)*gamma(L+.5)/gamma(L)
+x <- seq(0,50,.01)
+mu <- sqrt(pi/2)*gamma(L+1/2)/gamma(1.5)/gamma(L)*hyperg_1F1(-0.5,L, -x^2/2, give=FALSE, strict=TRUE)
+s2 <- 2*L+x^2-mu^2
+s <- sqrt(s2)
+## return list containing values of noncentrality parameter (ncp),
+## mean (mu), standard deviation (sd) and variance (s2) to be used
+## in variance modeling
+list(ncp=x,mu=mu,s=s,s2=s2,minlev=minlev,L=L)
+}
+
+fncchis <- function(mu,varstats){
+mu <- pmax(varstats$minlev,mu)
+ind <- 
+findInterval(mu, varstats$mu, rightmost.closed = FALSE, all.inside = FALSE)
+varstats$s[ind]
+}
+
+fncchiv <- function(mu,varstats){
+mu <- pmax(varstats$minlev,mu)
+ind <- 
+findInterval(mu, varstats$mu, rightmost.closed = FALSE, all.inside = FALSE)
+varstats$s2[ind]
+}
+#
+#  
+#
+varstats <- sofmchi(shape/2) # precompute table of mean, sd and var for 
+}
 #
 #   NCchi for noncentral chi with shape=degrees of freedom and theta =NCP
 #
@@ -80,7 +116,7 @@ KLdist0 <- switch(family,"Gaussian"=y^2/2,
                                      (1-y0)*log((1-y0)/(1-theta))),
                          "Volatility"=(log(y)-1+1/y)/2,
                          "Variance"=shape/2*(log(y)-1+1/y),
-                         "NCchi"=kldistnorm1(theta,y,2)
+                         "NCchi"=kldistnorm1(theta,y,shape)
                          )
 exceedence0 <- .Fortran("exceed",
                            as.double(KLdist0),
@@ -93,6 +129,7 @@ exceedence0 <- .Fortran("exceed",
 #  now iterate
 #
 t0 <- Sys.time()
+cat("using lambda=",lambda,"\n")
 while (k<=kstar){
       t1 <- Sys.time()
       hakt0 <- gethani(1,1.25*hmax,lkern,1.25^(k-1),wghts,1e-4)
@@ -157,7 +194,7 @@ KLdist0 <- switch(family,"Gaussian"=yhat0^2/2,
                                      (1-yhat0)*log((1-yhat0)/(1-theta))),
                          "Volatility"=(log(yhat0)-1+1/yhat0)/2,
                          "Variance"=shape/2*(log(yhat0)-1+1/yhat0),
-                         "NCchi"=kldistnorm1(theta,yhat0,2))
+                         "NCchi"=kldistnorm1(theta,yhat0,shape))
 exceedencena[,k] <- .Fortran("exceed",
                            as.double(KLdist0),
                            as.integer(length(KLdist0)),
@@ -190,6 +227,10 @@ zobj <- .Fortran("chaws",as.double(y),
                        as.double(wghts),
                        PACKAGE="aws",DUP=TRUE)[c("bi","bi2","ai","hakt")]
 } else {
+if(cpar$mcode==6) bi <- bi/fncchiv(yhat,varstats)
+##
+##   this takes care of the variance/mean dependence of the nc chi distribution 
+##
 zobj <- .Fortran("caws",as.double(y),
                        as.logical(rep(FALSE,n)),
                        as.integer(n1),
@@ -225,7 +266,7 @@ KLdist1 <- switch(family,"Gaussian"=yhat0^2/2,
                                      (1-yhat0)*log((1-yhat0)/(1-theta))),
                          "Volatility"=(log(yhat0)-1+1/yhat0)/2,
                          "Variance"=shape/2*(log(yhat0)-1+1/yhat0),
-                         "NCchi"=kldistnorm1(theta,yhat0,2))
+                         "NCchi"=kldistnorm1(theta,yhat0,shape))
 exceedence[,k] <- .Fortran("exceed",
                            as.double(KLdist1),
                            as.integer(length(KLdist1)),
@@ -254,31 +295,9 @@ gc()
 }
 if(family%in%c("Bernoulli","Poisson")) y <- y0
 
-list(h=h,z=z,prob=exceedence,probna=exceedencena,y=if(verbose) y else NULL , theta= if(verbose) theta=theta else NULL, levels=levels, family=family)
+list(h=h,z=z,prob=exceedence,probna=exceedencena,y=if(verbose) y else NULL , theta= if(verbose) yhat else NULL, levels=levels, family=family)
 }
 
-exceedence <- function(awspropobj, level){
-y <- awspropobj$y
-theta <- awspropobj$theta
-family <- awspropobj$family
-z <- level
-nz <- length(z)
-KLdist0 <- switch(family,"Gaussian"=y^2/2,
-                         "Poisson"=(theta-y+y*(log(y)-log(theta))),
-                         "Exponential"=(log(y)-1+1/y),
-                         "Bernoulli"=(y*log(y/theta)+
-                                     (1-y)*log((1-y)/(1-theta))),
-                         "Volatility"=(log(y)-1+1/y)/2,
-                         "Variance"=shape/2*(log(y)-1+1/y))
-exceedence0 <- .Fortran("exceed",
-                           as.double(KLdist0),
-                           as.integer(length(KLdist0)),
-                           as.double(z),
-                           as.integer(nz),
-                           exprob=double(nz),
-                           PACKAGE="aws",DUP=FALSE)$exprob
-exceedence0
-}
 awsweights <- function(awsobj,spmin=0.25){
 if(awsobj@degree!=0 || awsobj@varmodel!="Constant"||
 any(awsobj@scorr!=0)) stop("Not implemented")

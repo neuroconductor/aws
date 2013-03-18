@@ -298,7 +298,7 @@ Bernoulli=switch(d,5.3,5,4.8),
                   Poisson=switch(d,7.7,6.1,5.9),
                   Volatility=switch(d,5,4,3.7),
                   Variance=switch(d,12.8,6.1,6.1),
-                  NCchi=switch(d,11.3,6.1,.96),
+                  NCchi=switch(d,16.8,16.8,16.8),# worst case theta=3
                   switch(d,11.3,6.1,.96)) else lambda <- 1e50
 #
 #    determine heta for memory step
@@ -369,7 +369,7 @@ mcode <- switch(family,
                 Variance=5,
                 NCchi=6,-1)
 if(mcode < 0) stop(paste("specified family ",family," not yet implemented"))
-   lambda<-lambda*1.8
+lambda<-lambda*1.8
 if(is.null(shape)) shape<-1
 maxvol <- getvofh(hmax,lkern,wghts)
 kstar <- as.integer(log(maxvol)/log(1.25))

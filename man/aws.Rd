@@ -11,9 +11,9 @@ or heteroskedastic model is used depending on the content of \code{sigma2}
 \usage{
 aws(y,hmax=NULL,aws=TRUE,memory=FALSE,family="Gaussian",
                 lkern="Triangle",homogen=TRUE,aggkern="Uniform",
-                sigma2=NULL,shape=NULL,scorr=0,
+                sigma2=NULL,shape=NULL,scorr=0,spmin=0.25,
 		ladjust=1,wghts=NULL,u=NULL,graph=FALSE,demo=FALSE,
-                testprop=FALSE)
+                testprop=FALSE,maxni=FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -23,9 +23,9 @@ aws(y,hmax=NULL,aws=TRUE,memory=FALSE,family="Gaussian",
   \item{memory}{ logical: if TRUE stagewise aggregation is used as an additional
    adaptation scheme. }
   \item{family}{\code{family} specifies the probability distribution. Default is \code{family="Gaussian"}, also implemented
-   are "Bernoulli", "Poisson", "Exponential", "Volatility" and "Variance". \code{family="Volatility"} specifies a Gaussian distribution with
+   are "Bernoulli", "Poisson", "Exponential", "Volatility", "Variance" and "NCchi". \code{family="Volatility"} specifies a Gaussian distribution with
    expectation 0 and unknown variance. \code{family="Volatility"} specifies that \code{p*y/theta} is distributed as \eqn{\chi^2} with \code{p=shape}
-   degrees of freedom.}
+   degrees of freedom. \code{family="NCchi"} uses a noncentral Chi distribution with \code{p=shape} degrees of freedom and noncentrality parameter \code{theta}}
   \item{lkern}{ character: location kernel, either "Triangle", "Plateau", "Quadratic", "Cubic" or "Gaussian"}
   \item{homogen}{ logical: if TRUE the function tries to determine regions 
    where weights can be fixed to 1. This may increase speed.}
@@ -37,6 +37,8 @@ aws(y,hmax=NULL,aws=TRUE,memory=FALSE,family="Gaussian",
   with \code{shape} degrees of freedom. }
   \item{scorr}{The vector \code{scorr} allows to specify a first order correlations of the noise for each coordinate direction,
     defaults to 0 (no correlation). }
+  \item{spmin}{Determines the form (size of the plateau) in the adaptation kernel. 
+    Not to be changed by the user.}
   \item{ladjust}{ factor to increase the default value of lambda }
   \item{wghts}{ \code{wghts} specifies the  diagonal elements of a weight matrix to adjust for different distances between grid-points
   in different coordinate directions, i.e. allows to define a more appropriate metric in the design space. }
@@ -46,6 +48,7 @@ aws(y,hmax=NULL,aws=TRUE,memory=FALSE,family="Gaussian",
   \item{demo}{ If \code{demo=TRUE} the function pauses after each iteration. Defaults to \code{demo=FALSE}. }
   \item{testprop}{If set this provides diagnostics for testing the propagation condition. The values of \code{y} should correspond to the specified
    family and a global model. }
+  \item{maxni}{If TRUE use \eqn{max_{l<=k}(N_i^{(l)}} instead of \eqn{(N_i^{(k)}} in the definition of the statistical penalty.}
 }
 \details{The function implements the propagation separation approach to 
 nonparametric smoothing (formerly introduced as Adaptive weights smoothing) 

@@ -63,7 +63,8 @@ C          Model=2    Bernoulli
 C          Model=3    Poisson   
 C          Model=4    Exponential   
 C          Model=5    Variance
-C          Model=6    Noncentral Chi (Gaussian approximation)
+C          Model=6    Noncentral Chi (Gaussian approximation, 
+C                     variance mean dependence is introduces via factor bii)
 C
 C     computing dlog(theta) and dlog(1.d0-theta) outside the AWS-loops 
 C     will reduces computational costs at the price of readability
@@ -72,7 +73,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       real*8 function kldist(model,thi,thj)
       implicit logical (a-z)
       integer model
-      real*8 thi,thj,z,tthi,a,b
+      real*8 thi,thj,z,tthi
       IF (model.eq.1) THEN
 C        Gaussian
          z=thi-thj
@@ -94,17 +95,8 @@ C        Exponential
 C        Variance
          kldist=thi/thj-1.d0-log(thi/thj)
       ELSE IF (model.eq.6) THEN
-C        Noncentral Chi with 2 df (Gaussian approximation)
-C         dfh = 1
-C         a = -0.356536d0+0.003803d0*dfh-0.701591d0*sqrt(dfh)
-C         b = -0.059703d0+0.029093d0*dfh+0.098401d0*sqrt(dfh)
-         a = -1.054324
-         b = 0.067791
-         z = (max(thi,1.253314)+a)**1.5d0
-         z = (z/(z+b))
-         z=max(0.6551366d0,z*z)
-C   thast the approximated standard deviation
-         z=(thi-thj)/z
+C        Noncentral Chi with Gaussian approximation
+         z=thi-thj
          kldist=z*z
       ELSE
 C        use Gaussian
@@ -256,6 +248,7 @@ C  first stochastic term
          END DO
       END DO
       call rchkusr()
+#ifdef _OPENMP 
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,hhom,n1,n2,n3,hakt2,hmax2,theta,
 C$OMP& ih3,lwght,wght,y,fix)
@@ -265,6 +258,7 @@ C$OMP& PRIVATE(i1,i2,i3,iind,hhomi,hhommax,thetai,bii,swj,swj2,
 C$OMP& swj0,swjy,sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
 C$OMP& j1,jw1,jind,z1)
 C$OMP DO SCHEDULE(GUIDED)
+#endif
       DO iind=1,n1*n2*n3
          i1=mod(iind,n1)
          if(i1.eq.0) i1=n1
@@ -331,9 +325,11 @@ C  first stochastic term
          bi0(iind)=swj0
          hhom(iind)=sqrt(hhommax)
       END DO
+#ifdef _OPENMP 
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2,hhom)
+#endif
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -416,6 +412,7 @@ C  first stochastic term
          END DO
       END DO
       call rchkusr()
+#ifdef _OPENMP 
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(bi,n1,n2,n3,hakt2,hmax2,theta,
 C$OMP& ih3,lwght,wght)
@@ -425,6 +422,7 @@ C$OMP& PRIVATE(i1,i2,i3,iind,thetai,bii,
 C$OMP& sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
 C$OMP& j1,jw1,jind,z1)
 C$OMP DO SCHEDULE(GUIDED)
+#endif
       DO iind=1,n1*n2*n3
          i1=mod(iind,n1)
          if(i1.eq.0) i1=n1
@@ -466,9 +464,11 @@ C  first stochastic term
             END DO
          END DO
       END DO
+#ifdef _OPENMP 
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(wght)
+#endif
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -553,6 +553,7 @@ C  first stochastic term
          END DO
       END DO
       call rchkusr()
+#ifdef _OPENMP 
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,n1,n2,n3,hakt2,hmax2
 C$OMP& ,lwght,wght,y)
@@ -561,6 +562,7 @@ C$OMP& n12,dlw12)
 C$OMP& PRIVATE(i1,i2,i3,iind,swj,swj2,swj0,swjy,wj
 C$OMP& ,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,j1,jw1,jind,z1)
 C$OMP DO SCHEDULE(GUIDED)
+#endif
       DO iind=1,n1*n2*n3
          i1=mod(iind,n1)
          if(i1.eq.0) i1=n1
@@ -608,9 +610,11 @@ C  first stochastic term
          bi2(iind)=swj2
          bi0(iind)=swj0
       END DO
+#ifdef _OPENMP 
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2)
+#endif
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -695,6 +699,7 @@ C  first stochastic term
          END DO
       END DO
       call rchkusr()
+#ifdef _OPENMP 
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,si2,vred,n1,n2,n3,hakt2,hakt,theta
 C$OMP& ,lwght,wght,y,fix)
@@ -706,6 +711,7 @@ C$OMP& ,j3,jw3,jind3,z3,jwind3
 C$OMP& ,j2,jw2,jind2,z2,jwind2
 C$OMP& ,j1,jw1,jind,z1,wjsi2)
 C$OMP DO SCHEDULE(GUIDED)
+#endif
       DO iind=1,n1*n2*n3
          i1=mod(iind,n1)
          if(i1.eq.0) i1=n1
@@ -766,9 +772,11 @@ C  first stochastic term
          bi0(iind)=swj0
          vred(iind)=sv2/sv1/sv1
       END DO
+#ifdef _OPENMP 
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2,vred)
+#endif
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -850,6 +858,7 @@ C  first stochastic term
          END DO
       END DO
       call rchkusr()
+#ifdef _OPENMP 
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,si2,vred,n1,n2,n3,hakt2,hakt
 C$OMP& ,lwght,wght,y)
@@ -859,6 +868,7 @@ C$OMP& PRIVATE(iind,swj,swj2,swjy,sv1,sv2,i1,i2,i3,wj
 C$OMP& ,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2
 C$OMP& ,j1,jw1,jind,z1)
 C$OMP DO SCHEDULE(GUIDED)
+#endif
       DO iind=1,n1*n2*n3
          i1=mod(iind,n1)
          if(i1.eq.0) i1=n1
@@ -906,9 +916,11 @@ C  first stochastic term
          bi0(iind)=sv1
          vred(iind)=sv2/sv1/sv1
       END DO
+#ifdef _OPENMP 
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2,vred)
+#endif
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -995,6 +1007,7 @@ C  first stochastic term
          END DO
       END DO
       call rchkusr()
+#ifdef _OPENMP 
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,si2,hhom,n1,n2,n3,hakt2,hmax2,theta
 C$OMP& ,lwght,wght,y,fix,mask,vred,gi)
@@ -1006,6 +1019,7 @@ C$OMP& ,j3,jw3,jind3,z3,jwind3
 C$OMP& ,j2,jw2,jind2,z2,jwind2
 C$OMP& ,j1,jw1,jind,z1,z)
 C$OMP DO SCHEDULE(GUIDED)
+#endif
       DO iind=1,n1*n2*n3
          i1=mod(iind,n1)
          if(i1.eq.0) i1=n1
@@ -1083,8 +1097,10 @@ C
          gi(iind)=sv1
          vred(iind)=sv2/sv1/sv1
       END DO
+#ifdef _OPENMP 
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2,hhom,gi,vred)
+#endif
       RETURN
       END

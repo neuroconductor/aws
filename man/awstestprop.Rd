@@ -10,8 +10,8 @@ appropriate values for the parameter \code{lambda} in function \code{aws}.
 }
 \usage{
 awstestprop(dy, hmax, theta = 1, family = "Gaussian", lkern = "Triangle", 
-        aws = TRUE, memory = FALSE, shape = 2, homogeneous=TRUE, varadapt=FALSE, ladjust = 1, seed = 1,
-                 minlevel=1e-6,maxz=25,diffz=.5)
+        aws = TRUE, memory = FALSE, shape = 2, homogeneous=TRUE, varadapt=FALSE, ladjust = 1, spmin=0.25, seed = 1,
+                 minlevel=1e-6, maxz=25, diffz=.5, maxni=FALSE, verbose=FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -26,9 +26,9 @@ awstestprop(dy, hmax, theta = 1, family = "Gaussian", lkern = "Triangle",
 }
   \item{family}{
 \code{family} specifies the probability distribution. Default is \code{family="Gaussian"}, also implemented
-   are "Bernoulli", "Poisson", "Exponential", "Volatility" and "Variance". \code{family="Volatility"} specifies a Gaussian distribution with
+   are "Bernoulli", "Poisson", "Exponential", "Volatility", "Variance" and "NCchi". \code{family="Volatility"} specifies a Gaussian distribution with
    expectation 0 and unknown variance. \code{family="Volatility"} specifies that \code{p*y/theta} is distributed as \eqn{\chi^2} with \code{p=shape}
-   degrees of freedom.
+   degrees of freedom. \code{family="NCchi"} uses a noncentral Chi distribution with \code{p=shape} degrees of freedom and noncentrality parameter \code{theta}.
 }
   \item{lkern}{
 character: location kernel, either "Triangle", "Plateau", "Quadratic", "Cubic" or "Gaussian"}
@@ -47,10 +47,14 @@ Allows to specify an additional shape parameter for certain family models. Curre
     if \code{varadapt==TRUE} use inverse of variance reduction instead of sum of weights in definition of statistical penalty.}
   \item{ladjust}{
 Factor to increase the default value of lambda }
+  \item{spmin}{Determines the form (size of the plateau) in the adaptation kernel. 
+    Not to be changed by the user.}
   \item{seed}{Seed value for random generator.}
   \item{minlevel}{Minimum exceedence probability to use in contour plots.}
   \item{maxz}{Maximum of z-scale in plots.}
   \item{diffz}{Gridlength in z}
+  \item{maxni}{If TRUE use \eqn{max_{l<=k}(N_i^{(l)}} instead of \eqn{(N_i^{(k)}} in the definition of the statistical penalty.}
+  \item{verbose}{If TRUE provide additional information.}
 }
 \details{
 Estimates exceedence probabilities 
