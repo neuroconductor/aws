@@ -51,6 +51,13 @@ if(length(dy)>3) stop("AWS for more than 3 dimensional grids is not implemented"
 #
 if(is.null(wghts)) wghts <- c(1,1,1)
 wghts <- switch(length(dy),c(0,0),c(wghts[1]/wghts[2],0),wghts[1]/wghts[2:3])
+if(family=="NCchi"){
+require(gsl)
+varstats <- sofmchi(shape/2) # precompute table of mean, sd and var for 
+#
+#   NCchi for noncentral chi with shape=degrees of freedom and theta =NCP
+#
+}
 cpar<-setawsdefaults(dy,mean(y),family,lkern,aggkern,aws,memory,ladjust,hmax,shape,wghts)
 lambda <- cpar$lambda
 hmax <- cpar$hmax
@@ -136,7 +143,8 @@ zobj <- .Fortran("chaws",as.double(y),
 vred[!tobj$fix]<-zobj$vred[!tobj$fix]
 } else {
 # all other cases
-zobj <- .Fortran("caws",as.double(y),
+if(cpar$mcode!=6){
+   zobj <- .Fortran("caws",as.double(y),
                        as.logical(tobj$fix),
                        as.integer(n1),
                        as.integer(n2),
@@ -155,6 +163,28 @@ zobj <- .Fortran("caws",as.double(y),
                        double(prod(dlw)),
                        as.double(wghts),
                        PACKAGE="aws",DUP=TRUE)[c("bi","bi0","bi2","ai","hakt","hhom")]
+   } else {
+   zobj <- .Fortran("caws6",as.double(y),
+                       as.logical(tobj$fix),
+                       as.integer(n1),
+                       as.integer(n2),
+                       as.integer(n3),
+                       hakt=as.double(hakt),
+                       hhom=as.double(hhom),
+                       as.double(lambda0),
+                       as.double(tobj$theta),
+                       as.double(fncchiv(yhat,varstats)/2),
+                       bi=as.double(tobj$bi),
+                       bi2=double(n),
+                       bi0=double(n),
+                       ai=as.double(zobj$ai),
+                       as.integer(cpar$mcode),
+                       as.integer(lkern),
+                       as.double(spmin),
+                       double(prod(dlw)),
+                       as.double(wghts),
+                       PACKAGE="aws",DUP=TRUE)[c("bi","bi0","bi2","ai","hakt","hhom")]
+   }                     
 }
 if(family%in%c("Bernoulli","Poisson")) zobj<-regularize(zobj,family)
 dim(zobj$ai)<-dy
@@ -400,6 +430,12 @@ KLdist <- function(mcode,th1,th2,bi0,shape){
    z[is.na(z)]<-0
    z
 }
+KLdist6 <- function(th1,th2,bi0,shape1,shape2){
+# case mcode=6 Symmetrized Gauss approximation
+(th1-th2)^2/(shape1+shape2)
+   z[is.na(z)]<-0
+   z
+}
 ####################################################################################
 #
 #    Memory step for local constant aws
@@ -424,6 +460,7 @@ kstar<-cpar$ktau
 tau<-2*(tau1+tau2*max(kstar-log(hakt),0))
 theta<-tobj$theta
 thetanew[tobj$fix]<-theta[tobj$fix]
+if(mcode<6){
 eta<-switch(aggkern,
             "Uniform"=as.numeric(zobj$bi0/tau*
               KLdist(mcode,thetanew,theta,max(zobj$bi0),shape)>1),
@@ -431,6 +468,12 @@ eta<-switch(aggkern,
               KLdist(mcode,thetanew,theta,max(zobj$bi0),shape)),
              as.numeric(zobj$bi0/tau*
               KLdist(mcode,thetanew,theta,max(zobj$bi0),shape)>1))
+} else {
+  eta <- 1
+#
+#  no memory step implemented in this case
+#
+}
 eta[tobj$fix]<-1
 bi <- (1-eta)*bi + eta * tobj$bi
 bi2 <- (1-eta)*bi2 + eta * tobj$bi2

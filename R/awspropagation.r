@@ -19,43 +19,11 @@ y <- array(switch(family,"Gaussian"=rnorm(nnn),
                          "NCchi"=sqrt(rchisq(nnn,shape,theta^2))),dy)
 if(family=="NCchi"){
 require(gsl)
-##
-##  define functions to access sd and var of noncentral chi 
-##  as functions of the noncenttrality parameter or expectation 
-##
-sofmchi <- function(L){
-minlev <- sqrt(2)*gamma(L+.5)/gamma(L)
-x <- seq(0,50,.01)
-mu <- sqrt(pi/2)*gamma(L+1/2)/gamma(1.5)/gamma(L)*hyperg_1F1(-0.5,L, -x^2/2, give=FALSE, strict=TRUE)
-s2 <- 2*L+x^2-mu^2
-s <- sqrt(s2)
-## return list containing values of noncentrality parameter (ncp),
-## mean (mu), standard deviation (sd) and variance (s2) to be used
-## in variance modeling
-list(ncp=x,mu=mu,s=s,s2=s2,minlev=minlev,L=L)
-}
-
-fncchis <- function(mu,varstats){
-mu <- pmax(varstats$minlev,mu)
-ind <- 
-findInterval(mu, varstats$mu, rightmost.closed = FALSE, all.inside = FALSE)
-varstats$s[ind]
-}
-
-fncchiv <- function(mu,varstats){
-mu <- pmax(varstats$minlev,mu)
-ind <- 
-findInterval(mu, varstats$mu, rightmost.closed = FALSE, all.inside = FALSE)
-varstats$s2[ind]
-}
-#
-#  
-#
 varstats <- sofmchi(shape/2) # precompute table of mean, sd and var for 
-}
 #
 #   NCchi for noncentral chi with shape=degrees of freedom and theta =NCP
 #
+}
 z <- seq(0,maxz,diffz)
 nz <- length(z)
 elevel <- trunc(log(1e-6,10))
@@ -227,11 +195,8 @@ zobj <- .Fortran("chaws",as.double(y),
                        as.double(wghts),
                        PACKAGE="aws",DUP=TRUE)[c("bi","bi2","ai","hakt")]
 } else {
-if(cpar$mcode==6) bi <- bi/fncchiv(yhat,varstats)
-##
-##   this takes care of the variance/mean dependence of the nc chi distribution 
-##
-zobj <- .Fortran("caws",as.double(y),
+if(cpar$mcode!=6){
+   zobj <- .Fortran("caws",as.double(y),
                        as.logical(rep(FALSE,n)),
                        as.integer(n1),
                        as.integer(n2),
@@ -250,6 +215,28 @@ zobj <- .Fortran("caws",as.double(y),
                        double(prod(dlw)),
                        as.double(wghts),
                        PACKAGE="aws",DUP=TRUE)[c("bi","bi2","ai","hakt")]
+} else {
+   zobj <- .Fortran("caws6",as.double(y),
+                       as.logical(rep(FALSE,n)),
+                       as.integer(n1),
+                       as.integer(n2),
+                       as.integer(n3),
+                       hakt=as.double(hakt),
+                       hhom=as.double(hhom),
+                       as.double(lambda0),
+                       as.double(yhat),
+                       as.double(fncchiv(yhat,varstats)/2),
+                       bi=as.double(bi),
+                       bi2=double(n),
+                       double(n),
+                       ai=double(n),
+                       as.integer(cpar$mcode),
+                       as.integer(lkern),
+                       as.double(spmin),
+                       double(prod(dlw)),
+                       as.double(wghts),
+                       PACKAGE="aws",DUP=TRUE)[c("bi","bi2","ai","hakt")]
+}
 }
 if(family%in%c("Bernoulli","Poisson")) zobj<-regularize(zobj,family)
 dim(zobj$ai)<-dy
