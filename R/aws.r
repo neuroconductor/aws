@@ -173,7 +173,7 @@ if(cpar$mcode!=6){
                        hhom=as.double(hhom),
                        as.double(lambda0),
                        as.double(tobj$theta),
-                       as.double(fncchiv(yhat,varstats)/2),
+                       as.double(fncchiv(tobj$theta,varstats)/2),
                        bi=as.double(tobj$bi),
                        bi2=double(n),
                        bi0=double(n),
