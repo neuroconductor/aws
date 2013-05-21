@@ -2,21 +2,39 @@ awstestprop <- function(dy,hmax,theta=1,family="Gaussian",
                  lkern="Triangle",aws=TRUE,memory=FALSE,shape=2,
                  homogeneous=TRUE,varadapt=FALSE,ladjust=1,spmin=0.25,seed=1,
                  minlevel=1e-6,maxz=25,diffz=.5,maxni=FALSE,verbose=FALSE){
-if(length(dy)>3) return("maximum array dimension is 3")
-nnn <- prod(dy)
+if(length(dy)>3) {
+   cat("maximum array dimension is 3\n contents of first argument will be interpreted as array of
+   parameters\n")
+   nnn <- length(dy)
+} else {
+   nnn <- prod(dy)
+}
 if(minlevel < 5/nnn) {
 minlevel <- 5/nnn
 cat("minlevel reset to",minlevel,"due to insufficient size of test sample\n")
 }
 set.seed(seed)
 par(mfrow=c(1,1),mar=c(3,3,3,3),mgp=c(2,1,0))
-y <- array(switch(family,"Gaussian"=rnorm(nnn),
+if(length(dy)<=3){
+   y <- array(switch(family,"Gaussian"=rnorm(nnn),
                          "Poisson"=rpois(nnn,theta),
                          "Exponential"=rexp(nnn,1),
                          "Bernoulli"=rbinom(nnn,1,theta),
                          "Volatility"=rnorm(nnn),
                          "Variance"=rchisq(nnn,shape)/shape,
                          "NCchi"=sqrt(rchisq(nnn,shape,theta^2))),dy)
+} else {
+   ddy <- if(!is.null(dim(dy))) dim(dy) else length(dy)
+   y <- array(switch(family,"Gaussian"=rnorm(nnn,dy-mean(dy)),
+                         "Poisson"=rpois(nnn,dy-mean(dy)+theta),
+                         "Exponential"=rexp(nnn,dy-mean(dy)+1),
+                         "Bernoulli"=rbinom(nnn,1,dy-mean(dy)+theta),
+                         "Volatility"=rnorm(nnn,dy-mean(dy)),
+                         "Variance"=rchisq(nnn,dy-mean(dy)+shape)/(dy-mean(dy)+shape),
+                         "NCchi"=sqrt(rchisq(nnn,shape,(dy-mean(dy)+theta)^2))),ddy)
+   dy <- ddy
+}
+cat("minlevel ",minlevel,"due to insufficient size of test sample\n")
 if(family=="NCchi"){
 require(gsl)
 varstats <- sofmchi(shape/2) # precompute table of mean, sd and var for 
