@@ -28,10 +28,10 @@ C
       implicit logical (a-z)
       external kldistp,lkern
       real*8 kldistp,lkern
-      integer n,kern,degr,ind(1),nfix
-      logical aws,fix(1),lfix
-      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmin,
-     1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),hhom(n,2)
+      integer n,kern,degr,ind(*),nfix
+      logical aws,fix(*),lfix
+      real*8 y(*),theta(*),bi(*),bi0(*),ai(*),lambda,spmin,
+     1       bi2(*),hakt,lw(*),w(*),hw,sw(*),slw(*),hhom(n,2)
       integer ih,j1,k,iind,jind,dlw,clw,jw1,
      2        dp1,dp2,ihs,csw,dsw,l,thrednr,trl,trs
       real*8 bii(5),sij,swj(5),swj2(5),swj0(5),swjy(5),z1,wj,
@@ -280,10 +280,10 @@ C
       implicit logical (a-z)
       external kldistp,lkern
       real*8 kldistp,lkern
-      integer n,kern,degr,ind(1),nfix
-      logical aws,fix(1),lfix
-      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,hhom(1),
-     1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),si(1),spmin
+      integer n,kern,degr,ind(*),nfix
+      logical aws,fix(*),lfix
+      real*8 y(*),theta(*),bi(*),bi0(*),ai(*),lambda,hhom(*),
+     1       bi2(*),hakt,lw(*),w(*),hw,sw(*),slw(*),si(*),spmin
       integer ih,j1,k,iind,jind,dlw,clw,jw1,
      2        dp1,dp2,ihs,csw,dsw,l,thrednr,trl,trs
       real*8 bii(5),sij,swj(5),swj2(5),swj0(5),swjy(5),z1,wj,
@@ -493,10 +493,10 @@ C
       implicit logical (a-z)
       external kldistp,lkern
       real*8 kldistp,lkern
-      integer n1,n2,kern,degr,ind(1),nfix
-      logical aws,fix(1),lfix
-      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmin,
-     1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),hhom(1)
+      integer n1,n2,kern,degr,ind(*),nfix
+      logical aws,fix(*),lfix
+      real*8 y(*),theta(*),bi(*),bi0(*),ai(*),lambda,spmin,
+     1       bi2(*),hakt,lw(*),w(*),hw,sw(*),slw(*),hhom(*)
       integer ih,ih1,i1,i2,j1,j2,k,n,
      1        iind,jind,jind2,jwind,jwind2,dlw,clw,jw1,jw2,
      2        dp1,dp2,ihs,csw,dsw,l,dlw2,thrednr,trl,trs
@@ -769,10 +769,10 @@ C
       implicit logical (a-z)
       external kldistp,lkern
       real*8 kldistp,lkern
-      integer n1,n2,kern,degr,ind(1),nfix
-      logical aws,fix(1),lfix
-      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,spmin,
-     1       bi2(1),hakt,lw(1),w(1),hw,sw(1),slw(1),si(1),hhom(1)
+      integer n1,n2,kern,degr,ind(*),nfix
+      logical aws,fix(*),lfix
+      real*8 y(*),theta(*),bi(*),bi0(*),ai(*),lambda,spmin,
+     1       bi2(*),hakt,lw(*),w(*),hw,sw(*),slw(*),si(*),hhom(*)
       integer ih,ih1,i1,i2,j1,j2,k,n,
      1        iind,jind,jind2,jwind,jwind2,dlw,clw,jw1,jw2,
      2        dp1,dp2,ihs,csw,dsw,l,dlw2,thrednr,trl,trs
@@ -1026,7 +1026,7 @@ C     ind   index matrix to access the correct elements in bii
 C
       implicit logical (a-z)
       integer dp1,ind(dp1,dp1)
-      real*8 thij(1),bii(1),thijl
+      real*8 thij(*),bii(*),thijl
       integer l,k
       real*8 d
       d=0.d0

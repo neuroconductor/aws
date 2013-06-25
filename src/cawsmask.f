@@ -20,10 +20,10 @@ C
       implicit logical (a-z)
       external kldist,lkern
       real*8 kldist,lkern
-      integer n1,n2,model,kern,ni(1)
-      logical aws,fix(1),mask(1)
-      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,wght,
-     1       bi2(1),hakt,lwght(1),spmin,spf
+      integer n1,n2,model,kern,ni(*)
+      logical aws,fix(*),mask(*)
+      real*8 y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght,
+     1       bi2(*),hakt,lwght(*),spmin,spf
       integer ih1,ih2,i1,i2,j1,j2,jw1,jw2,jwind2,
      1        iind,jind,jind2,clw1,clw2,dlw1,dlw2
       real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,wj,hakt2
@@ -145,10 +145,10 @@ C
       implicit logical (a-z)
       external kldist,lkern
       real*8 kldist,lkern
-      integer n1,n2,model,kern,ni(1)
-      logical aws,fix(1),mask(1)
-      real*8 y(1),theta(1),bi(1),bi0(1),ai(1),lambda,wght,
-     1       bi2(1),hakt,lwght(1),si2(1),vred(1),spmin
+      integer n1,n2,model,kern,ni(*)
+      logical aws,fix(*),mask(*)
+      real*8 y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght,
+     1       bi2(*),hakt,lwght(*),si2(*),vred(*),spmin
       integer ih1,ih2,i1,i2,j1,j2,jw1,jw2,jwind2,
      1        iind,jind,jind2,clw1,clw2,dlw1,dlw2
       real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,wj,hakt2,

@@ -21,11 +21,11 @@ C
       implicit logical (a-z)
       external lkern,fpchisq
       real*8 lkern,fpchisq
-      integer n1,n2,n3,kern,segm(1),segmn(1)
-      logical aws,fix(1)
-      real*8 y(1),theta(1),bi(1),bi0(1),thetan(1),lambda,wght(2),
-     1       bi2(1),hakt,lwght(1),si2(1),vred(1),spmin,gi(1),
-     2       level,delta,pvalue(1),beta,thresh,ext,varest(1),fov
+      integer n1,n2,n3,kern,segm(*),segmn(*)
+      logical aws,fix(*)
+      real*8 y(*),theta(*),bi(*),bi0(*),thetan(*),lambda,wght(2),
+     1       bi2(*),hakt,lwght(*),si2(*),vred(*),spmin,gi(*),
+     2       level,delta,pvalue(*),beta,thresh,ext,varest(*),fov
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,n12,
      2        segmi
@@ -234,11 +234,11 @@ C
       implicit logical (a-z)
       external lkern,fpchisq
       real*8 lkern,fpchisq
-      integer n1,n2,n3,kern,segm(1),segmn(1)
-      logical aws,fix(1)
-      real*8 y(1),theta(1),bi(1),bi0(1),thetan(1),lambda,wght(2),
-     1       bi2(1),hakt,lwght(1),si2(1),vred(1),spmin,gi(1),
-     2       level,delta,pvalue(1),beta,thresh,ext,varest(1),fov
+      integer n1,n2,n3,kern,segm(*),segmn(*)
+      logical aws,fix(*)
+      real*8 y(*),theta(*),bi(*),bi0(*),thetan(*),lambda,wght(2),
+     1       bi2(*),hakt,lwght(*),si2(*),vred(*),spmin,gi(*),
+     2       level,delta,pvalue(*),beta,thresh,ext,varest(*),fov
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,n12,
      2        segmi
