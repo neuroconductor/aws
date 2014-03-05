@@ -197,16 +197,16 @@ C
      1       hmax2,hhomi,hhommax,w1,w2
       hakt2=hakt*hakt
       spf=1.d0/(1.d0-spmin)
-      ih1=hakt
+      ih1=FLOOR(hakt)
       aws=lambda.lt.1d35
 C
 C   first calculate location weights
 C
       w1=wght(1)
       w2=wght(2)
-      ih3=hakt/w2
-      ih2=hakt/w1
-      ih1=hakt
+      ih3=FLOOR(hakt/w2)
+      ih2=FLOOR(hakt/w1)
+      ih1=FLOOR(hakt)
       if(n3.eq.1) ih3=0
       if(n2.eq.1) ih2=0
       clw1=ih1
@@ -224,7 +224,7 @@ C
          if(n3.gt.1) THEN
             z3=j3*w2
             z3=z3*z3
-            ih2=sqrt(hakt2-z3)/w1
+            ih2=FLOOR(sqrt(hakt2-z3)/w1)
             jind3=(j3+clw3)*dlw12
          ELSE
             jind3=0
@@ -233,7 +233,7 @@ C
             if(n2.gt.1) THEN
                z2=j2*w1
                z2=z3+z2*z2
-               ih1=sqrt(hakt2-z2)
+               ih1=FLOOR(sqrt(hakt2-z2))
                jind2=jind3+(j2+clw2)*dlw1
             ELSE
                jind2=0
@@ -282,7 +282,7 @@ C   scaling of sij outside the loop
             jind3=(j3-1)*n12
             z3=jw3*w2
             z3=z3*z3
-            if(n2.gt.1) ih2=sqrt(hakt2-z3)/w1
+            if(n2.gt.1) ih2=FLOOR(sqrt(hakt2-z3)/w1)
             DO jw2=-ih2,ih2
                j2=jw2+i2
                if(j2.lt.1.or.j2.gt.n2) CYCLE
@@ -290,7 +290,7 @@ C   scaling of sij outside the loop
                jind2=(j2-1)*n1+jind3
                z2=jw2*w1
                z2=z3+z2*z2
-               ih1=sqrt(hakt2-z2)
+               ih1=FLOOR(sqrt(hakt2-z2))
                DO jw1=-ih1,ih1
 C  first stochastic term
                   j1=jw1+i1
@@ -362,16 +362,16 @@ C
      1       hmax2,hhomi,hhommax,w1,w2,fnci
       hakt2=hakt*hakt
       spf=1.d0/(1.d0-spmin)
-      ih1=hakt
+      ih1=FLOOR(hakt)
       aws=lambda.lt.1d35
 C
 C   first calculate location weights
 C
       w1=wght(1)
       w2=wght(2)
-      ih3=hakt/w2
-      ih2=hakt/w1
-      ih1=hakt
+      ih3=FLOOR(hakt/w2)
+      ih2=FLOOR(hakt/w1)
+      ih1=FLOOR(hakt)
       if(n3.eq.1) ih3=0
       if(n2.eq.1) ih2=0
       clw1=ih1
@@ -389,7 +389,7 @@ C
          if(n3.gt.1) THEN
             z3=j3*w2
             z3=z3*z3
-            ih2=sqrt(hakt2-z3)/w1
+            ih2=FLOOR(sqrt(hakt2-z3)/w1)
             jind3=(j3+clw3)*dlw12
          ELSE
             jind3=0
@@ -398,7 +398,7 @@ C
             if(n2.gt.1) THEN
                z2=j2*w1
                z2=z3+z2*z2
-               ih1=sqrt(hakt2-z2)
+               ih1=FLOOR(sqrt(hakt2-z2))
                jind2=jind3+(j2+clw2)*dlw1
             ELSE
                jind2=0
@@ -448,7 +448,7 @@ C   scaling of sij outside the loop
             jind3=(j3-1)*n12
             z3=jw3*w2
             z3=z3*z3
-            if(n2.gt.1) ih2=sqrt(hakt2-z3)/w1
+            if(n2.gt.1) ih2=FLOOR(sqrt(hakt2-z3)/w1)
             DO jw2=-ih2,ih2
                j2=jw2+i2
                if(j2.lt.1.or.j2.gt.n2) CYCLE
@@ -456,7 +456,7 @@ C   scaling of sij outside the loop
                jind2=(j2-1)*n1+jind3
                z2=jw2*w1
                z2=z3+z2*z2
-               ih1=sqrt(hakt2-z2)
+               ih1=FLOOR(sqrt(hakt2-z2))
                DO jw1=-ih1,ih1
 C  first stochastic term
                   j1=jw1+i1
@@ -527,13 +527,12 @@ C
       real*8 thetai,bii,sij,z1,z2,z3,wj,hakt2,hmax2
       hakt2=hakt*hakt
       spf=1.d0/(1.d0-spmin)
-      ih1=hakt
 C
 C   first calculate location weights
 C
-      ih3=hakt
-      ih2=hakt
-      ih1=hakt
+      ih3=FLOOR(hakt)
+      ih2=ih3
+      ih1=ih3
       if(n3.eq.1) ih3=0
       if(n2.eq.1) ih2=0
       clw1=ih1
@@ -551,7 +550,7 @@ C
          if(n3.gt.1) THEN
             z3=j3
             z3=z3*z3
-            ih2=sqrt(hakt2-z3)
+            ih2=FLOOR(sqrt(hakt2-z3))
             jind3=(j3+clw3)*dlw12
          ELSE
             jind3=0
@@ -560,7 +559,7 @@ C
             if(n2.gt.1) THEN
                z2=j2
                z2=z3+z2*z2
-               ih1=sqrt(hakt2-z2)
+               ih1=FLOOR(sqrt(hakt2-z2))
                jind2=jind3+(j2+clw2)*dlw1
             ELSE
                jind2=0
@@ -600,7 +599,7 @@ C   scaling of sij outside the loop
             jind3=(j3-1)*n12
             z3=jw3
             z3=z3*z3
-            if(n2.gt.1) ih2=sqrt(hakt2-z3)
+            if(n2.gt.1) ih2=FLOOR(sqrt(hakt2-z3))
             DO jw2=-ih2,ih2
                j2=jw2+i2
                if(j2.lt.1.or.j2.gt.n2) CYCLE
@@ -608,7 +607,7 @@ C   scaling of sij outside the loop
                jind2=(j2-1)*n1+jind3
                z2=jw2
                z2=z3+z2*z2
-               ih1=sqrt(hakt2-z2)
+               ih1=FLOOR(sqrt(hakt2-z2))
                DO jw1=-ih1,ih1
 C  first stochastic term
                   j1=jw1+i1
@@ -664,13 +663,12 @@ C
       hakt2=hakt*hakt
       w1=wght(1)
       w2=wght(2)
-      ih1=hakt
 C
 C   first calculate location weights
 C
-      ih3=hakt/w2
-      ih2=hakt/w1
-      ih1=hakt
+      ih3=FLOOR(hakt/w2)
+      ih2=FLOOR(hakt/w1)
+      ih1=FLOOR(hakt)
       if(n3.eq.1) ih3=0
       if(n2.eq.1) ih2=0
       clw1=ih1
@@ -688,7 +686,7 @@ C
          if(n3.gt.1) THEN
             z3=j3*w2
             z3=z3*z3
-            ih2=sqrt(hakt2-z3)/w1
+            ih2=FLOOR(sqrt(hakt2-z3)/w1)
             jind3=(j3+clw3)*dlw12
          ELSE
             jind3=0
@@ -697,7 +695,7 @@ C
             if(n2.gt.1) THEN
                z2=j2*w1
                z2=z3+z2*z2
-               ih1=sqrt(hakt2-z2)
+               ih1=FLOOR(sqrt(hakt2-z2))
                jind2=jind3+(j2+clw2)*dlw1
             ELSE
                jind2=0
@@ -738,7 +736,7 @@ C    nothing to do, final estimate is already fixed by control
             jind3=(j3-1)*n12
             z3=jw3*w2
             z3=z3*z3
-            if(n2.gt.1) ih2=sqrt(hakt2-z3)/w1
+            if(n2.gt.1) ih2=FLOOR(sqrt(hakt2-z3)/w1)
             DO jw2=-ih2,ih2
                j2=jw2+i2
                if(j2.lt.1.or.j2.gt.n2) CYCLE
@@ -746,7 +744,7 @@ C    nothing to do, final estimate is already fixed by control
                jind2=(j2-1)*n1+jind3
                z2=jw2*w1
                z2=z3+z2*z2
-               ih1=sqrt(hakt2-z2)
+               ih1=FLOOR(sqrt(hakt2-z2))
                DO jw1=-ih1,ih1
 C  first stochastic term
                   j1=jw1+i1
@@ -807,14 +805,13 @@ C
       w2=wght(2)
       hakt2=hakt*hakt
       spf=1.d0/(1.d0-spmin)
-      ih1=hakt
       aws=lambda.lt.1d40
 C
 C   first calculate location weights
 C
-      ih3=hakt/w2
-      ih2=hakt/w1
-      ih1=hakt
+      ih3=FLOOR(hakt/w2)
+      ih2=FLOOR(hakt/w1)
+      ih1=FLOOR(hakt)
       if(n3.eq.1) ih3=0
       if(n2.eq.1) ih2=0
       clw1=ih1
@@ -831,7 +828,7 @@ C
          if(n3.gt.1) THEN
             z3=j3*w2
             z3=z3*z3
-            ih2=sqrt(hakt2-z3)/w1
+            ih2=FLOOR(sqrt(hakt2-z3)/w1)
             jind3=(j3+clw3)*dlw12
          ELSE
             jind3=0
@@ -840,7 +837,7 @@ C
             if(n2.gt.1) THEN
                z2=j2*w1
                z2=z3+z2*z2
-               ih1=sqrt(hakt2-z2)
+               ih1=FLOOR(sqrt(hakt2-z2))
                jind2=jind3+(j2+clw2)*dlw1
             ELSE
                jind2=0
@@ -888,7 +885,7 @@ C   scaling of sij outside the loop
             jind3=(j3-1)*n12
             z3=jw3*w2
             z3=z3*z3
-            if(n2.gt.1) ih2=sqrt(hakt2-z3)/w1
+            if(n2.gt.1) ih2=FLOOR(sqrt(hakt2-z3)/w1)
             jwind3=(jw3+clw3)*dlw12
             DO jw2=-ih2,ih2
                j2=jw2+i2
@@ -896,7 +893,7 @@ C   scaling of sij outside the loop
                jind2=(j2-1)*n1+jind3
                z2=jw2*w1
                z2=z3+z2*z2
-               ih1=sqrt(hakt2-z2)
+               ih1=FLOOR(sqrt(hakt2-z2))
                jwind2=jwind3+(jw2+clw2)*dlw1
                DO jw1=-ih1,ih1
 C  first stochastic term
@@ -963,13 +960,12 @@ C
       hakt2=hakt*hakt
       w1=wght(1)
       w2=wght(2)
-      ih1=hakt
 C
 C   first calculate location weights
 C
-      ih3=hakt/w2
-      ih2=hakt/w1
-      ih1=hakt
+      ih3=FLOOR(hakt/w2)
+      ih2=FLOOR(hakt/w1)
+      ih1=FLOOR(hakt)
       if(n3.eq.1) ih3=0
       if(n2.eq.1) ih2=0
       clw1=ih1
@@ -986,7 +982,7 @@ C
          if(n3.gt.1) THEN
             z3=j3*w2
             z3=z3*z3
-            ih2=sqrt(hakt2-z3)/w1
+            ih2=FLOOR(sqrt(hakt2-z3)/w1)
             jind3=(j3+clw3)*dlw12
          ELSE
             jind3=0
@@ -995,7 +991,7 @@ C
             if(n2.gt.1) THEN
                z2=j2*w1
                z2=z3+z2*z2
-               ih1=sqrt(hakt2-z2)
+               ih1=FLOOR(sqrt(hakt2-z2))
                jind2=jind3+(j2+clw2)*dlw1
             ELSE
                jind2=0
@@ -1035,7 +1031,7 @@ C$OMP DO SCHEDULE(GUIDED)
             jind3=(j3-1)*n12
             z3=jw3*w2
             z3=z3*z3
-            if(n2.gt.1) ih2=sqrt(hakt2-z3)/w1
+            if(n2.gt.1) ih2=FLOOR(sqrt(hakt2-z3)/w1)
             jwind3=(jw3+clw3)*dlw12
             DO jw2=-ih2,ih2
                j2=jw2+i2
@@ -1043,7 +1039,7 @@ C$OMP DO SCHEDULE(GUIDED)
                jind2=(j2-1)*n1+jind3
                z2=jw2*w1
                z2=z3+z2*z2
-               ih1=sqrt(hakt2-z2)
+               ih1=FLOOR(sqrt(hakt2-z2))
                jwind2=jwind3+(jw2+clw2)*dlw1
                DO jw1=-ih1,ih1
 C  first stochastic term
@@ -1105,14 +1101,13 @@ C
       spf=1.d0/(1.d0-spmin)
       w1=wght(1)
       w2=wght(2)
-      ih1=hakt
       aws=lambda.lt.1d40
 C
 C   first calculate location weights
 C
-      ih3=hakt/w2
-      ih2=hakt/w1
-      ih1=hakt
+      ih3=FLOOR(hakt/w2)
+      ih2=FLOOR(hakt/w1)
+      ih1=FLOOR(hakt)
       if(n3.eq.1) ih3=0
       if(n2.eq.1) ih2=0
       clw1=ih1
@@ -1130,7 +1125,7 @@ C
          if(n3.gt.1) THEN
             z3=j3*w2
             z3=z3*z3
-            ih2=sqrt(hakt2-z3)/w1
+            ih2=FLOOR(sqrt(hakt2-z3)/w1)
             jind3=(j3+clw3)*dlw12
          ELSE
             jind3=0
@@ -1139,7 +1134,7 @@ C
             if(n2.gt.1) THEN
                z2=j2*w1
                z2=z3+z2*z2
-               ih1=sqrt(hakt2-z2)
+               ih1=FLOOR(sqrt(hakt2-z2))
                jind2=jind3+(j2+clw2)*dlw1
             ELSE
                jind2=0
@@ -1191,7 +1186,7 @@ C   scaling of sij outside the loop
             jind3=(j3-1)*n12
             z3=jw3*w2
             z3=z3*z3
-            if(n2.gt.1) ih2=sqrt(hakt2-z3)/w1
+            if(n2.gt.1) ih2=FLOOR(sqrt(hakt2-z3)/w1)
             jwind3=(jw3+clw3)*dlw12
             DO jw2=-ih2,ih2
                j2=jw2+i2
@@ -1199,7 +1194,7 @@ C   scaling of sij outside the loop
                jind2=(j2-1)*n1+jind3
                z2=jw2*w1
                z2=z3+z2*z2
-               ih1=sqrt(hakt2-z2)
+               ih1=FLOOR(sqrt(hakt2-z2))
                jwind2=jwind3+(jw2+clw2)*dlw1
                DO jw1=-ih1,ih1
 C  first stochastic term

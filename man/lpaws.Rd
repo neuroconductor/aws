@@ -7,7 +7,9 @@ The function allows for structural adaptive smoothing using a local
 polynomial (degree <=2) structural assumption. Response variables are assumed to be observed on a 1 or 2 dimensional regular grid. 
 }
 \usage{
-lpaws(y, degree = 1, hmax = NULL, aws = TRUE, memory = FALSE, lkern = "Triangle", homogen = TRUE, earlystop = TRUE, aggkern = "Uniform", sigma2 = NULL, hw = NULL, ladjust = 1, u = NULL, graph = FALSE, demo = FALSE)
+lpaws(y, degree = 1, hmax = NULL, aws = TRUE, memory = FALSE, lkern = "Triangle", 
+      homogen = TRUE, earlystop = TRUE, aggkern = "Uniform", sigma2 = NULL, 
+      hw = NULL, ladjust = 1, u = NULL, graph = FALSE, demo = FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

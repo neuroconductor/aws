@@ -62,12 +62,12 @@ C   first set dimensions for arrays depending on degree
          dp2=5
       END IF
       hakt2=hakt*hakt
-      ih=hakt
+      ih=FLOOR(hakt)
       dlw=2*ih+1
       clw=ih+1
       hs=hakt+hw
       hs2=hs*hs
-      ihs=hs
+      ihs=FLOOR(hs)
       dsw=2*ihs+1
       csw=ihs+1
 C   compute location weights first
@@ -314,12 +314,12 @@ C   first set dimensions for arrays depending on degree
          dp2=5
       END IF
       hakt2=hakt*hakt
-      ih=hakt
+      ih=FLOOR(hakt)
       dlw=2*ih+1
       clw=ih+1
       hs=hakt+hw
       hs2=hs*hs
-      ihs=hs
+      ihs=FLOOR(hs)
       dsw=2*ihs+1
       csw=ihs+1
 C   compute location weights first
@@ -525,13 +525,13 @@ C   first set dimensions for arrays depending on degree
          dp2=15
       END IF
       hakt2=hakt*hakt
-      ih=hakt
+      ih=FLOOR(hakt)
       dlw=2*ih+1
       clw=ih+1
       dlw2=dlw*dlw
       hs=hakt+hw
       hs2=hs*hs
-      ihs=hs
+      ihs=FLOOR(hs)
       dsw=2*ihs+1
       csw=ihs+1
       n=n1*n2
@@ -539,7 +539,7 @@ C   compute location weights first  sum in slw
       DO j2=1,dlw
          z2=j2-clw
          z2=z2*z2
-         ih1=sqrt(hakt2-z2)
+         ih1=FLOOR(sqrt(hakt2-z2))
          jind2=(j2-1)*dlw
          DO j1=clw-ih1,clw+ih1
 C  first stochastic term
@@ -598,7 +598,7 @@ C  get directional differences that only depend on i2-j2
                   zz(3)=z2
                   zz(6)=z2*z2
                END IF
-               ih1=sqrt(hakt2-z2*z2)
+               ih1=FLOOR(sqrt(hakt2-z2*z2))
                DO jw1=clw-ih1,clw+ih1
                   j1=jw1-clw+i1
                   if(j1.lt.1.or.j1.gt.n1) CYCLE
@@ -679,7 +679,7 @@ C
                   zz(10)=z2*zz(6)
                   zz(15)=z2*zz(10)  
                END IF
-               ih1=sqrt(hs2-z2*z2)
+               ih1=FLOOR(sqrt(hs2-z2*z2))
                DO jw1=csw-ih1,csw+ih1
                   j1=jw1-csw+i1
                   if(j1.lt.1.or.j1.gt.n1) CYCLE
@@ -801,13 +801,13 @@ C   first set dimensions for arrays depending on degree
          dp2=15
       END IF
       hakt2=hakt*hakt
-      ih=hakt
+      ih=FLOOR(hakt)
       dlw=2*ih+1
       clw=ih+1
       dlw2=dlw*dlw
       hs=hakt+hw
       hs2=hs*hs
-      ihs=hs
+      ihs=FLOOR(hs)
       dsw=2*ihs+1
       csw=ihs+1
       n=n1*n2
@@ -815,7 +815,7 @@ C   compute location weights first  sum in slw
       DO j2=1,dlw
          z2=j2-clw
          z2=z2*z2
-         ih1=sqrt(hakt2-z2)
+         ih1=FLOOR(sqrt(hakt2-z2))
          jind2=(j2-1)*dlw
          DO j1=clw-ih1,clw+ih1
 C  first stochastic term
@@ -875,7 +875,7 @@ C  get directional differences that only depend on i2-j2
                   zz(3)=z2
                   zz(6)=z2*z2
                END IF
-               ih1=sqrt(hakt2-z2*z2)
+               ih1=FLOOR(sqrt(hakt2-z2*z2))
                DO jw1=clw-ih1,clw+ih1
                   j1=jw1-clw+i1
                   if(j1.lt.1.or.j1.gt.n1) CYCLE
@@ -957,7 +957,7 @@ C
                   zz(10)=z2*zz(6)
                   zz(15)=z2*zz(10)
                END IF
-               ih1=sqrt(hs2-z2*z2)
+               ih1=FLOOR(sqrt(hs2-z2*z2))
                DO jw1=csw-ih1,csw+ih1
                   j1=jw1-csw+i1
                   if(j1.lt.1.or.j1.gt.n1) CYCLE
@@ -1138,7 +1138,7 @@ C
             i10=i1-cdiff
             ja1=max(i1-2*cdiff,1)
             je1=min(i1,dw)
-            id=sqrt(hsw2-z1*z1)
+            id=FLOOR(sqrt(hsw2-z1*z1))
             if(csw-id.lt.1) CYCLE
             DO i2=csw-id,csw+id
                i20=i2-cdiff
@@ -1148,7 +1148,7 @@ C
                   z1=(i10-j1)
                   z1=z1*z1
                   if(hw2-z1.lt.0.d0) CYCLE
-                  jd=sqrt(hw2-z1)
+                  jd=FLOOR(sqrt(hw2-z1))
                   ja2=max(i20-jd,1)
                   je2=min(i20+jd,dw)
                   DO j2=ja2,je2

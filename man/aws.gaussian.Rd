@@ -9,14 +9,18 @@
   (polynomial) model.  
 }
 \usage{
-aws.gaussian(y, hmax = NULL, hpre = NULL, aws = TRUE, memory = FALSE, varmodel = "Constant", lkern = "Triangle", homogen = TRUE, aggkern = "Uniform", scorr = 0, mask=NULL, ladjust = 1, wghts = NULL, u = NULL, varprop = 0.1, graph = FALSE, demo = FALSE)
+aws.gaussian(y, hmax = NULL, hpre = NULL, aws = TRUE, memory = FALSE, 
+             varmodel = "Constant", lkern = "Triangle", homogen = TRUE, 
+             aggkern = "Uniform", scorr = 0, mask=NULL, ladjust = 1, 
+             wghts = NULL, u = NULL, varprop = 0.1, graph = FALSE, demo = FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{y}{ \code{y} contains the observed response data. \code{dim(y)} determines the dimensionality and extend of the grid design.}
-  \item{hmax}{ \code{hmax} specifies the maximal bandwidth. Defaults to \code{hmax=250, 12, 5} for \code{dd=1, 2, 3}, respectively.}
-  \item{hpre}{ Describe \code{hpre} Bandwidth used for an initial nonadaptive estimate. The first estimate
-   of variance parameters  is obtained from residuals with respect to this estimate. }
+  \item{hmax}{ \code{hmax} specifies the maximal bandwidth. Defaults to 
+  \code{hmax=250, 12, 5} for \code{dd=1, 2, 3}, respectively.}
+  \item{hpre}{ Describe \code{hpre} Bandwidth used for an initial nonadaptive estimate. 
+  The first estimate of variance parameters  is obtained from residuals with respect to this estimate. }
   \item{aws}{ logical: if TRUE structural adaptation (AWS) is used. }
   \item{memory}{ logical: if TRUE stagewise aggregation is used as an additional
    adaptation scheme. }
@@ -57,13 +61,15 @@ The essential parameter in the procedure is a critical value \code{lambda}. This
    \eqn{\bf{E} |\hat{\theta}^k - \theta| \le (1+\alpha) \bf{E} |\tilde{\theta}^k - \theta|}
    where \eqn{\hat{\theta}^k} is the aws-estimate in step \code{k} and \eqn{\tilde{\theta}^k}
    is corresponding nonadaptive estimate using the same bandwidth (\code{lambda=Inf}).
-   The value of lambda can be adjusted by specifying the factor \code{ladjust}. Values \code{ladjust>1} lead to an less effective adaptation while \code{ladjust<<1} may lead to random segmentation
-   of, with respect to a constant model, homogeneous regions.
+   The value of lambda can be adjusted by specifying the factor \code{ladjust}. Values
+   \code{ladjust>1} lead to an less effective adaptation while \code{ladjust<<1} may lead 
+   to random segmentation of, with respect to a constant model, homogeneous regions.
    
    The numerical complexity of the procedure is mainly determined by \code{hmax}. The number
    of iterations is approximately \code{Const*d*log(hmax)/log(1.25)} with \code{d} being the dimension 
-   of \code{y} and the constant depending on the kernel \code{lkern}. Comlexity in each iteration step is \code{Const*hakt*n} with \code{hakt}
-   being the actual bandwith in the iteration step and \code{n} the number of design points.
+   of \code{y} and the constant depending on the kernel \code{lkern}. Comlexity in each
+   iteration step is \code{Const*hakt*n} with \code{hakt} being the actual bandwith 
+   in the iteration step and \code{n} the number of design points.
    \code{hmax} determines the maximal possible variance reduction.
 }
 \value{

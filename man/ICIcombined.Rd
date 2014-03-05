@@ -5,11 +5,12 @@
 Adaptive smoothing by Intersection of Confidence Intervals (ICI) using multiple windows 
 }
 \description{
-The function performs adaptive smoothing by Intersection of Confidence Intervals (ICI) using multiple windows 
-as described in Katkovnik et al (2006) 
+The function performs adaptive smoothing by Intersection of Confidence Intervals (ICI) 
+using multiple windows as described in Katkovnik et al (2006) 
 }
 \usage{
-ICIcombined(y, hmax, hinc = 1.45, thresh = NULL, kern = "Gaussian", m = 0, sigma = NULL, nsector = 1, symmetric = FALSE, presmooth = FALSE)
+ICIcombined(y, hmax, hinc = 1.45, thresh = NULL, kern = "Gaussian", m = 0, 
+            sigma = NULL, nsector = 1, symmetric = FALSE, presmooth = FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -40,7 +41,8 @@ Object of class \code{"integer"} vector of length \code{length(dy)}
      number of sectors to use. 
 }
   \item{symmetric}{
-Object of class \code{"logical"} determines if sectors are symmetric with respect to the origin.   ~~Describe \code{symmetric} here~~
+Object of class \code{"logical"} determines if sectors are symmetric with respect to 
+the origin.   
 }
   \item{presmooth}{
     Object of class \code{"logical"} determines if bandwidths are  smoothed 
@@ -63,8 +65,7 @@ Joerg Polzehl \email{polzehl@wias-berlin.de}
 }
 
 \seealso{
-\code{\link{ICIsmooth}}, \code{\link{ICIsmooth-class}}, \code{\link{kernsm}}
-%% ~~objects to See Also as \code{\link{help}}, 
+\code{\link{ICIsmooth}}, \code{\link{ICIsmooth-class}}, \code{\link{kernsm}} 
 }
 \keyword{ smooth }
 \keyword{ nonparametric }

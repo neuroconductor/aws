@@ -52,7 +52,6 @@ if(length(dy)>3) stop("AWS for more than 3 dimensional grids is not implemented"
 if(is.null(wghts)) wghts <- c(1,1,1)
 wghts <- switch(length(dy),c(0,0),c(wghts[1]/wghts[2],0),wghts[1]/wghts[2:3])
 if(family=="NCchi"){
-require(gsl)
 varstats <- sofmchi(shape/2) # precompute table of mean, sd and var for 
 #
 #   NCchi for noncentral chi with shape=degrees of freedom and theta =NCP

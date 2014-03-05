@@ -20,9 +20,9 @@ C   wght(2) is voxel extension x / voxel extension z,  i.e. zero in univariate a
 C
 C   first calculate location weights
 C
-      ih3=bw*wght(2)
-      ih2=bw*wght(1)
-      ih1=bw
+      ih3=FLOOR(bw*wght(2))
+      ih2=FLOOR(bw*wght(1))
+      ih1=FLOOR(bw)
       dlw1=2*ih1+1
       dlw2=2*ih2+1
       dlw3=2*ih3+1
@@ -35,12 +35,12 @@ C
          z1=(clw1-j1)
          z1=z1*z1
          if(wght(1).gt.0.d0) THEN
-            ih2=sqrt(h2-z1)*wght(1)
+            ih2=FLOOR(sqrt(h2-z1)*wght(1))
             DO j2=clw2-ih2,clw2+ih2
                z2=(clw2-j2)/wght(1)
                z2=z1+z2*z2
                if(wght(2).gt.0.d0) THEN
-                  ih3=sqrt(h2-z2)*wght(2)
+                  ih3=FLOOR(sqrt(h2-z2)*wght(2))
                   DO j3=clw3-ih3,clw3+ih3
                      z3=(clw3-j3)/wght(2)
                      z=lkern(kern,(z3*z3+z2)/h2)
@@ -123,7 +123,7 @@ C$OMP& SHARED(n,nz,x,z,exprob)
 C$OMP& PRIVATE(i,j,k,sk,zj)
 C$OMP DO SCHEDULE(GUIDED)
       DO j=1,nz
-         k=0.d0
+         k=0
          zj=z(j)
          DO i=1,n
             if(x(i).gt.zj) k=k+1

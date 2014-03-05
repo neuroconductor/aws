@@ -9,7 +9,8 @@ The function performs adaptive smoothing by Intersection of Confidence Intervals
 as described in Katkovnik et al (2006) 
 }
 \usage{
-ICIsmooth(y, hmax, hinc = 1.45, thresh = NULL, kern = "Gaussian", m = 0, sigma = NULL, nsector = 1, sector = 1, symmetric = FALSE, presmooth = FALSE)
+ICIsmooth(y, hmax, hinc = 1.45, thresh = NULL, kern = "Gaussian", m = 0, sigma = NULL,
+          nsector = 1, sector = 1, symmetric = FALSE, presmooth = FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -44,7 +45,7 @@ Object of class \code{"integer"} vector of length \code{length(dy)}
    Object of class \code{"integer"} between \code{1} and \code{nsector}. sector used.
 }
   \item{symmetric}{
-Object of class \code{"logical"} determines if sectors are symmetric with respect to the origin.   ~~Describe \code{symmetric} here~~
+Object of class \code{"logical"} determines if sectors are symmetric with respect to the origin.
 }
   \item{presmooth}{
     Object of class \code{"logical"} determines if bandwidths are  smoothed 
@@ -70,7 +71,6 @@ Joerg Polzehl \email{polzehl@wias-berlin.de}
 
 \seealso{
 \code{\link{ICIcombined}}, \code{\link{ICIsmooth-class}}, \code{\link{kernsm}}
-%% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

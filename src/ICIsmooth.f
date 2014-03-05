@@ -105,7 +105,7 @@ C  compute second order derivatives
             ELSE
                ax=acos(xi1/xnorm)
                if(xi2.lt.0.d0) ax=ax+3.14159265358979d0
-               isect=ax/alpha
+               isect=FLOOR(ax/alpha)
                IF(symm.and.isect.gt.nsect) isect=isect-nsect
                if(isect.eq.sect-1) insect(i1,i2)=1.d0
             END IF

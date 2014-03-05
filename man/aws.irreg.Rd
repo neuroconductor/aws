@@ -9,7 +9,9 @@ for varying coefficient Gaussian models on a 1D or 2D irregulat design.
 The function allows for a paramertic (polynomial) mean-variance dependence. 
 }
 \usage{
-aws.irreg(y, x, hmax = NULL, aws=TRUE, memory=FALSE, varmodel = "Constant", lkern = "Triangle", aggkern = "Uniform", sigma2 = NULL, nbins = 100, hpre = NULL, henv = NULL, ladjust =1, varprop = 0.1, graph = FALSE)
+aws.irreg(y, x, hmax = NULL, aws=TRUE, memory=FALSE, varmodel = "Constant", 
+          lkern = "Triangle", aggkern = "Uniform", sigma2 = NULL, nbins = 100, 
+          hpre = NULL, henv = NULL, ladjust =1, varprop = 0.1, graph = FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

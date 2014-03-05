@@ -36,7 +36,6 @@ if(length(dy)<=3){
 }
 cat("minlevel ",minlevel,"due to insufficient size of test sample\n")
 if(family=="NCchi"){
-require(gsl)
 varstats <- sofmchi(shape/2) # precompute table of mean, sd and var for 
 #
 #   NCchi for noncentral chi with shape=degrees of freedom and theta =NCP
@@ -90,7 +89,6 @@ if(family=="Poisson") y0 <- y+.1
 #  this corresponds to the regularization used to avoid Inf distances
 #
 kldistnorm1 <- function(th1,y,df){
-require(gsl)
 L <- df/2
 m1 <- sqrt(pi/2)*gamma(L+1/2)/gamma(1.5)/gamma(L)*hyperg_1F1(-0.5,L, -th1^2/2, give=FALSE, strict=TRUE)
 (m1-y)^2/2/(2*L+th1^2-m1^2)
