@@ -8,7 +8,7 @@ vaws <- function(y,kstar=16,homogen=TRUE,
    dy <- dy[-1]
    d <- length(dy)
    if(length(dy)>3) stop("Vector AWS for more than 3 dimensional grids is not implemented")
-   lambda <- switch(d,qchisq(pchisq(14.6,1),nvec),## 1D
+   lambda <- ladjust*switch(d,qchisq(pchisq(14.6,1),nvec),## 1D
                       qchisq(pchisq(9.72,1),nvec),## 2D
                       qchisq(pchisq(8.82,1),nvec))## 3D
    if(is.null(wghts)) wghts <- c(1,1,1)
