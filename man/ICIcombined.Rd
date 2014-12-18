@@ -10,7 +10,8 @@ using multiple windows as described in Katkovnik et al (2006)
 }
 \usage{
 ICIcombined(y, hmax, hinc = 1.45, thresh = NULL, kern = "Gaussian", m = 0, 
-            sigma = NULL, nsector = 1, symmetric = FALSE, presmooth = FALSE)
+            sigma = NULL, nsector = 1, symmetric = FALSE, presmooth = FALSE,
+            combine = "weighted")
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -47,6 +48,11 @@ the origin.
   \item{presmooth}{
     Object of class \code{"logical"} determines if bandwidths are  smoothed 
     for more stable results.
+}
+  \item{weighted}{
+    Either \code{"weighted"} or \code{"minvar"}. Determines how whether to combine 
+    sectorial results a weighted (with inverse variance) mean or to chose the sectorial
+    estimate with minimal variance.
 }
 }
 \details{

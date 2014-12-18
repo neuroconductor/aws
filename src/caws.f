@@ -197,7 +197,6 @@ C
      1       hmax2,hhomi,hhommax,w1,w2
       hakt2=hakt*hakt
       spf=1.d0/(1.d0-spmin)
-      ih1=FLOOR(hakt)
       aws=lambda.lt.1d35
 C
 C   first calculate location weights
@@ -1247,8 +1246,8 @@ C
 C   Perform one iteration in local constant three-variate aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine vaws(y,nv,n1,n2,n3,hakt,hhom,lambda,theta,bi,bi2,
-     1                bi0,thnew,ncores,spmin,lwght,wght,swjy)
+      subroutine vaws(y,mask,nv,n1,n2,n3,hakt,lambda,theta,bi,
+     1                thnew,ncores,spmin,lwght,wght,swjy)
 C
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -1262,14 +1261,13 @@ C
       implicit logical (a-z)
 
       integer nv,n1,n2,n3,ncores
-      logical aws
-      real*8 y(nv,*),theta(nv,*),bi(*),bi0(*),thnew(nv,*),lambda,
-     1  wght(2),bi2(*),hakt,lwght(*),spmin,spf,hhom(*),swjy(nv,ncores)
+      logical aws,mask(*)
+      real*8 y(nv,*),theta(nv,*),bi(*),thnew(nv,*),lambda,
+     1  wght(2),hakt,lwght(*),spmin,spf,swjy(nv,ncores)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12,k,thrednr
-      real*8 bii,sij,swj,swj2,swj0,z,z1,z2,z3,wj,hakt2,
-     1       hmax2,hhomi,hhommax,w1,w2
+      real*8 bii,biinv,sij,swj,z,z1,z2,z3,wj,hakt2,hmax2,w1,w2,spmb
       external lkern
       real*8 lkern
 !$      integer omp_get_thread_num 
@@ -1330,15 +1328,16 @@ C  first stochastic term
       END DO
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
-C$OMP& SHARED(thnew,bi,bi0,bi2,hhom,nv,n1,n2,n3,hakt2,hmax2,theta,
-C$OMP& ih3,lwght,wght,y,swjy)
+C$OMP& SHARED(thnew,bi,nv,n1,n2,n3,hakt2,hmax2,theta,
+C$OMP& ih3,lwght,wght,y,swjy,mask)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
 C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
-C$OMP& PRIVATE(i1,i2,i3,iind,hhomi,hhommax,bii,swj,swj2,
-C$OMP& swj0,sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
+C$OMP& PRIVATE(i1,i2,i3,iind,bii,biinv,swj,spmb,
+C$OMP& sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
 C$OMP& j1,jw1,jind,z1,z,thrednr)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n1*n2*n3
+         if(.not.mask(iind)) CYCLE
 !$         thrednr = omp_get_thread_num()+1
 C returns value in 0:(ncores-1)
          i1=mod(iind,n1)
@@ -1346,15 +1345,12 @@ C returns value in 0:(ncores-1)
          i2=mod((iind-i1)/n1+1,n2)
          if(i2.eq.0) i2=n2
          i3=(iind-i1-(i2-1)*n1)/n12+1         
-         hhomi=hhom(iind)
-         hhomi=hhomi*hhomi
-         hhommax=hmax2
 C    nothing to do, final estimate is already fixed by control 
          bii=bi(iind)/lambda
+         biinv=1.d0/bii
+         spmb=spmin/bii
 C   scaling of sij outside the loop
          swj=0.d0
-         swj2=0.d0
-         swj0=0.d0
          DO k=1,nv
             swjy(k,thrednr)=0.d0
          END DO
@@ -1379,28 +1375,19 @@ C  first stochastic term
                   j1=jw1+i1
                   if(j1.lt.1.or.j1.gt.n1) CYCLE
                   jind=j1+jind2
+                  if(.not.mask(jind)) CYCLE
                   wj=lwght(jw1+clw1+1+jwind2)
-                  swj0=swj0+wj
-                  z1=jw1
-                  z1=z2+z1*z1
-                  IF (aws.and.z1.ge.hhomi) THEN
+                  IF (aws) THEN
                      sij=0.d0
                      DO k=1,nv
                         z=theta(k,iind)-theta(k,jind)
                         sij=sij+z*z
+                        IF(sij.ge.biinv) CYCLE
                      END DO
-                     sij=bii*sij
-                     IF (sij.gt.1.d0) THEN
-                        hhommax=min(hhommax,z1)
-                        CYCLE
-                     END IF
-                     IF (sij.gt.spmin) THEN
-                        wj=wj*(1.d0-spf*(sij-spmin))
-                        hhommax=min(hhommax,z1)
-                     END IF
+                     IF (sij.ge.biinv) CYCLE
+                     IF (sij.gt.spmb) wj=wj*(1.d0-spf*(bii*sij-spmin))
                   END IF
                   swj=swj+wj
-                  swj2=swj2+wj*wj
                   DO k=1,nv
                      swjy(k,thrednr)=swjy(k,thrednr)+wj*y(k,jind)
                   END DO
@@ -1411,12 +1398,9 @@ C  first stochastic term
             thnew(k,iind)=swjy(k,thrednr)/swj
          END DO
          bi(iind)=swj
-         bi2(iind)=swj2
-         bi0(iind)=swj0
-         hhom(iind)=sqrt(hhommax)
       END DO 
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
-C$OMP FLUSH(thnew,bi,bi0,bi2,hhom)
+C$OMP FLUSH(thnew,bi)
       RETURN
       END
