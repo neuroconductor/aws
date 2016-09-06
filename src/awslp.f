@@ -27,14 +27,14 @@ C   temporary arrays set for maximum degree 2
 C
       implicit logical (a-z)
       external kldistp,lkern
-      real*8 kldistp,lkern
+      double precision kldistp,lkern
       integer n,kern,degr,ind(*),nfix
       logical aws,fix(*),lfix
-      real*8 y(*),theta(*),bi(*),bi0(*),ai(*),lambda,spmin,
+      double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,spmin,
      1       bi2(*),hakt,lw(*),w(*),hw,sw(*),slw(*),hhom(n,2)
       integer ih,j1,k,iind,jind,dlw,clw,jw1,
      2        dp1,dp2,ihs,csw,dsw,l,thrednr,trl,trs
-      real*8 bii(5),sij,swj(5),swj2(5),swj0(5),swjy(5),z1,wj,
+      double precision bii(5),sij,swj(5),swj2(5),swj0(5),swjy(5),z1,wj,
      1       hakt2,thij(3),thi(3),zz(5),lwj,yj,hs2,hs,z,cc,spf,
      2       hhommax,hhommin,az1,hfixmax,hnfix,ssij,spmax,
      3       hhomimin,hhomimax
@@ -279,14 +279,14 @@ C   temporary arrays set for maximum degree 2
 C
       implicit logical (a-z)
       external kldistp,lkern
-      real*8 kldistp,lkern
+      double precision kldistp,lkern
       integer n,kern,degr,ind(*),nfix
       logical aws,fix(*),lfix
-      real*8 y(*),theta(*),bi(*),bi0(*),ai(*),lambda,hhom(*),
+      double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,hhom(*),
      1       bi2(*),hakt,lw(*),w(*),hw,sw(*),slw(*),si(*),spmin
       integer ih,j1,k,iind,jind,dlw,clw,jw1,
      2        dp1,dp2,ihs,csw,dsw,l,thrednr,trl,trs
-      real*8 bii(5),sij,swj(5),swj2(5),swj0(5),swjy(5),z1,wj,
+      double precision bii(5),sij,swj(5),swj2(5),swj0(5),swjy(5),z1,wj,
      1       hakt2,thij(3),thi(3),zz(5),lwj,yj,hs2,hs,z,cc,spf,hhomi,
      2       hhommax,az1,hfixmax,hnfix
      
@@ -492,17 +492,17 @@ C   temporary arrays set for maximum degree 2
 C
       implicit logical (a-z)
       external kldistp,lkern
-      real*8 kldistp,lkern
+      double precision kldistp,lkern
       integer n1,n2,kern,degr,ind(*),nfix
       logical aws,fix(*),lfix
-      real*8 y(*),theta(*),bi(*),bi0(*),ai(*),lambda,spmin,
+      double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,spmin,
      1       bi2(*),hakt,lw(*),w(*),hw,sw(*),slw(*),hhom(*)
       integer ih,ih1,i1,i2,j1,j2,k,n,
      1        iind,jind,jind2,jwind,jwind2,dlw,clw,jw1,jw2,
      2        dp1,dp2,ihs,csw,dsw,l,dlw2,thrednr,trl,trs
-      real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
-     1       hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf,hhomi,
-     2       hhommax,az1,hfixmax,hnfix 
+      double precision bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),
+     1       z1,z2,wj,hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,
+     2       wjy,spf,hhomi,hhommax,az1,hfixmax,hnfix 
 !$      integer omp_get_thread_num
 !$      external omp_get_thread_num
 C   arrays with variable length are organized as 
@@ -512,7 +512,7 @@ C   arrays of fixed length correspond to degr=2
 C   first set dimensions for arrays depending on degree
       aws=lambda.lt.1.d20
       lfix=nfix.gt.1
-      hnfix=max(1.5,6.d0+degr-hakt)
+      hnfix=max(1.5d0,6.d0+degr-hakt)
       spf=1.d0/(1.d0-spmin)
       if(degr.eq.0) THEN
          dp1=1
@@ -768,17 +768,17 @@ C   temporary arrays set for maximum degree 2
 C
       implicit logical (a-z)
       external kldistp,lkern
-      real*8 kldistp,lkern
+      double precision kldistp,lkern
       integer n1,n2,kern,degr,ind(*),nfix
       logical aws,fix(*),lfix
-      real*8 y(*),theta(*),bi(*),bi0(*),ai(*),lambda,spmin,
+      double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,spmin,
      1       bi2(*),hakt,lw(*),w(*),hw,sw(*),slw(*),si(*),hhom(*)
       integer ih,ih1,i1,i2,j1,j2,k,n,
      1        iind,jind,jind2,jwind,jwind2,dlw,clw,jw1,jw2,
      2        dp1,dp2,ihs,csw,dsw,l,dlw2,thrednr,trl,trs
-      real*8 bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),z1,z2,wj,
-     1       hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,wjy,spf,hhomi,
-     2       hhommax,az1,hfixmax,hnfix
+      double precision bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),
+     1       z1,z2,wj,hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,
+     2       wjy,spf,hhomi,hhommax,az1,hfixmax,hnfix
 !$    integer omp_get_thread_num
 !$    external omp_get_thread_num
 C   arrays with variable length are organized as 
@@ -788,7 +788,7 @@ C   arrays of fixed length correspond to degr=2
 C   first set dimensions for arrays depending on degree
       aws=lambda.lt.1.d20
       lfix=nfix.gt.1
-      hnfix=max(1.5,6.d0+degr-hakt)
+      hnfix=max(1.5d0,6.d0+degr-hakt)
       spf=1.d0/(1.d0-spmin)
       if(degr.eq.0) THEN
          dp1=1
@@ -1015,7 +1015,7 @@ C$OMP FLUSH(ai,bi,bi0,bi2,hhom,fix)
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      real*8 function kldistp(dp1,thij,bii,ind)
+      double precision function kldistp(dp1,thij,bii,ind)
 C
 C  distance between local polynomial models
 C
@@ -1026,9 +1026,9 @@ C     ind   index matrix to access the correct elements in bii
 C
       implicit logical (a-z)
       integer dp1,ind(dp1,dp1)
-      real*8 thij(*),bii(*),thijl
+      double precision thij(*),bii(*),thijl
       integer l,k
-      real*8 d
+      double precision d
       d=0.d0
       DO l=1,dp1
          thijl=thij(l)
@@ -1054,9 +1054,9 @@ C     cc   dumping factor of weights
 C
       implicit logical (a-z)
       integer dw,dsw,cw,csw,cdiff
-      real*8 w(dw),sw(dsw),hw,hakt,cc
+      double precision w(dw),sw(dsw),hw,hakt,cc
       integer i1,ja1,je1,j1,i10
-      real*8 z,z0,z1,hw2,zmax,hakt2,hsw,hsw2,ww
+      double precision z,z0,z1,hw2,zmax,hakt2,hsw,hsw2,ww
       cw=(dw+1)/2
       csw=(dsw+1)/2
       cdiff=csw-cw
@@ -1110,9 +1110,9 @@ C     cc   dumping factor of weights
 C
       implicit logical (a-z)
       integer dw,dsw,cw,csw,cdiff
-      real*8 w(dw,dw),sw(dsw,dsw),hw,hakt,cc
+      double precision w(dw,dw),sw(dsw,dsw),hw,hakt,cc
       integer i1,i2,id,jd,ja1,je1,ja2,je2,j1,j2,i10,i20
-      real*8 z,z0,z1,z2,hw2,zmax,hakt2,hsw,hsw2,ww
+      double precision z,z0,z1,z2,hw2,zmax,hakt2,hsw,hsw2,ww
       cw=(dw+1)/2
       csw=(dsw+1)/2
       cdiff=csw-cw
@@ -1177,9 +1177,9 @@ C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine testwgh2(w,dlw,dp1,hw,z)
       integer dlw,dp1
-      real*8 w(dlw,dlw),hw,z
+      double precision w(dlw,dlw),hw,z
       integer clw,i,ip,im,cp1,cp2,cm1,cm2
-      real*8 zh,zv
+      double precision zh,zv
       clw=(dlw+1)/2
       cp1=clw+1
       cm1=clw-1
@@ -1256,9 +1256,9 @@ C     dmat       working arrays
 C     restricted to dp2<=20
       implicit logical (a-z)
       integer n,dp1,dp2
-      real*8 ai(n,dp1),bi(n,dp2),theta(n,dp1),dmat(dp1,dp1)
+      double precision ai(n,dp1),bi(n,dp2),theta(n,dp1),dmat(dp1,dp1)
       integer i,j,k,info,ind(dp1,dp1)
-      real*8 aa(20)
+      double precision aa(20)
       DO i=1,n
          DO k=1,dp1
             DO j=k,dp1
@@ -1293,9 +1293,9 @@ C     dmat       working arrays
 C     restricted to dp2<=20
       implicit logical (a-z)
       integer n,dp1,dp2
-      real*8 ai(n,dp1),bi(n,dp2),theta(n,dp1),dmat(dp1,dp1)
+      double precision ai(n,dp1),bi(n,dp2),theta(n,dp1),dmat(dp1,dp1)
       integer i,j,k,info,ind(dp1,dp1),iii
-      real*8 aa(3),h,cii(5)
+      double precision aa(3),h,cii(5)
       DO i=1,n
          cii(1)=1.d0
          h=bi(i,1)
@@ -1332,9 +1332,9 @@ C    if info>0 just keep the old estimate
       subroutine vpaws(n,dp2,bi,bi2,var)
 C   calculate variance (reduction) of estimates
       integer n,dp2
-      real*8 bi(n,dp2),bi2(n,dp2),var(n)
+      double precision bi(n,dp2),bi2(n,dp2),var(n)
       integer i
-      real*8 a1,a2,a3,d
+      double precision a1,a2,a3,d
       if(dp2.eq.3) THEN
          DO i=1,n
             d = bi(i,1)*bi(i,3)-bi(i,2)*bi(i,2)

@@ -108,7 +108,7 @@ exceedence0 <- .Fortran("exceed",
                            as.double(z),
                            as.integer(nz),
                            exprob=double(nz),
-                           PACKAGE="aws",DUP=FALSE)$exprob
+                           PACKAGE="aws")$exprob
 #
 #  now iterate
 #
@@ -140,11 +140,10 @@ zobj0 <- .Fortran("chaws1",as.double(y),
                        double(n),
                        double(n),#vred
                        ai=double(n),
-                       as.integer(cpar$mcode),
                        as.integer(lkern),
                        double(prod(dlw)),
                        as.double(wghts),
-                       PACKAGE="aws",DUP=TRUE)[c("bi","ai","hakt")]
+                       PACKAGE="aws")[c("bi","ai","hakt")]
 } else {
 zobj0 <- .Fortran("caws1",as.double(y),
                        as.integer(n1),
@@ -155,11 +154,10 @@ zobj0 <- .Fortran("caws1",as.double(y),
                        double(n),
                        double(n),
                        ai=double(n),
-                       as.integer(cpar$mcode),
                        as.integer(lkern),
                        double(prod(dlw)),
                        as.double(wghts),
-                       PACKAGE="aws",DUP=TRUE)[c("bi","ai","hakt")]
+                       PACKAGE="aws")[c("bi","ai","hakt")]
 }
 if(family%in%c("Bernoulli","Poisson")) zobj0<-regularize(zobj0,family)
 yhat0 <- zobj0$ai/zobj0$bi
@@ -185,7 +183,7 @@ exceedencena[,k] <- .Fortran("exceed",
                            as.double(z/ni),
                            as.integer(nz),
                            exprob=double(nz),
-                           PACKAGE="aws",DUP=FALSE)$exprob
+                           PACKAGE="aws")$exprob
 #
 #   get adaptive estimate
 #
@@ -209,7 +207,7 @@ zobj <- .Fortran("chaws",as.double(y),
                        as.double(spmin),
                        double(prod(dlw)),
                        as.double(wghts),
-                       PACKAGE="aws",DUP=TRUE)[c("bi","bi2","ai","hakt")]
+                       PACKAGE="aws")[c("bi","bi2","ai","hakt")]
 } else {
 if(cpar$mcode!=6){
    zobj <- .Fortran("caws",as.double(y),
@@ -230,7 +228,7 @@ if(cpar$mcode!=6){
                        as.double(spmin),
                        double(prod(dlw)),
                        as.double(wghts),
-                       PACKAGE="aws",DUP=TRUE)[c("bi","bi2","ai","hakt")]
+                       PACKAGE="aws")[c("bi","bi2","ai","hakt")]
 } else {
    zobj <- .Fortran("caws6",as.double(y),
                        as.logical(rep(FALSE,n)),
@@ -246,12 +244,11 @@ if(cpar$mcode!=6){
                        bi2=double(n),
                        double(n),
                        ai=double(n),
-                       as.integer(cpar$mcode),
                        as.integer(lkern),
                        as.double(spmin),
                        double(prod(dlw)),
                        as.double(wghts),
-                       PACKAGE="aws",DUP=TRUE)[c("bi","bi2","ai","hakt")]
+                       PACKAGE="aws")[c("bi","bi2","ai","hakt")]
 }
 }
 if(family%in%c("Bernoulli","Poisson")) zobj<-regularize(zobj,family)
@@ -276,7 +273,7 @@ exceedence[,k] <- .Fortran("exceed",
                            as.double(z/ni),
                            as.integer(nz),
                            exprob=double(nz),
-                           PACKAGE="aws",DUP=FALSE)$exprob
+                           PACKAGE="aws")$exprob
                            
 contour(z,0:k,cbind(exceedence0,exceedence[,1:k]),levels=levels,ylab="step",xlab="z",
        main=paste(family,length(dy),"-dim. ladj=",ladjust," Exceed. Prob."))
@@ -338,6 +335,6 @@ zobj <- .Fortran("cawsw",
                        as.double(spmin),
                        double(prod(dlw)),
                        wghts=double(n*n),
-                       PACKAGE="aws",DUP=TRUE)$wghts
+                       PACKAGE="aws")$wghts
 array(zobj,c(dy,dy))
 }

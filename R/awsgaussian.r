@@ -114,7 +114,7 @@ hobj <- .Fortran("caws",as.double(y),
                        as.double(0.25),
                        double(prod(dlw)),
                        as.double(wghts),
-                       PACKAGE="aws",DUP=TRUE)[c("bi","ai")]
+                       PACKAGE="aws")[c("bi","ai")]
 hobj$theta <- hobj$ai/hobj$bi
 dim(hobj$theta) <- dim(hobj$bi) <- dy
 #
@@ -156,7 +156,7 @@ zobj <- .Fortran("cgaws",as.double(y),
 	               as.double(0.25),
 		       double(prod(dlw)),
 		       as.double(wghts),
-		       PACKAGE="aws",DUP=TRUE)[c("bi","bi0","bi2","hhom","vred","ai","gi","hakt")]
+		       PACKAGE="aws")[c("bi","bi0","bi2","hhom","vred","ai","gi","hakt")]
 vred[!tobj$fix]<-zobj$vred[!tobj$fix]
 dim(zobj$ai)<-dy
 if(hakt>n1/2) zobj$bi0 <- rep(max(zobj$bi),n)

@@ -138,7 +138,7 @@ zobj <- .Fortran("chaws",as.double(y),
                        as.double(spmin),
                        double(prod(dlw)),
                        as.double(wghts),
-                       PACKAGE="aws",DUP=TRUE)[c("bi","bi0","bi2","vred","ai","hakt")]
+                       PACKAGE="aws")[c("bi","bi0","bi2","vred","ai","hakt")]
 vred[!tobj$fix]<-zobj$vred[!tobj$fix]
 } else {
 # all other cases
@@ -161,7 +161,7 @@ if(cpar$mcode!=6){
                        as.double(spmin),
                        double(prod(dlw)),
                        as.double(wghts),
-                       PACKAGE="aws",DUP=TRUE)[c("bi","bi0","bi2","ai","hakt","hhom")]
+                       PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom")]
    } else {
    zobj <- .Fortran("caws6",as.double(y),
                        as.logical(tobj$fix),
@@ -182,7 +182,7 @@ if(cpar$mcode!=6){
                        as.double(spmin),
                        double(prod(dlw)),
                        as.double(wghts),
-                       PACKAGE="aws",DUP=TRUE)[c("bi","bi0","bi2","ai","hakt","hhom")]
+                       PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom")]
    }                     
 }
 if(family%in%c("Bernoulli","Poisson")) zobj<-regularize(zobj,family)

@@ -1,9 +1,9 @@
       subroutine lkern1(x,n,h,kern,m,khx)
       implicit logical(a-z)
       integer n,kern,m
-      real*8 x(n),h,khx(n)
+      double precision x(n),h,khx(n)
       integer i
-      real*8 mu0, mu2, mu4, xi, xih, skhx
+      double precision mu0, mu2, mu4, xi, xih, skhx
       select case (kern)            
          case (1)
 C  Gaussian
@@ -87,9 +87,9 @@ C  compute second order derivatives
       implicit logical (a-z)
       logical symm
       integer n1,n2,nsect,sect
-      real*8 x1(n1),x2(n2),insect(n1,n2)
+      double precision x1(n1),x2(n2),insect(n1,n2)
       integer i1,i2,isect
-      real*8 alpha,xi1,xi2,xnorm,ax
+      double precision alpha,xi1,xi2,xnorm,ax
       if(symm) THEN 
          alpha=3.14159265358978d0/nsect
       ELSE
@@ -116,9 +116,9 @@ C  compute second order derivatives
       subroutine median1d(y,n,yhat)
       implicit logical (a-z)
       integer n
-      real*8 y(n),yhat(n)
+      double precision y(n),yhat(n)
       integer i
-      real*8 ys(3)
+      double precision ys(3)
       yhat(1)=y(1)
       yhat(n)=y(n)
       DO i=2,n-1
@@ -133,9 +133,9 @@ C  compute second order derivatives
       subroutine median2d(y,n1,n2,yhat)
       implicit logical (a-z)
       integer n1,n2
-      real*8 y(n1,n2),yhat(n1,n2)
+      double precision y(n1,n2),yhat(n1,n2)
       integer i1,i2
-      real*8 ys(9)
+      double precision ys(9)
       i1 = 1
       DO i2=1,n2
          yhat(i1,i2)=y(i1,i2)
@@ -172,9 +172,9 @@ C  compute second order derivatives
       subroutine median3d(y,n1,n2,n3,yhat)
       implicit logical (a-z)
       integer n1,n2,n3
-      real*8 y(n1,n2,n3),yhat(n1,n2,n3)
+      double precision y(n1,n2,n3),yhat(n1,n2,n3)
       integer i1,i2,i3
-      real*8 ys(27)
+      double precision ys(27)
       i1 = 1
       DO i2=1,n2
          DO i3=1,n3

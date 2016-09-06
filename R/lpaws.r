@@ -438,7 +438,7 @@ cpar <- list(heta=heta,tau1=tau1,tau2=tau2,dy=dy,ktau=ktau)
                        as.double(bi),
                        as.double(bi2),
                        var= double(n),
-                       DUPL=TRUE,package="aws")$var
+                       package="aws")$var
   dim(vartheta) <- dy
   if (length(sigma2)!=n) {
     vartheta <- sigma2[1]*vartheta

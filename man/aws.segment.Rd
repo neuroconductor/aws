@@ -87,7 +87,7 @@ returns anobject of class \code{aws} with slots
   335 - 362.
 }
 \author{ Joerg Polzehl, \email{polzehl@wias-berlin.de}, 
-\url{http://www.wias-berlin.de/project-areas/stat/projects/adaptive-image-processing.html}  }
+\url{http://www.wias-berlin.de/people/polzehl/}  }
 \seealso{\code{\link{aws}}, \code{\link{aws.gaussian}} }
 \examples{
 require(aws)

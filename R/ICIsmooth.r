@@ -51,7 +51,6 @@ kernsm<-function (y, h = 1, kern="Gaussian", m=0, nsector=1, sector=1, symmetric
                 as.integer(ikern),
                 as.integer(m),
                 khofx=double(nx),
-                DUPL=TRUE,
                 PACKAGE="aws")$khofx
     }
     lkern <- function(xp,kind="Gaussian",m=0,nsector=1,sector=1,symmetric=FALSE){
@@ -114,7 +113,6 @@ kernsm<-function (y, h = 1, kern="Gaussian", m=0, nsector=1, sector=1, symmetric
                                 as.integer(sector),
                                 as.logical(symmetric),
                                 insector=double(xp$dx1[1]*xp$dx1[2]),
-                                DUPL=TRUE,
                                 PACKAGE="aws")$insector                               
              kwghts <- kwghts*array(sector,xp$dx1)
           }
@@ -216,14 +214,12 @@ ICIsmooth <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0, sig
                                  as.double(hbest),
                                  as.integer(n),
                                  hbest=double(n),
-                                 DUPL=TRUE,
                                  PACKAGE="aws")$hbest,
                         .Fortran("median2d",
                                  as.double(hbest),
                                  as.integer(dy[1]),
                                  as.integer(dy[2]),
                                  hbest=double(n),
-                                 DUPL=TRUE,
                                  PACKAGE="aws")$hbest,
                         .Fortran("median3d",
                                  as.double(hbest),
@@ -231,7 +227,6 @@ ICIsmooth <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0, sig
                                  as.integer(dy[2]),
                                  as.integer(dy[3]),
                                  hbest=double(n),
-                                 DUPL=TRUE,
                                  PACKAGE="aws")$hbest)
       hakt <- if(all(m==0)) { if(kern=="Gaussian") .3 else 1 }
       else { if(kern=="Gaussian") .6 else hinc*(max(m)+1) }

@@ -4,17 +4,17 @@ C   wght(1) is voxel extension x / voxel extension y,  i.e. zero in univariate s
 C   wght(2) is voxel extension x / voxel extension z,  i.e. zero in univariate and bivariate situations
       implicit logical(a-z)
       integer kern
-      real*8 bw,wght(2),vol,sofw
+      double precision bw,wght(2),vol,sofw
       external sofw
       vol=sofw(bw,kern,wght)
       RETURN
       END
-      real*8 function sofw(bw,kern,wght)
+      double precision function sofw(bw,kern,wght)
       implicit logical(a-z)
       integer kern
-      real*8 bw,wght(2)
+      double precision bw,wght(2)
       integer j1,j2,j3,dlw1,dlw2,dlw3,clw1,clw2,clw3,ih1,ih2,ih3
-      real*8 sw,sw2,h2,lkern,z1,z2,z3,z
+      double precision sw,sw2,h2,lkern,z1,z2,z3,z
       external lkern
       h2=bw*bw
 C
@@ -72,9 +72,9 @@ C  Algorithmus zur Nullstellenbestimmung einer monotonen Funktion auf(0,\infty)
       subroutine gethani(x,y,kern,value,wght,eps,bw)
       implicit logical(a-z)
       integer kern
-      real*8 x,y,value,wght(2),eps,bw
-      real*8 fw1,fw2,fw3,z
-      real*8 sofw
+      double precision x,y,value,wght(2),eps,bw
+      double precision fw1,fw2,fw3,z
+      double precision sofw
       external sofw
       if(x.ge.y) RETURN
       fw1=sofw(x,kern,wght)
@@ -115,9 +115,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine exceed(x,n,z,nz,exprob)
       implicit logical (a-z)
       integer n,nz
-      real*8 x(n),z(nz),exprob(nz)
+      double precision x(n),z(nz),exprob(nz)
       integer i,j,k
-      real*8 sk,zj
+      double precision sk,zj
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(n,nz,x,z,exprob)
 C$OMP& PRIVATE(i,j,k,sk,zj)

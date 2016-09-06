@@ -39,7 +39,7 @@ if(!is.null(henv)) mask <- .Fortran("mask",
 				    as.integer(nbins[1]),
 				    as.integer(switch(d,1,nbins[2])),
 				    as.integer(max(0,henv)),
-				    PACKAGE="aws",DUP=FALSE)$mask
+				    PACKAGE="aws")$mask
 yy <- rep(mean(y),length(mask))
 dim(yy)<-dim(mask) <- dim(ni)
 if(d>1 & graph) {
@@ -114,7 +114,7 @@ hobj <- .Fortran("cawsmask",as.double(yy),
                        as.double(0.25),
 		                 double(prod(dlw)),
 		                 as.double(wghts),
-		                 PACKAGE="aws",DUP=TRUE)[c("bi","ai")]
+		                 PACKAGE="aws")[c("bi","ai")]
 hobj$theta <- hobj$ai/hobj$bi
 hobj$theta[ni==0]<-mean(hobj$theta[ni>0])
 dim(hobj$theta) <- dim(hobj$bi) <- dy
@@ -124,8 +124,8 @@ dim(hobj$theta) <- dim(hobj$bi) <- dy
 total <- cumsum(1.25^(1:kstar))/sum(1.25^(1:kstar))
 cat("Progress:")
 while (k<=kstar) {
-      hakt0 <- gethani(1,10,lkern,1.25^(k-1),wghts,1e-4)
-      hakt <- gethani(1,10,lkern,1.25^k,wghts,1e-4)
+      hakt0 <- max(1.01,gethani(1,10,lkern,1.25^(k-1),wghts,1e-4))
+      hakt <- max(1.01,gethani(1,10,lkern,1.25^k,wghts,1e-4))
       cat("step",k,"hakt",hakt,"\n")
 if(lkern==5) {
 #  assume  hmax was given in  FWHM  units (Gaussian kernel will be truncated at 4)
@@ -153,7 +153,7 @@ zobj <- .Fortran("cgawsmas",as.double(yy),
 	                    as.double(0.25),
 		                 double(prod(dlw)),
 		                 as.double(wghts),
-		                 PACKAGE="aws",DUP=TRUE)[c("bi","bi0","bi2","vred","ai","hakt")]
+		                 PACKAGE="aws")[c("bi","bi0","bi2","vred","ai","hakt")]
 vred[!tobj$fix]<-zobj$vred[!tobj$fix]
 dim(zobj$ai)<-dy
 if(hakt>n1/2) zobj$bi0 <- rep(max(zobj$bi),n1*n2)

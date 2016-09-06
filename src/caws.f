@@ -28,11 +28,11 @@ C
 C    location penalty for multivariate non-gridded aws
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      real*8 function lmkern(kern,dx,xi,xj,h2)
+      double precision function lmkern(kern,dx,xi,xj,h2)
       implicit logical (a-z)
       external lkern
       integer kern,dx,i
-      real*8 xi(dx),xj(dx),h2,z,zd,lkern
+      double precision xi(dx),xj(dx),h2,z,zd,lkern
       z=0.d0
       do 1 i=1,dx
          zd=xi(i)-xj(i)
@@ -70,10 +70,10 @@ C     computing dlog(theta) and dlog(1.d0-theta) outside the AWS-loops
 C     will reduces computational costs at the price of readability
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      real*8 function kldist(model,thi,thj)
+      double precision function kldist(model,thi,thj)
       implicit logical (a-z)
       integer model
-      real*8 thi,thj,z,tthi
+      double precision thi,thj,z,tthi
       IF (model.eq.1) THEN
 C        Gaussian
          z=thi-thj
@@ -117,10 +117,10 @@ C          Kern=3     Biweight
 C          Kern=4     Triweight
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      real*8 function lkern(kern,xsq)
+      double precision function lkern(kern,xsq)
       implicit logical (a-z)
       integer kern
-      real*8 xsq,z
+      double precision xsq,z
       IF (xsq.ge.1) THEN
          lkern=0.d0
       ELSE IF (kern.eq.1) THEN
@@ -150,9 +150,9 @@ C
 C        Compute truncated Exponential Kernel 
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      real*8 function skern(x,xmin,xmax)
+      double precision function skern(x,xmin,xmax)
       implicit logical (a-z)
-      real*8 x,xmin,xmax,spf
+      double precision x,xmin,xmax,spf
       spf=xmax/(xmax-xmin)
       IF (x.le.xmin) THEN
          skern=1.d0
@@ -185,16 +185,16 @@ C
       implicit logical (a-z)
 
       external kldist,lkern
-      real*8 kldist,lkern
+      double precision kldist,lkern
       integer n1,n2,n3,model,kern
       logical aws,fix(*)
-      real*8 y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght(2),
+      double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght(2),
      1       bi2(*),hakt,lwght(*),spmin,spf,hhom(*)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12
-      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,
-     1       hmax2,hhomi,hhommax,w1,w2
+      double precision thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,
+     1       hakt2,hmax2,hhomi,hhommax,w1,w2
       hakt2=hakt*hakt
       spf=1.d0/(1.d0-spmin)
       aws=lambda.lt.1d35
@@ -333,7 +333,7 @@ C   Perform one iteration in local constant three-variate aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine caws6(y,fix,n1,n2,n3,hakt,hhom,lambda,theta,fnc,bi,
-     1                 bi2,bi0,ai,model,kern,spmin,lwght,wght)
+     1                 bi2,bi0,ai,kern,spmin,lwght,wght)
 C
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -342,23 +342,22 @@ C   lambda   lambda or lambda*sigma2 for Gaussian models
 C   theta    estimates from last step   (input)
 C   bi       \sum  Wi   (output)
 C   ai       \sum  Wi Y     (output)
-C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C
       implicit logical (a-z)
 
       external kldist,lkern
-      real*8 kldist,lkern
-      integer n1,n2,n3,model,kern
+      double precision kldist,lkern
+      integer n1,n2,n3,kern
       logical aws,fix(*)
-      real*8 y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght(2),
+      double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght(2),
      1       bi2(*),hakt,lwght(*),spmin,spf,hhom(*),fnc(*)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12
-      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z,z1,z2,z3,wj,hakt2,
-     1       hmax2,hhomi,hhommax,w1,w2,fnci
+      double precision thetai,bii,sij,swj,swj2,swj0,swjy,z,z1,z2,z3,wj,
+     1       hakt2,hmax2,hhomi,hhommax,w1,w2,fnci
       hakt2=hakt*hakt
       spf=1.d0/(1.d0-spmin)
       ih1=FLOOR(hakt)
@@ -416,7 +415,7 @@ C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,hhom,n1,n2,n3,hakt2,hmax2,theta,fnc,
 C$OMP& ih3,lwght,wght,y,fix)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
-C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
+C$OMP& spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
 C$OMP& PRIVATE(i1,i2,i3,iind,hhomi,hhommax,thetai,bii,swj,swj2,
 C$OMP& swj0,swjy,sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
 C$OMP& j1,jw1,jind,z1,fnci,z)
@@ -516,14 +515,14 @@ C
       implicit logical (a-z)
 
       external kldist,lkern
-      real*8 kldist,lkern
+      double precision kldist,lkern
       integer n1,n2,n3,model,kern
-      real*8 theta(*),bi(*),lambda,
+      double precision theta(*),bi(*),lambda,
      1       wght(n1,n2,n3,n1,n2,n3),hakt,lwght(*),spmin,spf
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12
-      real*8 thetai,bii,sij,z1,z2,z3,wj,hakt2,hmax2
+      double precision thetai,bii,sij,z1,z2,z3,wj,hakt2,hmax2
       hakt2=hakt*hakt
       spf=1.d0/(1.d0-spmin)
 C
@@ -637,28 +636,27 @@ C   no lambda, fix, spmin, hhom, theta
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine caws1(y,n1,n2,n3,hakt,bi,bi2,
-     1                bi0,ai,model,kern,lwght,wght)
+     1                bi0,ai,kern,lwght,wght)
 C
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
 C   hakt     actual bandwidth
 C   bi       \sum  Wi   (output)
 C   ai       \sum  Wi Y     (output)
-C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C
       implicit logical (a-z)
 
       external kldist,lkern
-      real*8 kldist,lkern
-      integer n1,n2,n3,model,kern
-      real*8 y(*),bi(*),bi0(*),ai(*),wght(2),
+      double precision kldist,lkern
+      integer n1,n2,n3,kern
+      double precision y(*),bi(*),bi0(*),ai(*),wght(2),
      1       bi2(*),hakt,lwght(*)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12
-      real*8 swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,hmax2,w1,w2
+      double precision swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,hmax2,w1,w2
       hakt2=hakt*hakt
       w1=wght(1)
       w2=wght(2)
@@ -710,12 +708,11 @@ C  first stochastic term
       END DO
       call rchkusr() 
 C$OMP PARALLEL DEFAULT(NONE)
-C$OMP& SHARED(ai,bi,bi0,bi2,n1,n2,n3,hakt2,hmax2
-C$OMP& ,lwght,wght,y)
-C$OMP& FIRSTPRIVATE(ih1,ih2,model,dlw1,clw1,dlw2,clw2,dlw3,clw3,w1,w2,
+C$OMP& SHARED(ai,bi,bi0,bi2,n1,n2,n3,hakt2,hmax2,lwght,wght,y)
+C$OMP& FIRSTPRIVATE(ih1,ih2,dlw1,clw1,dlw2,clw2,dlw3,clw3,w1,w2,
 C$OMP& n12,dlw12)
-C$OMP& PRIVATE(i1,i2,i3,iind,swj,swj2,swj0,swjy,wj
-C$OMP& ,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,j1,jw1,jind,z1)
+C$OMP& PRIVATE(i1,i2,i3,iind,swj,swj2,swj0,swjy,wj,
+C$OMP& j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,j1,jw1,jind,z1)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n1*n2*n3
          i1=mod(iind,n1)
@@ -790,16 +787,16 @@ C   wght     scaling factor for second and third dimension (larger values shrink
 C
       implicit logical (a-z)
       external kldist,lkern
-      real*8 kldist,lkern
+      double precision kldist,lkern
       integer n1,n2,n3,model,kern
       logical aws,fix(*)
-      real*8 y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght(2),
+      double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght(2),
      1       bi2(*),hakt,lwght(*),si2(*),vred(*),spmin
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12
-      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,
-     1        sv1,sv2,spf,w1,w2,wjsi2
+      double precision thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,
+     1        hakt2,sv1,sv2,spf,w1,w2,wjsi2
       w1=wght(1)
       w2=wght(2)
       hakt2=hakt*hakt
@@ -853,8 +850,8 @@ C  first stochastic term
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,si2,vred,n1,n2,n3,hakt2,hakt,theta
 C$OMP& ,lwght,wght,y,fix)
-C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,dlw12,n12
-C$OMP& ,model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,w1,w2)
+C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,dlw12,n12,
+C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,w1,w2)
 C$OMP& PRIVATE(iind,thetai,bii,swj
 C$OMP& ,swj2,swj0,swjy,sij,sv1,sv2,i1,i2,i3,wj
 C$OMP& ,j3,jw3,jind3,z3,jwind3
@@ -934,7 +931,7 @@ C   bi0 contains sum of weights (without invers variances) !!!
 C   no lambda, fix, spmin
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine chaws1(y,si2,n1,n2,n3,hakt,bi,bi2,
-     1           bi0,vred,ai,model,kern,lwght,wght)
+     1           bi0,vred,ai,kern,lwght,wght)
 C
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -942,20 +939,19 @@ C   hakt     actual bandwidth
 C   lambda   lambda or lambda*sigma2 for Gaussian models
 C   bi       \sum  Wi   (output)
 C   ai       \sum  Wi Y     (output)
-C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C
       implicit logical (a-z)
       external lkern
-      real*8 lkern
-      integer n1,n2,n3,model,kern
-      real*8 y(*),bi(*),bi0(*),ai(*),wght(2),
+      double precision lkern
+      integer n1,n2,n3,kern
+      double precision y(*),bi(*),bi0(*),ai(*),wght(2),
      1       bi2(*),hakt,lwght(*),si2(*),vred(*)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12
-      real*8 swj,swj2,swjy,z1,z2,z3,wj,hakt2,sv1,sv2,w1,w2
+      double precision swj,swj2,swjy,z1,z2,z3,wj,hakt2,sv1,sv2,w1,w2
       hakt2=hakt*hakt
       w1=wght(1)
       w2=wght(2)
@@ -1007,7 +1003,7 @@ C  first stochastic term
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,si2,vred,n1,n2,n3,hakt2,hakt
 C$OMP& ,lwght,wght,y)
-C$OMP& FIRSTPRIVATE(ih1,ih2,model,dlw1,clw1,dlw2,clw2,dlw3,clw3,w1,w2,
+C$OMP& FIRSTPRIVATE(ih1,ih2,dlw1,clw1,dlw2,clw2,dlw3,clw3,w1,w2,
 C$OMP& dlw12,n12)
 C$OMP& PRIVATE(iind,swj,swj2,swjy,sv1,sv2,i1,i2,i3,wj
 C$OMP& ,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2
@@ -1086,16 +1082,16 @@ C   wght     scaling factor for second and third dimension (larger values shrink
 C
       implicit logical (a-z)
       external lkern
-      real*8 lkern
+      double precision lkern
       integer n1,n2,n3,kern
       logical aws,fix(*),mask(*)
-      real*8 y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght(2),
+      double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght(2),
      1       bi2(*),hakt,lwght(*),si2(*),vred(*),spmin,hhom(*),gi(*)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12
-      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,
-     1        sv1,sv2,spf,z,hhomi,hhommax,hmax2,w1,w2
+      double precision thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,
+     1        hakt2,sv1,sv2,spf,z,hhomi,hhommax,hmax2,w1,w2
       hakt2=hakt*hakt
       spf=1.d0/(1.d0-spmin)
       w1=wght(1)
@@ -1151,8 +1147,8 @@ C  first stochastic term
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,si2,hhom,n1,n2,n3,hakt2,hmax2,theta
 C$OMP& ,lwght,wght,y,fix,mask,vred,gi)
-C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,dlw12
-C$OMP& ,model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,w1,w2)
+C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,dlw12,
+C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,w1,w2)
 C$OMP& PRIVATE(iind,hhomi,hhommax,thetai,bii,swj
 C$OMP& ,swj2,swj0,swjy,sij,sv1,sv2,i1,i2,i3,wj
 C$OMP& ,j3,jw3,jind3,z3,jwind3
@@ -1262,14 +1258,15 @@ C
 
       integer nv,n1,n2,n3,ncores
       logical aws,mask(*)
-      real*8 y(nv,*),theta(nv,*),bi(*),thnew(nv,*),lambda,
+      double precision y(nv,*),theta(nv,*),bi(*),thnew(nv,*),lambda,
      1  wght(2),hakt,lwght(*),spmin,spf,swjy(nv,ncores)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12,k,thrednr
-      real*8 bii,biinv,sij,swj,z,z1,z2,z3,wj,hakt2,hmax2,w1,w2,spmb
+      double precision bii,biinv,sij,swj,z,z1,z2,z3,wj,hakt2,hmax2,
+     1        w1,w2,spmb
       external lkern
-      real*8 lkern
+      double precision lkern
 !$      integer omp_get_thread_num 
 !$      external omp_get_thread_num
       thrednr = 1

@@ -49,7 +49,7 @@ the origin.
     Object of class \code{"logical"} determines if bandwidths are  smoothed 
     for more stable results.
 }
-  \item{weighted}{
+  \item{combine}{
     Either \code{"weighted"} or \code{"minvar"}. Determines how whether to combine 
     sectorial results a weighted (with inverse variance) mean or to chose the sectorial
     estimate with minimal variance.

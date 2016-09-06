@@ -57,7 +57,7 @@ setMethod("extract","kernsm",function(x, what="y"){
   if("y" %in% what) z$y <- x@y
   if("yhat" %in% what) z$yhat <- x@yhat
   if("vred" %in% what) z$vred <- x@vred
-  if("vhat" %in% what) z$vhat <- (median(abs(x@y[-1]-x@y[-n]))/.9538)^2/x@vred
+  if("vhat" %in% what) z$vhat <- (median(abs(diff(x@y))/.9538))^2/x@vred
   if(length(z)>1) z <- z[-1]
   invisible(z)
 })

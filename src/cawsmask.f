@@ -19,14 +19,14 @@ C   wght     scaling factor for second dimension (larger values shrink)
 C
       implicit logical (a-z)
       external kldist,lkern
-      real*8 kldist,lkern
+      double precision kldist,lkern
       integer n1,n2,model,kern,ni(*)
       logical aws,fix(*),mask(*)
-      real*8 y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght,
+      double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght,
      1       bi2(*),hakt,lwght(*),spmin,spf
       integer ih1,ih2,i1,i2,j1,j2,jw1,jw2,jwind2,
      1        iind,jind,jind2,clw1,clw2,dlw1,dlw2
-      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,wj,hakt2
+      double precision thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,wj,hakt2
       hakt2=hakt*hakt
       spf=1.d0/(1.d0-spmin)
       aws=lambda.lt.1d40
@@ -143,15 +143,15 @@ C   wght     scaling factor for second and third dimension (larger values shrink
 C
       implicit logical (a-z)
       external kldist,lkern
-      real*8 kldist,lkern
+      double precision kldist,lkern
       integer n1,n2,model,kern,ni(*)
       logical aws,fix(*),mask(*)
-      real*8 y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght,
+      double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght,
      1       bi2(*),hakt,lwght(*),si2(*),vred(*),spmin
       integer ih1,ih2,i1,i2,j1,j2,jw1,jw2,jwind2,
      1        iind,jind,jind2,clw1,clw2,dlw1,dlw2
-      real*8 thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,wj,hakt2,
-     1        sv1,sv2,spf,wj0
+      double precision thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,wj,
+     1        hakt2,sv1,sv2,spf,wj0
       hakt2=hakt*hakt
       spf=1.d0/(1.d0-spmin)
       aws=lambda.lt.1d40
