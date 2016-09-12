@@ -2,7 +2,13 @@ useDynLib(aws)
 if(capabilities("X11")) importFrom(grDevices,X11.options)
 if(capabilities("aqua"))  importFrom(grDevices,quartz.options)
 import("methods","awsMethods","gsl")
-importFrom(graphics,plot)
+  importFrom("grDevices", "gray", "grey")
+  importFrom("graphics", "axis", "contour", "image", "lines", "mtext",
+             "par", "title","plot")
+  importFrom("stats", "IQR", "coefficients", "cor", "dnorm", "fft", "lm",
+             "median", "mvfft", "nextn", "pchisq", "qchisq", "qnorm",
+             "quantile", "rbinom", "rchisq", "rexp", "rnorm", "rpois",
+             "sd")
 exportClasses("aws","awssegment","kernsm","ICIsmooth")
 exportMethods("extract","print","summary","show","plot","risk")
 export(aws,lpaws,aws.irreg,aws.gaussian,aws.segment)
