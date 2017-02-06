@@ -315,7 +315,7 @@ n <- n1*n2*n3
 hakt <- awsobj@hmax*1.25^(1/ldy)
 ## bandwidth for an additional step of aws
 lambda0 <- awsobj@lambda
-sigma2 <- awsobj@sigma2
+## this reflects lambda*sigma^2 from aws
 yhat <- awsobj@theta
 bi <- awsobj@ni
 mcode <- switch(awsobj@family,
@@ -358,7 +358,7 @@ if(!is.null(inx)){
                    as.integer(iz),
                    as.integer(anzx),
                    hakt=as.double(hakt),
-                   as.double(lambda0*sigma2),
+                   as.double(lambda0),
                    as.double(yhat),
                    bi=as.double(bi),
                    as.integer(mcode),
@@ -375,7 +375,7 @@ if(!is.null(inx)){
                        as.integer(n2),
                        as.integer(n3),
                        hakt=as.double(hakt),
-                       as.double(lambda0*sigma2),
+                       as.double(lambda0),
                        as.double(yhat),
                        bi=as.double(bi),
                        as.integer(mcode),
