@@ -298,18 +298,24 @@ if(family%in%c("Bernoulli","Poisson")) y <- y0
 list(h=h,z=z,prob=exceedence,probna=exceedencena,y=if(verbose) y else NULL , theta= if(verbose) yhat else NULL, levels=levels, family=family)
 }
 
-awsweights <- function(awsobj,spmin=0.25){
+awsweights <- function(awsobj,spmin=0.25,inx=NULL){
 if(awsobj@degree!=0 || awsobj@varmodel!="Constant"||
-any(awsobj@scorr!=0)) stop("Not implemented")
+any(awsobj@scorr!=0)) stop("Adjustment for correlations is not implemented")
+  ##  if is.null(inx)  the complete weight configuration will be
+  ##  computed. This may be huge and exceed memory
+  ##  
+  ##
 dy <- awsobj@dy
 n1 <- dy[1]
 ldy <- length(dy)
 if(is.null(ldy)) ldy <- 1
 if(ldy>1) n2 <- dy[2] else n2 <- 1
 if(ldy==3) n3 <- dy[3] else n3 <- 1
-hakt <- awsobj@hmax
 n <- n1*n2*n3
+hakt <- awsobj@hmax*1.25^(1/ldy)
+## bandwidth for an additional step of aws
 lambda0 <- awsobj@lambda
+sigma2 <- yhat@sigma2
 yhat <- awsobj@theta
 bi <- awsobj@ni
 mcode <- switch(awsobj@family,
@@ -321,13 +327,55 @@ mcode <- switch(awsobj@family,
 		Variance=5)
 lkern <- awsobj@lkern
 hakt <- rep(hakt,ldy)
-dlw<-(2*trunc(hakt)+1)
-zobj <- .Fortran("cawsw",
+dlw<-(2*trunc(hakt)+1)     
+if(!is.null(inx)){
+  dinx <- dim(inx)
+  if(is.null(dinx)&n2==1){
+## distinguish between univariate problems and multiple points of interest
+## and 2D/3D problems with single point of interest
+     dinx <- c(1,length(inx))
+     dim(inx) <- dinx
+  }
+  if(is.null(dinx)){
+     anzx <- 1
+     linx <- length(inx)
+     ix <- inx[1]
+     iy <- if(linx>1) inx[2] else 1
+     iz <- if(linx>2) inx[3] else 1
+  } else {
+     linx <- dinx[1]
+     anzx <- dinx[2] 
+     ix <- inx[1,]
+     iy <- if(linx>1) inx[2,] else rep(1,anzx)
+     iz <- if(linx>2) inx[3,] else rep(1,anzx)
+  }
+  zobj <- .Fortran("cawsw1",
+                   as.integer(n1),
+                   as.integer(n2),
+                   as.integer(n3),
+                   as.integer(ix),
+                   as.integer(iy),
+                   as.integer(iz),
+                   as.integer(anzx),
+                   hakt=as.double(hakt),
+                   as.double(lambda0*sigma2),
+                   as.double(yhat),
+                   bi=as.double(bi),
+                   as.integer(mcode),
+                   as.integer(lkern),
+                   as.double(spmin),
+                   double(prod(dlw)),
+                   wghts=double(n*anzx),
+                   PACKAGE="aws")$wghts
+  dim(zobj) <- if(anzx==1) dy else c(dy,anzx)
+} else{
+  if(n>128^2) stop("Weight scheme would use more than 2 GB memory, please specify locations in inx ")
+  zobj <- .Fortran("cawsw",
                        as.integer(n1),
                        as.integer(n2),
                        as.integer(n3),
                        hakt=as.double(hakt),
-                       as.double(lambda0),
+                       as.double(lambda0*sigma2),
                        as.double(yhat),
                        bi=as.double(bi),
                        as.integer(mcode),
@@ -336,5 +384,7 @@ zobj <- .Fortran("cawsw",
                        double(prod(dlw)),
                        wghts=double(n*n),
                        PACKAGE="aws")$wghts
-array(zobj,c(dy,dy))
+  dim(zobj) <- c(dy,dy)
+}
+zobj
 }

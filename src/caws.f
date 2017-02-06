@@ -629,6 +629,127 @@ C$OMP FLUSH(wght)
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
+C   Perform one iteration in local constant three-variate aws 
+C   for selected points
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      subroutine cawsw1(n1,n2,n3,inx,iny,inz,anz,hakt,lambda,theta,bi,
+     1                model,kern,spmin,lwght,wght)
+C   compute weights for all combinations of design points
+C
+C   y        observed values of regression function
+C   n1,n2,n3    design dimensions
+C   hakt     actual bandwidth
+C   lambda   lambda or lambda*sigma2 for Gaussian models
+C   theta    estimates from last step   (input)
+C   bi       \sum  Wi   (output)
+C   ai       \sum  Wi Y     (output)
+C   model    specifies the probablilistic model for the KL-Distance
+C   kern     specifies the location kernel
+C
+      implicit logical (a-z)
+
+      external kldist,lkern
+      double precision kldist,lkern
+      integer n1,n2,n3,model,kern,anz,inx(anz),iny(anz),inz(anz)
+      double precision theta(*),bi(*),lambda,
+     1       wght(n1,n2,n3,anz),hakt,lwght(*),spmin,spf
+      integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
+     1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
+     2        dlw12,n12
+      double precision thetai,bii,sij,z1,z2,z3,wj,hakt2,hmax2
+      hakt2=hakt*hakt
+      spf=1.d0/(1.d0-spmin)
+C
+C   first calculate location weights
+C
+      ih3=FLOOR(hakt)
+      ih2=ih3
+      ih1=ih3
+      if(n3.eq.1) ih3=0
+      if(n2.eq.1) ih2=0
+      clw1=ih1
+      clw2=ih2
+      clw3=ih3
+      dlw1=ih1+clw1+1
+      dlw2=ih2+clw2+1
+      dlw3=ih3+clw3+1
+      dlw12=dlw1*dlw2
+      n12=n1*n2
+      z2=0.d0
+      z3=0.d0
+      hmax2=0.d0
+      DO j3=-clw3,clw3
+         if(n3.gt.1) THEN
+            z3=j3
+            z3=z3*z3
+            ih2=FLOOR(sqrt(hakt2-z3))
+            jind3=(j3+clw3)*dlw12
+         ELSE
+            jind3=0
+         END IF
+         DO j2=-ih2,ih2
+            if(n2.gt.1) THEN
+               z2=j2
+               z2=z3+z2*z2
+               ih1=FLOOR(sqrt(hakt2-z2))
+               jind2=jind3+(j2+clw2)*dlw1
+            ELSE
+               jind2=0
+            END IF
+            DO j1=-ih1,ih1
+C  first stochastic term
+               jind=j1+clw1+1+jind2
+               z1=j1
+               lwght(jind)=lkern(kern,(z1*z1+z2)/hakt2)
+               if(lwght(jind).gt.0.d0) hmax2=max(hmax2,z2+z1*z1)
+            END DO
+         END DO
+      END DO
+      call rchkusr() 
+      DO iind=1,anz
+         i1=inx(iind)
+         i2=iny(iind)
+         i3=inz(iind)         
+         thetai=theta(i1+(i2-1)*n1+(i3-1)*n1*n2)
+         bii=bi(iind)/lambda
+C   scaling of sij outside the loop
+         DO jw3=-clw3,clw3
+            j3=jw3+i3
+            if(j3.lt.1.or.j3.gt.n3) CYCLE
+            jwind3=(jw3+clw3)*dlw12
+            jind3=(j3-1)*n12
+            z3=jw3
+            z3=z3*z3
+            if(n2.gt.1) ih2=FLOOR(sqrt(hakt2-z3))
+            DO jw2=-ih2,ih2
+               j2=jw2+i2
+               if(j2.lt.1.or.j2.gt.n2) CYCLE
+               jwind2=jwind3+(jw2+clw2)*dlw1
+               jind2=(j2-1)*n1+jind3
+               z2=jw2
+               z2=z3+z2*z2
+               ih1=FLOOR(sqrt(hakt2-z2))
+               DO jw1=-ih1,ih1
+C  first stochastic term
+                  j1=jw1+i1
+                  if(j1.lt.1.or.j1.gt.n1) CYCLE
+                  jind=j1+jind2
+                  wj=lwght(jw1+clw1+1+jwind2)
+                  sij=bii*kldist(model,thetai,theta(jind))
+                  IF (sij.gt.1.d0) CYCLE
+                  IF (sij.gt.spmin) THEN
+                     wj=wj*(1.d0-spf*(sij-spmin))
+                  END IF
+                  wght(j1,j2,j3,iind) = wj
+               END DO
+            END DO
+         END DO
+      END DO 
+      RETURN
+      END
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
 C   Perform one iteration in local constant three-variate aws (gridded)
 C   used in awstestprop only 
 C   bi0 contains sum of weights (without invers variances) !!! 
