@@ -315,7 +315,7 @@ n <- n1*n2*n3
 hakt <- awsobj@hmax*1.25^(1/ldy)
 ## bandwidth for an additional step of aws
 lambda0 <- awsobj@lambda
-sigma2 <- yhat@sigma2
+sigma2 <- awsobj@sigma2
 yhat <- awsobj@theta
 bi <- awsobj@ni
 mcode <- switch(awsobj@family,

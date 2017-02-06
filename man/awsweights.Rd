@@ -52,8 +52,6 @@ Joerg Polzehl, Vladimir Spokoiny,  Propagation-separation approach for local lik
 \seealso{
 See also  \code{\link{aws}}
 }
-\examples{
-}
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 \keyword{ misc }% use one of  RShowDoc("KEYWORDS")
