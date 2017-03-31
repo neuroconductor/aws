@@ -13,7 +13,7 @@ vaws <- function(y,kstar=16,
                       qchisq(pchisq(8.82,1),nvec))## 3D
    if(is.null(wghts)) wghts <- c(1,1,1)
    wghts <- switch(length(dy),c(0,0),c(wghts[1]/wghts[2],0),wghts[1]/wghts[2:3])
-   n1 <- switch(d,n,dy[1],dy[1])
+   n1 <- switch(d,dy,dy[1],dy[1])
    n2 <- switch(d,1,dy[2],dy[2])
    n3 <- switch(d,1,1,dy[3])
    n <- n1*n2*n3
