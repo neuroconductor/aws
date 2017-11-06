@@ -1,9 +1,9 @@
 #
 #    R - function  aws  for likelihood  based  Adaptive Weights Smoothing (AWS)
-#    for local constant Gaussian, Bernoulli, Exponential, Poisson, Weibull and  
-#    Volatility models                                                         
+#    for local constant Gaussian, Bernoulli, Exponential, Poisson, Weibull and
+#    Volatility models
 #
-#    emaphazises on the propagation-separation approach 
+#    emaphazises on the propagation-separation approach
 #
 #    Copyright (C) 2006 Weierstrass-Institut fuer
 #                       Angewandte Analysis und Stochastik (WIAS)
@@ -26,7 +26,7 @@
 #  USA.
 #
 #     default parameters:  see function setawsdefaults
-#       
+#
 aws <- function(y,hmax=NULL,aws=TRUE,memory=FALSE,family="Gaussian",
                 lkern="Triangle",homogen=TRUE,aggkern="Uniform",
                 sigma2=NULL,shape=NULL,scorr=0,spmin=0.25,
@@ -34,8 +34,8 @@ aws <- function(y,hmax=NULL,aws=TRUE,memory=FALSE,family="Gaussian",
                 testprop=FALSE,maxni=FALSE)
 {
 #
-#   this version uses neighborhoods with an increase in potential 
-#   variance reduction by a factor of 1.25 from one iteration step 
+#   this version uses neighborhoods with an increase in potential
+#   variance reduction by a factor of 1.25 from one iteration step
 #   to the next
 #
 #    wghts is interpreted as voxel extensions ..., wghts for nonexisting dimensions are are set to INFTY
@@ -52,7 +52,7 @@ if(length(dy)>3) stop("AWS for more than 3 dimensional grids is not implemented"
 if(is.null(wghts)) wghts <- c(1,1,1)
 wghts <- switch(length(dy),c(0,0),c(wghts[1]/wghts[2],0),wghts[1]/wghts[2:3])
 if(family=="NCchi"){
-varstats <- sofmchi(shape/2) # precompute table of mean, sd and var for 
+varstats <- sofmchi(shape/2) # precompute table of mean, sd and var for
 #
 #   NCchi for noncentral chi with shape=degrees of freedom and theta =NCP
 #
@@ -63,7 +63,7 @@ hmax <- cpar$hmax
 shape <- cpar$shape
 d <- cpar$d
 n<-length(y)
-# 
+#
 #   family dependent transformations that depend on the value of family
 #
 zfamily <- awsfamily(family,y,sigma2,shape,scorr,lambda,cpar)
@@ -100,7 +100,7 @@ if(testprop) {
        if(is.null(u)) u <- 0
        cpar <- c(cpar, list(n1=n1,n2=n2,n3=n3,n=n1*n2*n3,family=family,u=u))
        propagation <- NULL
-    } 
+    }
 #
 #   iteratate until maximal bandwidth is reached
 #
@@ -108,15 +108,15 @@ cat("Progress:")
 total <- cumsum(1.25^(1:kstar))/sum(1.25^(1:kstar))
 while (k<=kstar) {
       hakt0 <- gethani(1,1.25*hmax,lkern,1.25^(k-1),wghts,1e-4)
-      hakt <- gethani(1,1.25*hmax,lkern,1.25^k,wghts,1e-4)
-      cat("step",k,"hakt",hakt,"\n")
+      hakt1 <- hakt <- gethani(1,1.25*hmax,lkern,1.25^k,wghts,1e-4)
+      cat("step",k,"hakt",hakt1,"\n")
 if(lkern==5) {
 #  assume  hmax was given in  FWHM  units (Gaussian kernel will be truncated at 4)
     hakt <- hakt*0.42445*4
-    }
+  }
 dlw<-(2*trunc(hakt/c(1,wghts))+1)[1:d]
 if(family=="Gaussian"&scorr[1]>=0.1) lambda0<-lambda0*Spatialvar.gauss(hakt0/0.42445/4,h0,d)/Spatialvar.gauss(hakt0/0.42445/4,1e-5,d)
-# Correction for spatial correlation depends on h^{(k)} 
+# Correction for spatial correlation depends on h^{(k)}
 if(family=="Gaussian"&length(sigma2)==n){
 # heteroskedastic Gaussian case
 zobj <- .Fortran("chaws",as.double(y),
@@ -183,7 +183,7 @@ if(cpar$mcode!=6){
                        double(prod(dlw)),
                        as.double(wghts),
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom")]
-   }                     
+   }
 }
 if(family%in%c("Bernoulli","Poisson")) zobj<-regularize(zobj,family)
 dim(zobj$ai)<-dy
@@ -197,54 +197,54 @@ if(homogen) hhom <- zobj$hhom
 #
 #  if testprop == TRUE
 #  check alpha in propagation condition (to adjust value of lambda)
-#  
+#
 if(testprop) propagation <- awstestprop(y,family,tobj,zobj,sigma2,hakt,cpar,u,propagation)
 if(graph){
 #
 #     Display intermediate results if graph == TRUE
 #
-if(d==1){ 
+if(d==1){
 oldpar<-par(mfrow=c(1,2),mar=c(3,3,3,.2),mgp=c(2,1,0))
 plot(y,ylim=range(y,tobj$theta),col=3)
 if(!is.null(u)) lines(u,col=2)
 lines(tobj$theta,lwd=2)
-title(paste("Reconstruction  h=",signif(hakt,3)))
+title(paste("Reconstruction  h=",signif(hakt1,3)))
 plot(tobj$bi,type="l",ylim=range(0,tobj$bi))
 lines(tobj$eta*max(tobj$bi),col=2)
 lines(hhom/max(hhom)*max(tobj$bi),col=3)
 title("Sum of weights, eta and hhom")
-} 
-if(d==2){ 
+}
+if(d==2){
 oldpar<-par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
 image(y,col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Observed Image  min=",signif(min(y),3)," max=",signif(max(y),3)))
 image(tobj$theta,col=gray((0:255)/255),xaxt="n",yaxt="n")
-title(paste("Reconstruction  h=",signif(hakt,3)," min=",signif(min(tobj$theta),3)," max=",signif(max(tobj$theta),3)))
+title(paste("Reconstruction  h=",signif(hakt1,3)," min=",signif(min(tobj$theta),3)," max=",signif(max(tobj$theta),3)))
 image(tobj$bi,col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Sum of weights: min=",signif(min(tobj$bi),3)," mean=",signif(mean(tobj$bi),3)," max=",signif(max(tobj$bi),3)))
 image(tobj$fix,col=gray((0:255)/255),xaxt="n",yaxt="n",zlim=c(0,1))
 title("Estimates fixed")
 }
-if(d==3){ 
+if(d==3){
 oldpar<-par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
 image(y[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Observed Image  min=",signif(min(y),3)," max=",signif(max(y),3)))
 image(tobj$theta[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n")
-title(paste("Reconstruction  h=",signif(hakt,3)," min=",signif(min(tobj$theta),3)," max=",signif(max(tobj$theta),3)))
+title(paste("Reconstruction  h=",signif(hakt1,3)," min=",signif(min(tobj$theta),3)," max=",signif(max(tobj$theta),3)))
 image(tobj$bi[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Sum of weights: min=",signif(min(tobj$bi),3)," mean=",signif(mean(tobj$bi),3)," max=",signif(max(tobj$bi),3)))
 image(tobj$fix[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n",zlim=c(0,1))
 title("Estimates fixed")
-} 
+}
 par(oldpar)
 }
 #
-#    Calculate MAE and MSE if true parameters are given in u 
-#    this is for demonstration and testing for propagation (parameter adjustments) 
+#    Calculate MAE and MSE if true parameters are given in u
+#    this is for demonstration and testing for propagation (parameter adjustments)
 #    only.
 #
 if(!is.null(u)) {
-   cat("bandwidth: ",signif(hakt,3),"eta==1",sum(tobj$eta==1),"   MSE: ",
+   cat("bandwidth: ",signif(hakt1,3),"eta==1",sum(tobj$eta==1),"   MSE: ",
                     signif(mean((tobj$theta-u)^2),3),"   MAE: ",
 		    signif(mean(abs(tobj$theta-u)),3)," mean(bi)=",
 		    signif(mean(tobj$bi),3),"mean hhom",signif(mean(hhom),3),"\n")
@@ -264,13 +264,13 @@ k <- k+1
 gc()
 }
 cat("\n")
-###                                                                       
-###            end iterations now prepare results                                                  
-###                                 
-###   component var contains an estimate of Var(tobj$theta) if aggkern="Uniform", or if !memory 
-###   
+###
+###            end iterations now prepare results
+###
+###   component var contains an estimate of Var(tobj$theta) if aggkern="Uniform", or if !memory
+###
 if( family=="Gaussian"&length(sigma2)==n){
-# heteroskedastic Gaussian case 
+# heteroskedastic Gaussian case
 vartheta <- tobj$bi2/tobj$bi^2
 #  pointwise variances are reflected in weights
 } else {
@@ -291,7 +291,7 @@ sigma2 <- switch(family,Gaussian=sigma2,
 if( family=="Gaussian"){
 vartheta<-vartheta/Spatialvar.gauss(hakt/0.42445/4,h0+1e-5,d)*Spatialvar.gauss(hakt/0.42445/4,1e-5,d)
 }
-awsobj(y,tobj$theta,vartheta,hakt,sigma2,lkern,lambda,ladjust,aws,memory,
+awsobj(y,tobj$theta,vartheta,hakt1,sigma2,lkern,lambda,ladjust,aws,memory,
    args,homogen,earlystop=FALSE,family=family,wghts=wghts,mae=mae,ni=tobj$bi)
 }
 #######################################################################################
@@ -341,7 +341,7 @@ heta <- switch(family,   Gaussian=1.25,
                NCchi=1.25,1.25)^(1/d)
 ktau <- log(switch(d,100,15,5))
 #
-# stagewise aggregation 
+# stagewise aggregation
 #
 if(!aws){
 #
@@ -356,7 +356,7 @@ if(!aws){
 #
     if(!memory){
         heta <- hmax
-        cat("Neither PS nor Stagewise Aggregation is specified, compute kernel estimate with bandwidth hmax\n") 
+        cat("Neither PS nor Stagewise Aggregation is specified, compute kernel estimate with bandwidth hmax\n")
     } else {
     tau <- switch(family,
                   Gaussian=switch(d,.28,.21,.21),
@@ -373,7 +373,7 @@ if(!aws){
 #   set appropriate value for tau (works for all families)
 #
 if(memory) {
-tau <- 8 
+tau <- 8
 } else {
 tau <- 1e10
 heta <- 1e10
@@ -402,7 +402,7 @@ lambda<-lambda*1.8
 if(is.null(shape)) shape<-1
 maxvol <- getvofh(hmax,lkern,wghts)
 kstar <- as.integer(log(maxvol)/log(1.25))
-if(aws||memory) k <- switch(d,1,3,6) else k <- kstar
+if(aws||memory) k <- switch(d,1,1,1) else k <- kstar
 if(aws) cat("Running PS with lambda=",signif(lambda,3)," hmax=",hmax,"number of iterations:",kstar," memory step",if(memory) "ON" else "OFF","\n")
 else cat("Stagewise aggregation \n")
 list(heta=heta,tau1=tau1,tau2=tau2,lambda=lambda,hmax=hmax,d=d,mcode=mcode,shape=shape,
@@ -498,7 +498,7 @@ if(family%in%c("Bernoulli")){
 }
 if(family%in%c("Poisson")) zobj$ai <- 0.1/zobj$bi+zobj$ai
 zobj
-} 
+}
 ############################################################################
 #
 #   transformations that depend on the specified family
@@ -522,17 +522,17 @@ if(family=="Gaussian") {
     }
     if(length(sigma2)==1){
 #   homoskedastic Gaussian case
-    lambda <- lambda*sigma2*2 
-    cpar$tau1 <- cpar$tau1*sigma2*2 
-    cpar$tau2 <- cpar$tau2*sigma2*2 
+    lambda <- lambda*sigma2*2
+    cpar$tau1 <- cpar$tau1*sigma2*2
+    cpar$tau2 <- cpar$tau2*sigma2*2
     } else {
 #   heteroskedastic Gaussian case
-    if(length(sigma2)!=length(y)) 
+    if(length(sigma2)!=length(y))
        stop("sigma2 does not have length 1 or same length as y")
-    lambda <- lambda*2 
-    cpar$tau1 <- cpar$tau1*2 
-    cpar$tau2 <- cpar$tau2*2 
-    sigma2 <- 1/sigma2 #  taking the invers yields simpler formulaes 
+    lambda <- lambda*2
+    cpar$tau1 <- cpar$tau1*2
+    cpar$tau2 <- cpar$tau2*2
+    sigma2 <- 1/sigma2 #  taking the invers yields simpler formulaes
     }
 }
 #
@@ -541,13 +541,13 @@ if(family=="Gaussian") {
 if(family=="Volatility"){
    family <- "Exponential"
    y <- y^2
-   lambda <- 2*lambda 
+   lambda <- 2*lambda
 # this accounts for the additional 1/2 in Q(\hat{theta},theta)
 }
 if(family=="Variance"){
-   lambda <- 2*lambda/cpar$shape 
-   cpar$tau1 <- cpar$tau1*2/cpar$shape 
-   cpar$tau2 <- cpar$tau2*2/cpar$shape 
+   lambda <- 2*lambda/cpar$shape
+   cpar$tau1 <- cpar$tau1*2/cpar$shape
+   cpar$tau2 <- cpar$tau2*2/cpar$shape
 }
 list(cpar=cpar,lambda=lambda,y=y,sigma2=sigma2,h0=h0)
 }
@@ -570,4 +570,95 @@ gethani <- function(x,y,lkern,value,wght,eps=1e-2){
          as.double(eps),
          bw=double(1),
          PACKAGE="aws")$bw
+}
+
+awsweights <- function(awsobj,spmin=0.25,inx=NULL){
+  if(awsobj@degree!=0 || awsobj@varmodel!="Constant"||
+     any(awsobj@scorr!=0)) stop("Adjustment for correlations is not implemented")
+  ##  if is.null(inx)  the complete weight configuration will be
+  ##  computed. This may be huge and exceed memory
+  ##
+  ##
+  dy <- awsobj@dy
+  n1 <- dy[1]
+  ldy <- length(dy)
+  if(is.null(ldy)) ldy <- 1
+  if(ldy>1) n2 <- dy[2] else n2 <- 1
+  if(ldy==3) n3 <- dy[3] else n3 <- 1
+  n <- n1*n2*n3
+  hakt <- awsobj@hmax*1.25^(1/ldy)
+  ## bandwidth for an additional step of aws
+  lambda0 <- awsobj@lambda
+  ## this reflects lambda*sigma^2 from aws
+  yhat <- awsobj@theta
+  bi <- awsobj@ni
+  mcode <- switch(awsobj@family,
+                  Gaussian=1,
+                  Bernoulli=2,
+                  Poisson=3,
+                  Exponential=4,
+                  Volatility=4,
+                  Variance=5)
+  lkern <- awsobj@lkern
+  hakt <- rep(hakt,ldy)
+  dlw<-(2*trunc(hakt)+1)
+  if(!is.null(inx)){
+    dinx <- dim(inx)
+    if(is.null(dinx)&n2==1){
+      ## distinguish between univariate problems and multiple points of interest
+      ## and 2D/3D problems with single point of interest
+      dinx <- c(1,length(inx))
+      dim(inx) <- dinx
+    }
+    if(is.null(dinx)){
+      anzx <- 1
+      linx <- length(inx)
+      ix <- inx[1]
+      iy <- if(linx>1) inx[2] else 1
+      iz <- if(linx>2) inx[3] else 1
+    } else {
+      linx <- dinx[1]
+      anzx <- dinx[2]
+      ix <- inx[1,]
+      iy <- if(linx>1) inx[2,] else rep(1,anzx)
+      iz <- if(linx>2) inx[3,] else rep(1,anzx)
+    }
+    zobj <- .Fortran("cawsw1",
+                     as.integer(n1),
+                     as.integer(n2),
+                     as.integer(n3),
+                     as.integer(ix),
+                     as.integer(iy),
+                     as.integer(iz),
+                     as.integer(anzx),
+                     hakt=as.double(hakt),
+                     as.double(lambda0),
+                     as.double(yhat),
+                     bi=as.double(bi),
+                     as.integer(mcode),
+                     as.integer(lkern),
+                     as.double(spmin),
+                     double(prod(dlw)),
+                     wghts=double(n*anzx),
+                     PACKAGE="aws")$wghts
+    dim(zobj) <- if(anzx==1) dy else c(dy,anzx)
+  } else{
+    if(n>128^2) stop("Weight scheme would use more than 2 GB memory, please specify locations in inx ")
+    zobj <- .Fortran("cawsw",
+                     as.integer(n1),
+                     as.integer(n2),
+                     as.integer(n3),
+                     hakt=as.double(hakt),
+                     as.double(lambda0),
+                     as.double(yhat),
+                     bi=as.double(bi),
+                     as.integer(mcode),
+                     as.integer(lkern),
+                     as.double(spmin),
+                     double(prod(dlw)),
+                     wghts=double(n*n),
+                     PACKAGE="aws")$wghts
+    dim(zobj) <- c(dy,dy)
+  }
+  zobj
 }

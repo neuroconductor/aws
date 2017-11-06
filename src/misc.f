@@ -64,7 +64,7 @@ C
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
-C   determine sum of location weights for a given geometry a(3) and given 
+C   determine sum of location weights for a given geometry a(3) and given
 C   bandwidth
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -87,7 +87,8 @@ C  Algorithmus zur Nullstellenbestimmung einer monotonen Funktion auf(0,\infty)
          y=y*y/x
          fw2=sofw(y,kern,wght)
       END DO
-      DO WHILE(min(fw2/value,value/fw1).gt.1.d0+eps)
+      DO WHILE(min(fw2/value,value/fw1).gt.1.d0+eps.and.
+     1             abs(y-x).gt.1d-6)
          z=x+(value-fw1)/(fw2-fw1)*(y-x)
          fw3=sofw(z,kern,wght)
          if(fw3.le.value) THEN
@@ -106,7 +107,7 @@ C  Algorithmus zur Nullstellenbestimmung einer monotonen Funktion auf(0,\infty)
           bw=y-(fw2-value)/(fw2-fw1)*(y-x)
       ENDIF
       RETURN
-      END  
+      END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
 C   Calculate exceedence probabilities in awstestprop
@@ -136,4 +137,3 @@ C$OMP END PARALLEL
 C$OMP FLUSH(exprob)
       Return
       End
-      

@@ -3,7 +3,7 @@
 #   nonadaptive 1D -- 3D smoothing on a grid (Gaussian kernel)
 #
 ###########################################################################
-kernsm<-function (y, h = 1, kern="Gaussian", m=0, nsector=1, sector=1, symmetric=FALSE)
+kernsm<-function (y, h = 1, kern="Gaussian", m=0, nsector=1, sector=1, symmetric=FALSE, unit=c("SD","FWHM"))
 {
 #
 #  nonadaptive kernel smoothing using FFT
@@ -24,11 +24,11 @@ kernsm<-function (y, h = 1, kern="Gaussian", m=0, nsector=1, sector=1, symmetric
     expand.x <- function(x,xp){
        xx <- array(0,xp$dx1)
        if(xp$d==1) {
-          xx[xp$ilow:xp$iup] <- x 
+          xx[xp$ilow:xp$iup] <- x
        } else if(xp$d==2) {
-          xx[xp$ilow[1]:xp$iup[1],xp$ilow[2]:xp$iup[2]] <- x 
+          xx[xp$ilow[1]:xp$iup[1],xp$ilow[2]:xp$iup[2]] <- x
        } else {
-          xx[xp$ilow[1]:xp$iup[1],xp$ilow[2]:xp$iup[2],xp$ilow[3]:xp$iup[3]] <- x 
+          xx[xp$ilow[1]:xp$iup[1],xp$ilow[2]:xp$iup[2],xp$ilow[3]:xp$iup[3]] <- x
        }
        xx
     }
@@ -40,7 +40,7 @@ kernsm<-function (y, h = 1, kern="Gaussian", m=0, nsector=1, sector=1, symmetric
     }
     gridind <- function(d,side=1) {
        d0 <- d%/%2+1
-       if(side==1) 1:d0  else (d0+1):d 
+       if(side==1) 1:d0  else (d0+1):d
     }
     lkern1 <- function(x,h,ikern,m){
        nx <- length(x)
@@ -53,11 +53,12 @@ kernsm<-function (y, h = 1, kern="Gaussian", m=0, nsector=1, sector=1, symmetric
                 khofx=double(nx),
                 PACKAGE="aws")$khofx
     }
+    if(kern=="Gaussian" & unit[1]=="FWHM") h <- h/(2*sqrt(2*log(2))) ## FWHM bandwidth
     lkern <- function(xp,kind="Gaussian",m=0,nsector=1,sector=1,symmetric=FALSE){
 #
 #   generate 1D, 2D or 3D product kernel weights appropriate for fft
 #   m defines (partial) derivatives up to order 2
-#   
+#
 #
        xh <- array(0,c(xp$d,xp$dx1))
        dx0 <- xp$dx1%/%2 + 1
@@ -79,7 +80,7 @@ kernsm<-function (y, h = 1, kern="Gaussian", m=0, nsector=1, sector=1, symmetric
                             "Biweight"=5,
                             "Triweight"=6,
                             1)
-# use  equivalent kernels for local polynomial smoothing with p=m+1                
+# use  equivalent kernels for local polynomial smoothing with p=m+1
        if(any(m>2)) {
           m <- pmin(m,2)
           warning("only second order derivatives implemented, setting m==2")
@@ -97,10 +98,10 @@ kernsm<-function (y, h = 1, kern="Gaussian", m=0, nsector=1, sector=1, symmetric
                 if(sector==2){
                    kwghts[(d0+1):xp$dx1] <- 0
                 } else {
-                   kwghts[1:(d0-1)] <- 0 
+                   kwghts[1:(d0-1)] <- 0
                 }
              } else {
-                warning("sector needs to be 1 (left sided) or 2 (right sided)") 
+                warning("sector needs to be 1 (left sided) or 2 (right sided)")
              }
           }
           if(xp$d==2){
@@ -113,7 +114,7 @@ kernsm<-function (y, h = 1, kern="Gaussian", m=0, nsector=1, sector=1, symmetric
                                 as.integer(sector),
                                 as.logical(symmetric),
                                 insector=double(xp$dx1[1]*xp$dx1[2]),
-                                PACKAGE="aws")$insector                               
+                                PACKAGE="aws")$insector
              kwghts <- kwghts*array(sector,xp$dx1)
           }
           if(xp$d==3){
@@ -124,7 +125,7 @@ kernsm<-function (y, h = 1, kern="Gaussian", m=0, nsector=1, sector=1, symmetric
                                      c(1,0,0),
                                      c(1,0,1),
                                      c(1,1,0),
-                                     c(1,1,1)) 
+                                     c(1,1,1))
              sector <- array(0,xp$dx1)
              sector[gridind(xp$dx1[1]),
                     gridind(xp$dx1[2]),
@@ -151,8 +152,8 @@ kernsm<-function (y, h = 1, kern="Gaussian", m=0, nsector=1, sector=1, symmetric
     kernsmobj(y,h=h,kern=kern,m=m,nsector=nsector,sector=sector,symmetric=symmetric,
               yhat=yhat,vred=1/sum(kwghts^2),call=args)
     }
-ICIsmooth <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0, sigma=NULL, nsector=1, 
-             sector=1, symmetric=FALSE, presmooth = FALSE){
+ICIsmooth <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0, sigma=NULL, nsector=1,
+             sector=1, symmetric=FALSE, presmooth = FALSE, unit=c("SD","FWHM") ){
    args <- match.call()
    if(any(m>0)&nsector>1){
       nsector <- 1
@@ -165,12 +166,12 @@ ICIsmooth <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0, sig
    if(is.null(dy)) dy <- n
    d <- length(dy)
    if(d==1&nsector>2-symmetric){
-      warning(paste("ICIsmooth: only nsector%in%c(1,",(2-symmetric),") implemented in 1D\n 
+      warning(paste("ICIsmooth: only nsector%in%c(1,",(2-symmetric),") implemented in 1D\n
                     using nsector=",2-symmetric,sep=""))
       nsector <- (2-symmetric)
-   } 
+   }
    if(d>2&nsector>1&nsector!=4*(2-symmetric)){
-      warning(paste("ICIsmooth: nsector%in%c(1,",4*(2-symmetric),") implemented in 3D\n 
+      warning(paste("ICIsmooth: nsector%in%c(1,",4*(2-symmetric),") implemented in 3D\n
             using nsector=",4*(2-symmetric),sep=""))
       nsector <- 4*(2-symmetric)
    }
@@ -195,9 +196,9 @@ ICIsmooth <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0, sig
    hbest <- rep(hakt,n)
    fixed <- rep(FALSE,n)
    yhat <- as.vector(y)
-   vhat <- rep(sigma^2,n) 
+   vhat <- rep(sigma^2,n)
    while(hakt < hmax){
-      z <- kernsm(y, hakt, kern, m, nsector, sector, symmetric)
+      z <- kernsm(y, hakt, kern, m, nsector, sector, symmetric, unit)
       ind0 <- (1:n)[!fixed]
       Low[ind0] <- pmax(Low,z@yhat-thresh * sigma/sqrt(z@vred))[ind0]
       Up[ind0] <- pmin(Up,z@yhat+thresh * sigma/sqrt(z@vred))[ind0]
@@ -208,7 +209,7 @@ ICIsmooth <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0, sig
       fixed[-ind] <- TRUE
       hakt <- hakt*hinc
       if(sum(fixed)==n) break
-   } 
+   }
    if(presmooth){
       hbest <- switch(d,.Fortran("median1d",
                                  as.double(hbest),
@@ -233,19 +234,20 @@ ICIsmooth <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0, sig
       while(hakt < hmax){
          ind <- (1:n)[abs(hakt-hbest)<1e-3]
          if(length(ind)>0){
-            z <- kernsm(y, hakt, kern, m, nsector, sector, symmetric)
+            z <- kernsm(y, hakt, kern, m, nsector, sector, symmetric, unit)
             yhat[ind] <- z@yhat[ind]
             vhat[ind] <- sigma^2/z@vred
          }
          hakt <- hakt*hinc
-      }                                  
+      }
    }
    ICIsmoothobj(y,h=hmax,hinc=hinc,thresh=thresh,kern=kern,m=m,nsector=nsector,
                 sector=sector,symmetric=symmetric,yhat=array(yhat,dy),
                 vhat=vhat,hbest=hbest,sigma=sigma,call=args)
 }
-ICIcombined <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0, 
-                 sigma = NULL, nsector=1, symmetric=FALSE, presmooth=FALSE, combine="weighted"){
+ICIcombined <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0,
+                 sigma = NULL, nsector=1, symmetric=FALSE, presmooth=FALSE,
+                 combine="weighted", unit=c("SD","FWHM")){
    args <- match.call()
    if(any(m>0)&nsector>1){
       nsector <- 1
@@ -256,19 +258,19 @@ ICIcombined <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0,
    if(is.null(dy)) dy <- n
    d <- length(dy)
    if(d==1&nsector>2-symmetric){
-      warning(paste("ICIcombined: only nsector%in%c(1,",(2-symmetric),") implemented in 1D\n 
+      warning(paste("ICIcombined: only nsector%in%c(1,",(2-symmetric),") implemented in 1D\n
                     using nsector=",2-symmetric,sep=""))
       nsector <- (2-symmetric)
-   } 
+   }
    if(d>2&nsector>1&nsector!=4*(2-symmetric)){
-      warning(paste("ICIcombined: nsector%in%c(1,",4*(2-symmetric),") implemented in 3D\n 
+      warning(paste("ICIcombined: nsector%in%c(1,",4*(2-symmetric),") implemented in 3D\n
             using nsector=",4*(2-symmetric),sep=""))
       nsector <- 4*(2-symmetric)
    }
    if(is.null(sigma)) sigma <- median(abs(y[-1]-y[-n]))/.9538
    if(nsector==1){
       return(ICIsmooth(y, hmax, hinc, thresh, kern, m, sigma, 1, symmetric, presmooth))
-   } 
+   }
    yhatc <- array(0,c(nsector,prod(dy)))
    vhatc <- array(0,c(nsector,prod(dy)))
    hbest <- numeric(prod(dy))
@@ -276,7 +278,7 @@ ICIcombined <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0,
 #  adaptive bandwidth selection for the nsector sectors using function ICIsmooth
 #
    for(i in 1:nsector){
-      z <- ICIsmooth(y, hmax, hinc, thresh, kern, m, sigma, nsector, i, symmetric, presmooth)
+      z <- ICIsmooth(y, hmax, hinc, thresh, kern, m, sigma, nsector, i, symmetric, presmooth, unit)
       yhatc[i,] <- z@yhat
       vhatc[i,] <- z@vhat
       hbest <- hbest+z@hbest
@@ -295,11 +297,14 @@ ICIcombined <- function(y, hmax, hinc=1.45, thresh=NULL, kern="Gaussian", m=0,
    } else { # least variance sectorial estimate Katkovnik (6.46)
       ihat <- apply(vhat,2,order)[1,]
       for(i in 1:nsector) yhat[ihat==i]<-yhatc[i,ihat==i]
-   } 
+   }
    ICIsmoothobj(y,h=hmax,hinc=hinc,thresh=thresh,kern=kern,m=m,nsector=nsector,
                 sector=0,symmetric=symmetric,yhat=array(yhat,dy),vhat=vhat,
                 hbest=hbest,sigma=sigma,call=args)
 }
+##
+##
+##
 riskyhat <- function(y,u){
 if(length(u)==1) {
 u <- rep(u,length(y))
@@ -327,5 +332,3 @@ cat("RMSE=",signif(RMSE,4)," SNR=",signif(SNR,3)," MAE=",signif(MAE,4),
     " MaxAE=",signif(MaxAE,3)," UIQI=",signif(UIQI,4),"\n")
 invisible(list(RMSE=RMSE,SNR=SNR,PSNR=PSNR,MAE=MAE,MaxAE=MaxAE,UIQI=UIQI))
 }
-
-
