@@ -1,5 +1,5 @@
 C
-C    Copyright (C) 2004 Weierstrass-Institut fuer 
+C    Copyright (C) 2004 Weierstrass-Institut fuer
 C                       Angewandte Analysis und Stochastik (WIAS)
 C
 C    Author:  Joerg Polzehl
@@ -19,8 +19,8 @@ C  along with this program; if not, write to the Free Software
 C  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
 C  USA.
 C
-C  The following routines are part of the aws package and contain  
-C  FORTRAN 77 code needed in R functions aws, vaws, 
+C  The following routines are part of the aws package and contain
+C  FORTRAN 77 code needed in R functions aws, vaws,
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -59,7 +59,7 @@ C
      3        ipind,pcj,jp1,jp2,jp3,jpind
       double precision thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,
      1       hakt2,hmax2,hhomi,hhommax,w1,w2
-!$      integer omp_get_thread_num 
+!$      integer omp_get_thread_num
 !$      external omp_get_thread_num
       thrednr = 1
       hakt2=hakt*hakt
@@ -119,7 +119,7 @@ C  first stochastic term
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,hhom,n1,n2,n3,hakt2,hmax2,theta,
-C$OMP& ih3,lwght,wght,y,fix,np,thpatch,biipatch,nph1,nph2,nph3)
+C$OMP& ih3,lwght,wght,y,fix,thpatch,biipatch,nph1,nph2,nph3)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
 C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
 C$OMP& PRIVATE(i1,i2,i3,iind,hhomi,hhommax,thetai,bii,swj,swj2,
@@ -133,12 +133,12 @@ C$OMP DO SCHEDULE(GUIDED)
          if(i1.eq.0) i1=n1
          i2=mod((iind-i1)/n1+1,n2)
          if(i2.eq.0) i2=n2
-         i3=(iind-i1-(i2-1)*n1)/n12+1         
+         i3=(iind-i1-(i2-1)*n1)/n12+1
          hhomi=hhom(iind)
          hhomi=hhomi*hhomi
          hhommax=hmax2
          IF (fix(iind)) CYCLE
-C    nothing to do, final estimate is already fixed by control 
+C    nothing to do, final estimate is already fixed by control
          pc=0
          DO ip1=i1-nph1,i1+nph1
             if(ip1.eq.0.or.ip1.gt.n1) CYCLE
@@ -152,7 +152,7 @@ C    nothing to do, final estimate is already fixed by control
                   biipatch(pc,thrednr)=bi(ipind)/lambda
                END DO
             END DO
-         END DO   
+         END DO
 C   scaling of sij outside the loop
          swj=0.d0
          swj2=0.d0
@@ -193,6 +193,7 @@ C  first stochastic term
                            if(ip2.eq.0.or.ip2.gt.n2) CYCLE
                            jp2=ip2+jw2
                            DO ip3=i3-nph3,i3+nph3
+                              if(sij.gt.1.d0) CYCLE
                               if(ip3.eq.0.or.ip3.gt.n3) CYCLE
                               jp3=ip3+jw3
                               pcj=pcj+1
@@ -204,7 +205,7 @@ C  first stochastic term
      1                kldist(model,thpatch(pcj,thrednr),theta(jpind)))
                            END DO
                         END DO
-                     END DO   
+                     END DO
                      IF (sij.gt.1.d0) THEN
                         hhommax=min(hhommax,z1)
                         CYCLE
@@ -225,7 +226,7 @@ C  first stochastic term
          bi2(iind)=swj2
          bi0(iind)=swj0
          hhom(iind)=sqrt(hhommax)
-      END DO 
+      END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2,hhom)
@@ -237,7 +238,8 @@ C   Perform one iteration in local constant three-variate aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine pvaws(y,mask,nv,n1,n2,n3,hakt,lambda,theta,bi,
-     1                thnew,ncores,spmin,lwght,wght,swjy)
+     1                thnew,ncores,spmin,lwght,wght,swjy,
+     2                np1,np2,np3,thpatch,biipatch)
 C
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -258,10 +260,13 @@ C
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12,k,thrednr
       double precision bii,biinv,sij,swj,z,z1,z2,z3,wj,hakt2,hmax2,
-     1        w1,w2,spmb
+     1        w1,w2,spmb,sijp
+      integer np1,np2,np3
+      double precision thpatch(nv,np1*np2*np3,*),biipatch(np1*np2*np3,*)
+      integer ip1,ip2,ip3,nph1,nph2,nph3,pc,ipind,pcj,jp1,jp2,jp3,jpind
       external lkern
       double precision lkern
-!$      integer omp_get_thread_num 
+!$      integer omp_get_thread_num
 !$      external omp_get_thread_num
       thrednr = 1
 C just to prevent a compiler warning
@@ -286,6 +291,9 @@ C
       dlw2=ih2+clw2+1
       dlw3=ih3+clw3+1
       dlw12=dlw1*dlw2
+      nph1=(np1-1)/2
+      nph2=(np2-1)/2
+      nph3=(np3-1)/2
       n12=n1*n2
       z2=0.d0
       z3=0.d0
@@ -320,12 +328,13 @@ C  first stochastic term
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(thnew,bi,nv,n1,n2,n3,hakt2,hmax2,theta,
-C$OMP& ih3,lwght,wght,y,swjy,mask)
+C$OMP& ih3,lwght,wght,y,swjy,mask,thpatch,biipatch,nph1,nph2,nph3)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
 C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
 C$OMP& PRIVATE(i1,i2,i3,iind,bii,biinv,swj,spmb,
 C$OMP& sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
-C$OMP& j1,jw1,jind,z1,z,thrednr)
+C$OMP& j1,jw1,jind,z1,z,thrednr,ip1,ip2,ip3,pc,ipind,pcj,
+C$OMP& jp1,jp2,jp3,jpind)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n1*n2*n3
          if(.not.mask(iind)) CYCLE
@@ -335,11 +344,26 @@ C returns value in 0:(ncores-1)
          if(i1.eq.0) i1=n1
          i2=mod((iind-i1)/n1+1,n2)
          if(i2.eq.0) i2=n2
-         i3=(iind-i1-(i2-1)*n1)/n12+1         
-C    nothing to do, final estimate is already fixed by control 
-         bii=bi(iind)/lambda
-         biinv=1.d0/bii
-         spmb=spmin/bii
+         i3=(iind-i1-(i2-1)*n1)/n12+1
+C    nothing to do, final estimate is already fixed by control
+         pc=0
+         DO ip1=i1-nph1,i1+nph1
+            if(ip1.eq.0.or.ip1.gt.n1) CYCLE
+            DO ip2=i2-nph2,i2+nph2
+               if(ip2.eq.0.or.ip2.gt.n2) CYCLE
+               DO ip3=i3-nph3,i3+nph3
+                  if(ip3.eq.0.or.ip3.gt.n3) CYCLE
+                  ipind=ip1+(ip2-1)*n1+(ip3-1)*n1*n2
+                  if(.not.mask(ipind)) CYCLE
+                  pc=pc+1
+                  DO k=1,nv
+                     thpatch(k,pc,thrednr)=theta(k,ipind)
+                  END DO
+                  biipatch(pc,thrednr)=bi(ipind)/lambda
+               END DO
+            END DO
+         END DO
+
 C   scaling of sij outside the loop
          swj=0.d0
          DO k=1,nv
@@ -369,14 +393,35 @@ C  first stochastic term
                   if(.not.mask(jind)) CYCLE
                   wj=lwght(jw1+clw1+1+jwind2)
                   IF (aws) THEN
+                     pcj=0
                      sij=0.d0
-                     DO k=1,nv
-                        z=theta(k,iind)-theta(k,jind)
-                        sij=sij+z*z
-                        IF(sij.ge.biinv) CYCLE
+                     DO ip1=i1-nph1,i1+nph1
+                        if(ip1.eq.0.or.ip1.gt.n1) CYCLE
+                        jp1=ip1+jw1
+                        DO ip2=i2-nph2,i2+nph2
+                           if(ip2.eq.0.or.ip2.gt.n2) CYCLE
+                           jp2=ip2+jw2
+                           DO ip3=i3-nph3,i3+nph3
+                              if(sij.gt.1.d0) CYCLE
+                              if(ip3.eq.0.or.ip3.gt.n3) CYCLE
+                              jp3=ip3+jw3
+                              if(jp1.eq.0.or.jp1.gt.n1) CYCLE
+                              if(jp2.eq.0.or.jp2.gt.n2) CYCLE
+                              if(jp3.eq.0.or.jp3.gt.n3) CYCLE
+                              jpind=jp1+(jp2-1)*n1+(jp3-1)*n1*n2
+                              if(.not.mask(jpind)) CYCLE
+                              pcj=pcj+1
+                              sijp=0.d0
+                              DO k=1,nv
+                                 z=thpatch(k,pcj,thrednr)-theta(k,jpind)
+                                 sijp=sijp+z*z
+                              END DO
+                              sij=max(sij,biipatch(pcj,thrednr)*sijp)
+                           END DO
+                        END DO
                      END DO
-                     IF (sij.ge.biinv) CYCLE
-                     IF (sij.gt.spmb) wj=wj*(1.d0-spf*(bii*sij-spmin))
+                     IF (sij.ge.1.d0) CYCLE
+                     IF (sij.gt.spmin) wj=wj*(1.d0-spf*(sij-spmin))
                   END IF
                   swj=swj+wj
                   DO k=1,nv
@@ -389,7 +434,7 @@ C  first stochastic term
             thnew(k,iind)=swjy(k,thrednr)/swj
          END DO
          bi(iind)=swj
-      END DO 
+      END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(thnew,bi)
