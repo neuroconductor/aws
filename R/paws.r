@@ -27,7 +27,7 @@
 #
 #     default parameters:  see function setawsdefaults
 #       
-paws <- function(y,hmax=NULL,aws=TRUE,family="Gaussian",
+paws <- function(y,hmax=NULL,onestep=FALSE,aws=TRUE,family="Gaussian",
                 lkern="Triangle",homogen=TRUE,aggkern="Uniform",
                 sigma2=NULL,shape=NULL,scorr=0,spmin=0.25,
                 ladjust=1,wghts=NULL,u=NULL,graph=FALSE,demo=FALSE,
@@ -91,13 +91,23 @@ n3 <- switch(d,1,1,dy[3])
 maxvol <- cpar$maxvol
 k <- cpar$k
 kstar <- cpar$kstar
+if(onestep) k <- kstar
 tobj<-list(bi= rep(1,n), bi2= rep(1,n), theta= y/shape, fix=rep(FALSE,n))
 if(maxni) bi <- tobj$bi
 zobj<-list(ai=y, bi0= rep(1,n))
 hhom <- rep(1,n)
 if(family=="Gaussian"&length(sigma2)==n) vred<-rep(1,n)
-mae<-NULL
+mae <- psnr <- NULL
 lambda0<-1e50 # that removes the stochstic term for the first step, Initialization by kernel estimates
+if(!is.null(u)) {
+   maxI <- max(1,diff(range(u)))
+   mse <- mean((tobj$theta-u)^2)
+   psnr <- 20*log(maxI,10)-10*log(mse,10)
+   cat("Initial    MSE: ",
+                    signif(mse,3),"   MAE: ",
+		    signif(mean(abs(tobj$theta-u)),3),
+		    "PSNR: ",signif(psnr,3),"\n")
+		    }
 #
 #   iteratate until maximal bandwidth is reached
 #
@@ -114,7 +124,8 @@ if(lkern==5) {
 dlw<-(2*trunc(hakt/c(1,wghts))+1)[1:d]
 if(family=="Gaussian"&scorr[1]>=0.1) lambda0<-lambda0*Spatialvar.gauss(hakt0/0.42445/4,h0,d)/Spatialvar.gauss(hakt0/0.42445/4,1e-5,d)
 # Correction for spatial correlation depends on h^{(k)} 
-np1 <- 2*patchsize+1
+np1 <- if(patchsize>0) 2*patchsize+1 else 7
+## patchsize == 0 includes immediate neighbors only
 np2 <- if(n2>1) 2*patchsize+1 else 1
 np3 <- if(n3>1) 2*patchsize+1 else 1
 # all other cases
@@ -137,9 +148,8 @@ if(cpar$mcode!=6){
                        as.double(spmin),
                        double(prod(dlw)),
                        as.double(wghts),
-                       as.integer(np1),
-                       as.integer(np2),
-                       as.integer(np3),
+                       as.integer(np1*np2*np3),
+                       as.integer(patchsize),
                        double(np1*np2*np3*mc.cores),
                        double(np1*np2*np3*mc.cores),
                        PACKAGE="aws")[c("bi","bi0","bi2","ai","hakt","hhom")]
@@ -181,8 +191,13 @@ image(tobj$theta,col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Reconstruction  h=",signif(hakt,3)," min=",signif(min(tobj$theta),3)," max=",signif(max(tobj$theta),3)))
 image(tobj$bi,col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Sum of weights: min=",signif(min(tobj$bi),3)," mean=",signif(mean(tobj$bi),3)," max=",signif(max(tobj$bi),3)))
+if(is.null(u)){
 image(tobj$fix,col=gray((0:255)/255),xaxt="n",yaxt="n",zlim=c(0,1))
 title("Estimates fixed")
+} else {
+  image(u,col=gray((0:255)/255),xaxt="n",yaxt="n")
+  title("true original")
+}
 }
 if(d==3){ 
 oldpar<-par(mfrow=c(2,2),mar=c(1,1,3,.25),mgp=c(2,1,0))
@@ -192,8 +207,13 @@ image(tobj$theta[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Reconstruction  h=",signif(hakt,3)," min=",signif(min(tobj$theta),3)," max=",signif(max(tobj$theta),3)))
 image(tobj$bi[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n")
 title(paste("Sum of weights: min=",signif(min(tobj$bi),3)," mean=",signif(mean(tobj$bi),3)," max=",signif(max(tobj$bi),3)))
-image(tobj$fix[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n",zlim=c(0,1))
+if(is.null(u)){
+  image(tobj$fix[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n",zlim=c(0,1))
 title("Estimates fixed")
+} else {
+  image(u[,,n3%/%2+1],col=gray((0:255)/255),xaxt="n",yaxt="n")
+  title("true original")
+}
 } 
 par(oldpar)
 }
@@ -205,13 +225,14 @@ par(oldpar)
 if(!is.null(u)) {
    maxI <- max(1,diff(range(u)))
    mse <- mean((tobj$theta-u)^2)
-   psnr <- 20*log(maxI,10)-10*log(mse,10)
+   psnrk <- 20*log(maxI,10)-10*log(mse,10)
    cat("bandwidth: ",signif(hakt,3),"eta==1",sum(tobj$eta==1),"   MSE: ",
                     signif(mse,3),"   MAE: ",
 		    signif(mean(abs(tobj$theta-u)),3),
-		    "PSNR: ",signif(psnr,3), " mean(bi)=",
+		    "PSNR: ",signif(psnrk,3), " mean(bi)=",
 		    signif(mean(tobj$bi),3),"mean hhom",signif(mean(hhom),3),"\n")
    mae<-c(mae,signif(mean(abs(tobj$theta-u)),3))
+   psnr <- c(psnr,psnrk)
 		    }
 if(demo) readline("Press return")
 #
@@ -250,5 +271,5 @@ if( family=="Gaussian"){
 vartheta<-vartheta/Spatialvar.gauss(hakt/0.42445/4,h0+1e-5,d)*Spatialvar.gauss(hakt/0.42445/4,1e-5,d)
 }
 awsobj(y,tobj$theta,vartheta,hakt,sigma2,lkern,lambda,ladjust,aws,memory,
-   args,homogen,earlystop=FALSE,family=family,wghts=wghts,mae=mae,ni=tobj$bi)
+   args,homogen,earlystop=FALSE,family=family,wghts=wghts,mae=mae,psnr=psnr,ni=tobj$bi)
 }
