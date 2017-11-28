@@ -1,6 +1,6 @@
 Package: aws
-Version: 1.9-7
-Date: 2017-02-06
+Version: 1.9-8
+Date: 2017-11-06
 Title: Adaptive Weights Smoothing
 Authors@R: c(person("Joerg","Polzehl",role=c("aut","cre"),email="joerg.polzehl@wias-berlin.de"),person("Felix","Anker",role=c("ctb")))
 Author: Joerg Polzehl [aut, cre],
