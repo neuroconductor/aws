@@ -120,7 +120,11 @@ Joerg Polzehl, Vladimir Spokoiny, in V. Chen, C.; Haerdle, W. and Unwin, A. (ed.
 }
 \author{ Joerg Polzehl, \email{polzehl@wias-berlin.de},
 \url{http://www.wias-berlin.de/people/polzehl/}}
-\seealso{See also  \code{\link{lpaws}}, \code{link{awsdata}}, \code{\link{aws.irreg}}, \code{\link{aws.gaussian}}}
+\note{
+use \code{setCores='number of threads'} to enable parallel execution.
+}
+
+\seealso{See also \code{\link{paws}}, \code{\link{lpaws}}, \code{\link{vaws}},\code{link{awsdata}}, \code{\link{aws.irreg}}, \code{\link{aws.gaussian}}}
 \examples{
 require(aws)
 # 1D local constant smoothing

@@ -21,7 +21,10 @@ Objects are created by calls to functions \code{aws}, \code{lpaws}, \code{aws.ir
     \item{\code{theta}:}{Object of class \code{"array"} containes the smoothed object and in case
               of function \code{lpaws} its derivatives up to the specified degree. 
               Dimension is \code{dim(theta)=c(dy,p)}}
+    \item{\code{hseq}:}{Sequence of bandwidths employed.}
     \item{\code{mae}:}{Object of class \code{"numeric"} Mean absolute error with respect to 
+        array in argument \code{u} if provided. }
+    \item{\code{psnr}:}{Object of class \code{"numeric"} Peak Signal to Noise Ratio (PSNR) with respect to 
         array in argument \code{u} if provided. }
     \item{\code{var}:}{Object of class \code{"numeric"} pointwise variance of 
             \code{theta[...,1]}}

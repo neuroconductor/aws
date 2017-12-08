@@ -11,7 +11,7 @@ using multiple windows as described in Katkovnik et al (2006)
 \usage{
 ICIcombined(y, hmax, hinc = 1.45, thresh = NULL, kern = "Gaussian", m = 0,
             sigma = NULL, nsector = 1, symmetric = FALSE, presmooth = FALSE,
-            combine = "weighted", unit = c("SD,FWHM"))
+            combine = "weighted", unit = c("SD","FWHM"))
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
