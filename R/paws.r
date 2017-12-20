@@ -80,6 +80,16 @@ paws <-
       #   NCchi for noncentral chi with shape=degrees of freedom and theta =NCP
       #
     }
+    patchsize <- min(patchsize,5-length(dy))
+    # additional adjustments for taking the maximum of s_{ij} over patches
+    if(length(dy)==1){
+       ladjust <- switch(patchsize,.8,.9,1,1.1)*ladjust
+    } else if(length(dy)==2){
+       ladjust <- switch(patchsize,.8,1.2,1.6)*ladjust
+  } else {
+       ladjust <- switch(patchsize,1.3,1.7)*ladjust
+  }
+
     cpar <-
       setawsdefaults(dy,
                      mean(y),
@@ -98,7 +108,7 @@ paws <-
     d <- cpar$d
     n <- length(y)
     mc.cores <- setCores(, reprt = FALSE)
-    
+
     #
     #   family dependent transformations that depend on the value of family
     #
@@ -221,7 +231,7 @@ paws <-
       } else {
         stop("Non-central chi model not implemented")
       }
-      
+
       if (family %in% c("Bernoulli", "Poisson"))
         zobj <- regularize(zobj, family)
       dim(zobj$ai) <- dy
@@ -429,7 +439,7 @@ paws <-
     ###
     ###   component var contains an estimate of Var(tobj$theta) if aggkern="Uniform", or if !memory
     ###
-    
+
     vartheta <- switch(
       family,
       Gaussian = sigma2,
