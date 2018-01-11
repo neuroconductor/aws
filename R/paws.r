@@ -584,7 +584,7 @@ paws <-
           bi2 = rep(1, nvoxel),
           theta = y[mask] / shape
         )
-      if (family == "Gaussian" & length(sigma2) == n)
+      #if (family == "Gaussian" & length(sigma2) == n)
 #        vred <- rep(1, n)
       mae <- psnr <- NULL
       hseq <- 1
