@@ -11,10 +11,8 @@ import("methods","awsMethods","gsl")
              "sd")
 exportClasses("aws","awssegment","kernsm","ICIsmooth")
 exportMethods("extract","print","summary","show","plot","risk")
-export(aws,lpaws,aws.irreg,aws.gaussian,aws.segment,paws)
+export(aws,lpaws,aws.irreg,aws.gaussian,aws.segment,paws,pawsm)
 export(vaws,vpaws,vpawsfull)
 export(awsdata,binning)
 export(awstestprop, awsweights)
 export(kernsm,ICIsmooth,ICIcombined)
-
-

@@ -28,7 +28,7 @@ C
 C   Patch based aws
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine pcaws(y,fix,n1,n2,n3,hakt,hhom,lambda,theta,bi,bi2,
+      subroutine pcaws(y,n1,n2,n3,hakt,lambda,theta,bi,bi2,
      1                bi0,ai,model,kern,spmin,lwght,wght,np,npsize,
      2                thpatch,biipatch)
 C
@@ -49,16 +49,16 @@ C
       external kldist,lkern
       double precision kldist,lkern
       integer n1,n2,n3,model,kern,np,npsize
-      logical aws,fix(*)
+      logical aws
       double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght(2),
-     1       bi2(*),hakt,lwght(*),spmin,spf,hhom(*),
+     1       bi2(*),hakt,lwght(*),spmin,spf,
      2       thpatch(np,*),biipatch(np,*)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12,iip,jip,thrednr,ip1,ip2,ip3,nph1,nph2,nph3,pc,
      3        ipind,pcj,jp1,jp2,jp3,jpind,np1,np2,np3
       double precision thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,
-     1       hakt2,hmax2,hhomi,hhommax,w1,w2
+     1       hakt2,hmax2,w1,w2
 !$      integer omp_get_thread_num
 !$      external omp_get_thread_num
       thrednr = 1
@@ -121,11 +121,11 @@ C  first stochastic term
       END DO
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
-C$OMP& SHARED(ai,bi,bi0,bi2,hhom,n1,n2,n3,hakt2,hmax2,theta,
-C$OMP& ih3,lwght,wght,y,fix,thpatch,biipatch,nph1,nph2,nph3,np,npsize)
+C$OMP& SHARED(ai,bi,bi0,bi2,n1,n2,n3,hakt2,hmax2,theta,
+C$OMP& ih3,lwght,wght,y,thpatch,biipatch,nph1,nph2,nph3,np,npsize)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
 C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
-C$OMP& PRIVATE(i1,i2,i3,iind,hhomi,hhommax,thetai,bii,swj,swj2,
+C$OMP& PRIVATE(i1,i2,i3,iind,thetai,bii,swj,swj2,
 C$OMP& swj0,swjy,sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
 C$OMP& j1,jw1,jind,z1,iip,jip,thrednr,ip1,ip2,ip3,pc,ipind,pcj,
 C$OMP& jp1,jp2,jp3,jpind)
@@ -137,13 +137,7 @@ C$OMP DO SCHEDULE(GUIDED)
          i2=mod((iind-i1)/n1+1,n2)
          if(i2.eq.0) i2=n2
          i3=(iind-i1-(i2-1)*n1)/n12+1
-         hhomi=hhom(iind)
-         hhomi=hhomi*hhomi
-         hhommax=hmax2
-         IF (fix(iind)) CYCLE
-C    nothing to do, final estimate is already fixed by control
          pc=0
-         if(npsize.gt.0) THEN
             DO ip1=i1-nph1,i1+nph1
                if(ip1.le.0.or.ip1.gt.n1) CYCLE
                DO ip2=i2-nph2,i2+nph2
@@ -157,42 +151,6 @@ C    nothing to do, final estimate is already fixed by control
                   END DO
                END DO
             END DO
-         ELSE
-C immediate neighbors only
-            pc=1
-            thpatch(pc,thrednr)=theta(iind)
-            biipatch(pc,thrednr)=bi(iind)/lambda
-            if(i1.gt.1) THEN
-               pc=pc+1
-               thpatch(pc,thrednr)=theta(iind-1)
-               biipatch(pc,thrednr)=bi(iind-1)/lambda
-            END IF
-            if(i1.lt.n1) THEN
-               pc=pc+1
-               thpatch(pc,thrednr)=theta(iind+1)
-               biipatch(pc,thrednr)=bi(iind+1)/lambda
-            END IF
-            if(i2.gt.1) THEN
-               pc=pc+1
-               thpatch(pc,thrednr)=theta(iind-n1)
-               biipatch(pc,thrednr)=bi(iind-n1)/lambda
-            END IF
-            if(i2.lt.n2) THEN
-               pc=pc+1
-               thpatch(pc,thrednr)=theta(iind+n1)
-               biipatch(pc,thrednr)=bi(iind+n1)/lambda
-            END IF
-            if(i3.gt.1) THEN
-               pc=pc+1
-               thpatch(pc,thrednr)=theta(iind-n12)
-               biipatch(pc,thrednr)=bi(iind-n12)/lambda
-            END IF
-            if(i3.lt.n3) THEN
-               pc=pc+1
-               thpatch(pc,thrednr)=theta(iind+n12)
-               biipatch(pc,thrednr)=bi(iind+n12)/lambda
-            END IF
-         END IF
 C   scaling of sij outside the loop
          swj=0.d0
          swj2=0.d0
@@ -223,72 +181,31 @@ C  first stochastic term
                   swj0=swj0+wj
                   z1=jw1
                   z1=z2+z1*z1
-                  IF (aws.and.z1.ge.hhomi) THEN
+                  IF (aws) THEN
                      pcj=0
                      sij=0.d0
-                     if(npsize.gt.0) THEN
-                        DO ip1=i1-nph1,i1+nph1
-                           if(ip1.le.0.or.ip1.gt.n1) CYCLE
-                           jp1=ip1+jw1
-                           DO ip2=i2-nph2,i2+nph2
-                              if(ip2.le.0.or.ip2.gt.n2) CYCLE
-                              jp2=ip2+jw2
-                              DO ip3=i3-nph3,i3+nph3
-                                 if(sij.gt.1.d0) CYCLE
-                                 if(ip3.le.0.or.ip3.gt.n3) CYCLE
-                                 jp3=ip3+jw3
-                                 pcj=pcj+1
-                                 if(jp1.le.0.or.jp1.gt.n1) CYCLE
-                                 if(jp2.le.0.or.jp2.gt.n2) CYCLE
-                                 if(jp3.le.0.or.jp3.gt.n3) CYCLE
-                                 jpind=jp1+(jp2-1)*n1+(jp3-1)*n1*n2
-                                 sij=max(sij,biipatch(pcj,thrednr)*
+                      DO ip1=i1-nph1,i1+nph1
+                         if(ip1.le.0.or.ip1.gt.n1) CYCLE
+                         jp1=ip1+jw1
+                         DO ip2=i2-nph2,i2+nph2
+                            if(ip2.le.0.or.ip2.gt.n2) CYCLE
+                            jp2=ip2+jw2
+                            DO ip3=i3-nph3,i3+nph3
+                               if(sij.gt.1.d0) CYCLE
+                               if(ip3.le.0.or.ip3.gt.n3) CYCLE
+                               jp3=ip3+jw3
+                               pcj=pcj+1
+                               if(jp1.le.0.or.jp1.gt.n1) CYCLE
+                               if(jp2.le.0.or.jp2.gt.n2) CYCLE
+                               if(jp3.le.0.or.jp3.gt.n3) CYCLE
+                               jpind=jp1+(jp2-1)*n1+(jp3-1)*n1*n2
+                               sij=max(sij,biipatch(pcj,thrednr)*
      1                kldist(model,thpatch(pcj,thrednr),theta(jpind)))
-                              END DO
-                           END DO
-                        END DO
-                     ELSE
-                        pcj=1
-                        sij=max(sij,biipatch(pcj,thrednr)*
-     1                kldist(model,thpatch(pcj,thrednr),theta(jind)))
-                        if(j1.gt.1) THEN
-                           pc=pc+1
-                           sij=max(sij,biipatch(pcj,thrednr)*
-     1              kldist(model,thpatch(pcj,thrednr),theta(jind-1)))
-                        END IF
-                         if(j1.lt.n1) THEN
-                           pc=pc+1
-                           sij=max(sij,biipatch(pcj,thrednr)*
-     1              kldist(model,thpatch(pcj,thrednr),theta(jind+1)))
-                        END IF
-                        if(j2.gt.1) THEN
-                           pc=pc+1
-                           sij=max(sij,biipatch(pcj,thrednr)*
-     1              kldist(model,thpatch(pcj,thrednr),theta(jind-n1)))
-                        END IF
-                        if(j2.lt.n2) THEN
-                           pc=pc+1
-                           sij=max(sij,biipatch(pcj,thrednr)*
-     1              kldist(model,thpatch(pcj,thrednr),theta(jind+n1)))
-                        END IF
-                        if(j3.gt.1) THEN
-                           pc=pc+1
-                           sij=max(sij,biipatch(pcj,thrednr)*
-     1              kldist(model,thpatch(pcj,thrednr),theta(jind-n12)))
-                        END IF
-                        if(j3.lt.n3) THEN
-                           pc=pc+1
-                           sij=max(sij,biipatch(pcj,thrednr)*
-     1              kldist(model,thpatch(pcj,thrednr),theta(jind+n12)))
-                        END IF
-                     END IF
-                     IF (sij.gt.1.d0) THEN
-                        hhommax=min(hhommax,z1)
-                        CYCLE
-                     END IF
+                            END DO
+                         END DO
+                      END DO
                      IF (sij.gt.spmin) THEN
                         wj=wj*(1.d0-spf*(sij-spmin))
-                        hhommax=min(hhommax,z1)
                      END IF
                   END IF
                   swj=swj+wj
@@ -301,11 +218,222 @@ C  first stochastic term
          bi(iind)=swj
          bi2(iind)=swj2
          bi0(iind)=swj0
-         hhom(iind)=sqrt(hhommax)
       END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
-C$OMP FLUSH(ai,bi,bi0,bi2,hhom)
+C$OMP FLUSH(ai,bi,bi0,bi2)
+      RETURN
+      END
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C   Patch based aws using mask
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      subroutine pcawsm(y,position,n1,n2,n3,hakt,lambda,theta,bi,
+     1                bi2,ai,model,kern,spmin,lwght,wght,np,npsize,
+     2                thpatch,biipatch)
+C
+C   y        observed values of regression function
+C   mask     image mask
+C   n1,n2,n3    design dimensions
+C   hakt     actual bandwidth
+C   lambda   lambda or lambda*sigma2 for Gaussian models
+C   theta    estimates from last step   (input)
+C   bi       \sum  Wi   (output)
+C   ai       \sum  Wi Y     (output)
+C   model    specifies the probablilistic model for the KL-Distance
+C   kern     specifies the location kernel
+C   wght     scaling factor for second and third dimension (larger values shrink)
+C   np       patch size
+C
+      implicit logical (a-z)
+
+      external kldist,lkern
+      double precision kldist,lkern
+      integer n1,n2,n3,model,kern,np,npsize,position(*)
+      logical aws
+      double precision y(*),theta(*),bi(*),ai(*),lambda,wght(2),
+     1       bi2(*),hakt,lwght(*),spmin,spf,
+     2       thpatch(np,*),biipatch(np,*)
+      integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
+     1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
+     2        dlw12,n12,iip,jip,thrednr,ip1,ip2,ip3,nph1,nph2,nph3,pc,
+     3        ipind,pcj,jp1,jp2,jp3,jpind,np1,np2,np3,iindp,ipindp,
+     4        jindp,jpindp
+      double precision thetai,bii,sij,swj,swj2,swjy,z1,z2,z3,wj,
+     1       hakt2,hmax2,w1,w2
+!$      integer omp_get_thread_num
+!$      external omp_get_thread_num
+      thrednr = 1
+      hakt2=hakt*hakt
+      spf=1.d0/(1.d0-spmin)
+      aws=lambda.lt.1d35
+C
+C   first calculate location weights
+C
+      w1=wght(1)
+      w2=wght(2)
+      ih3=FLOOR(hakt/w2)
+      ih2=FLOOR(hakt/w1)
+      ih1=FLOOR(hakt)
+      np1=2*npsize+1
+      np2=min(n2,2*npsize+1)
+      np3=min(n3,2*npsize+1)
+      if(n3.eq.1) ih3=0
+      if(n2.eq.1) ih2=0
+      clw1=ih1
+      clw2=ih2
+      clw3=ih3
+      dlw1=ih1+clw1+1
+      dlw2=ih2+clw2+1
+      dlw3=ih3+clw3+1
+      dlw12=dlw1*dlw2
+      nph1=(np1-1)/2
+      nph2=(np2-1)/2
+      nph3=(np3-1)/2
+      n12=n1*n2
+      z2=0.d0
+      z3=0.d0
+      hmax2=0.d0
+      DO j3=-clw3,clw3
+         if(n3.gt.1) THEN
+            z3=j3*w2
+            z3=z3*z3
+            ih2=FLOOR(sqrt(hakt2-z3)/w1)
+            jind3=(j3+clw3)*dlw12
+          ELSE
+            jind3=0
+          END IF
+          DO j2=-ih2,ih2
+            if(n2.gt.1) THEN
+                z2=j2*w1
+                z2=z3+z2*z2
+                ih1=FLOOR(sqrt(hakt2-z2))
+                jind2=jind3+(j2+clw2)*dlw1
+            ELSE
+                jind2=0
+            END IF
+            DO j1=-ih1,ih1
+C  first stochastic term
+                jind=j1+clw1+1+jind2
+                z1=j1
+                lwght(jind)=lkern(kern,(z1*z1+z2)/hakt2)
+                if(lwght(jind).gt.0.d0) hmax2=max(hmax2,z2+z1*z1)
+            END DO
+          END DO
+      END DO
+      call rchkusr()
+C$OMP PARALLEL DEFAULT(NONE)
+C$OMP& SHARED(ai,bi,bi2,n1,n2,n3,hakt2,hmax2,theta,position,
+C$OMP& ih3,lwght,wght,y,thpatch,biipatch,nph1,nph2,nph3,np,npsize)
+C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
+C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
+C$OMP& PRIVATE(i1,i2,i3,iind,thetai,bii,swj,swj2,
+C$OMP& swjy,sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
+C$OMP& j1,jw1,jind,z1,iip,jip,thrednr,ip1,ip2,ip3,pc,ipind,pcj,
+C$OMP& jp1,jp2,jp3,jpind,iindp,ipindp,jindp,jpindp)
+C$OMP DO SCHEDULE(GUIDED)
+      DO iind=1,n1*n2*n3
+        iindp = position(iind)
+        if(iindp.eq.0) CYCLE
+C voxel not in mask
+          i1=mod(iind,n1)
+!$         thrednr = omp_get_thread_num()+1
+          if(i1.eq.0) i1=n1
+          i2=mod((iind-i1)/n1+1,n2)
+          if(i2.eq.0) i2=n2
+          i3=(iind-i1-(i2-1)*n1)/n12+1
+          pc=0
+          DO ip1=i1-nph1,i1+nph1
+              if(ip1.le.0.or.ip1.gt.n1) CYCLE
+              DO ip2=i2-nph2,i2+nph2
+                if(ip2.le.0.or.ip2.gt.n2) CYCLE
+                DO ip3=i3-nph3,i3+nph3
+                    if(ip3.le.0.or.ip3.gt.n3) CYCLE
+                    ipind=ip1+(ip2-1)*n1+(ip3-1)*n1*n2
+                    ipindp=position(ipind)
+                    if(ipindp.eq.0) CYCLE
+                    pc=pc+1
+                    thpatch(pc,thrednr)=theta(ipindp)
+                    biipatch(pc,thrednr)=bi(ipindp)/lambda
+                END DO
+              END DO
+          END DO
+C   scaling of sij outside the loop
+          swj=0.d0
+          swj2=0.d0
+          swjy=0.d0
+          DO jw3=-clw3,clw3
+            j3=jw3+i3
+            if(j3.lt.1.or.j3.gt.n3) CYCLE
+            jwind3=(jw3+clw3)*dlw12
+            jind3=(j3-1)*n12
+            z3=jw3*w2
+            z3=z3*z3
+            if(n2.gt.1) ih2=FLOOR(sqrt(hakt2-z3)/w1)
+            DO jw2=-ih2,ih2
+                j2=jw2+i2
+                if(j2.lt.1.or.j2.gt.n2) CYCLE
+                jwind2=jwind3+(jw2+clw2)*dlw1
+                jind2=(j2-1)*n1+jind3
+                z2=jw2*w1
+                z2=z3+z2*z2
+                ih1=FLOOR(sqrt(hakt2-z2))
+                DO jw1=-ih1,ih1
+C  first stochastic term
+                  j1=jw1+i1
+                  if(j1.lt.1.or.j1.gt.n1) CYCLE
+                  jind=j1+jind2
+                  jindp=position(jind)
+                  if(jindp.eq.0) CYCLE
+                  wj=lwght(jw1+clw1+1+jwind2)
+                  z1=jw1
+                  z1=z2+z1*z1
+                  IF (aws) THEN
+                      pcj=0
+                      sij=0.d0
+                      DO ip1=i1-nph1,i1+nph1
+                          if(ip1.le.0.or.ip1.gt.n1) CYCLE
+                          jp1=ip1+jw1
+                          DO ip2=i2-nph2,i2+nph2
+                            if(ip2.le.0.or.ip2.gt.n2) CYCLE
+                            jp2=ip2+jw2
+                            DO ip3=i3-nph3,i3+nph3
+                                if(sij.gt.1.d0) CYCLE
+                                if(ip3.le.0.or.ip3.gt.n3) CYCLE
+                                ipind=ip1+(ip2-1)*n1+(ip3-1)*n1*n2
+                                ipindp=position(ipind)
+                                if(ipindp.eq.0) CYCLE
+                                jp3=ip3+jw3
+                                if(jp1.le.0.or.jp1.gt.n1) CYCLE
+                                if(jp2.le.0.or.jp2.gt.n2) CYCLE
+                                if(jp3.le.0.or.jp3.gt.n3) CYCLE
+                                jpind=jp1+(jp2-1)*n1+(jp3-1)*n1*n2
+                                jpindp=position(jpind)
+                                if(jpindp.eq.0) CYCLE
+                                pcj=pcj+1
+                                sij=max(sij,biipatch(pcj,thrednr)*
+     1                kldist(model,thpatch(pcj,thrednr),theta(jpindp)))
+                            END DO
+                          END DO
+                      END DO
+                      IF (sij.gt.spmin) THEN
+                        wj=wj*(1.d0-spf*(sij-spmin))
+                      END IF
+                  END IF
+                  swj=swj+wj
+                  swj2=swj2+wj*wj
+                  swjy=swjy+wj*y(jindp)
+                END DO
+            END DO
+          END DO
+          ai(iindp)=swjy
+          bi(iindp)=swj
+          bi2(iindp)=swj2
+      END DO
+C$OMP END DO NOWAIT
+C$OMP END PARALLEL
+C$OMP FLUSH(ai,bi,bi2)
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -421,7 +549,6 @@ C returns value in 0:(ncores-1)
          i2=mod((iind-i1)/n1+1,n2)
          if(i2.eq.0) i2=n2
          i3=(iind-i1-(i2-1)*n1)/n12+1
-C    nothing to do, final estimate is already fixed by control
          pc=0
          DO ip1=i1-nph1,i1+nph1
             if(ip1.le.0.or.ip1.gt.n1) CYCLE
@@ -626,7 +753,6 @@ C returns value in 0:(ncores-1)
          i2=mod((iind-i1)/n1+1,n2)
          if(i2.eq.0) i2=n2
          i3=(iind-i1-(i2-1)*n1)/n12+1
-C    nothing to do, final estimate is already fixed by control
          pc=0
          DO ip1=i1-nph1,i1+nph1
             if(ip1.le.0.or.ip1.gt.n1) CYCLE
@@ -642,7 +768,7 @@ C    nothing to do, final estimate is already fixed by control
                   END DO
                   DO k=1,nvd
                      invcovp(k,pc,thrednr)=invcov(k,ipind)
-                  END DO      
+                  END DO
                   biipatch(pc,thrednr)=bi(ipind)/lambda
                END DO
             END DO
@@ -697,7 +823,7 @@ C  first stochastic term
                               jpind=jp1+(jp2-1)*n1+(jp3-1)*n12
                               pcj=pcj+1
                               if(.not.mask(jpind)) CYCLE
-C   need both ipind and jpind in mask, pcj only depends on i 
+C   need both ipind and jpind in mask, pcj only depends on i
                               sijp=0.d0
                               m=1
                               DO k=1,nv
