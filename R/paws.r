@@ -498,14 +498,17 @@ paws <-
       args <- match.call()
       memory <- FALSE
       nvoxel <- sum(mask)
-      if(nvoxel>(2^31-1)){
-         stop(paste("number of voxel in mask is",nvoxel,"needs to be less than",2^31-1))
-      }
       dy <- dim(y)
       if (is.null(dy))
         dy <- length(y)
       if (length(dy) > 3)
         stop("AWS for more than 3 dimensional grids is not implemented")
+#      if(prod(dy)>(2^31-1)){
+#         stop(paste("number of voxel in image is",prod(dy),"needs to be less than",2^31-1))
+#      }
+      if(nvoxel>(2^31-1)){
+         stop(paste("number of voxel in mask is",nvoxel,"needs to be less than",2^31-1))
+      }
       #
       #   set appropriate defaults
       #
@@ -579,7 +582,6 @@ paws <-
         k <- kstar
       tobj <-
         list(
-          ai = y[mask],
           bi = rep(1, nvoxel),
           bi2 = rep(1, nvoxel),
           theta = y[mask] / shape
@@ -624,7 +626,7 @@ paws <-
             scorr[1] >= 0.1)
           lambda0 <-
           lambda0 * Spatialvar.gauss(hakt0 / 0.42445 / 4, h0, d) / Spatialvar.gauss(hakt0 /
-                                                                                      0.42445 / 4, 1e-5, d)
+                                                                        0.42445 / 4, 1e-5, d)
         # Correction for spatial correlation depends on h^{(k)}
         np1 <- if (patchsize > 0)
           2 * patchsize + 1
@@ -653,7 +655,7 @@ paws <-
             as.double(tobj$theta),
             bi = as.double(tobj$bi),
             bi2 = double(nvoxel),
-            ai = as.double(tobj$ai),
+            theta = as.double(tobj$theta),
             as.integer(cpar$mcode),
             as.integer(lkern),
             as.double(spmin),
@@ -664,7 +666,7 @@ paws <-
             double(np1 * np2 * np3 * mc.cores),
             double(np1 * np2 * np3 * mc.cores),
             PACKAGE = "aws"
-          )[c("bi", "bi2", "ai", "hakt")]
+          )[c("bi", "bi2", "theta", "hakt")]
         } else {
           stop("Non-central chi model not implemented")
         }

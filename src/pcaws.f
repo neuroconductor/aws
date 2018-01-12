@@ -229,8 +229,8 @@ C
 C   Patch based aws using mask
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine pcawsm(y,position,n1,n2,n3,hakt,lambda,theta,bi,
-     1                bi2,ai,model,kern,spmin,lwght,wght,np,npsize,
+      subroutine pcawsm(y,pos,n1,n2,n3,hakt,lambda,theta,bi,
+     1                bi2,thnew,model,kern,spmin,lwght,wght,np,npsize,
      2                thpatch,biipatch)
 C
 C   y        observed values of regression function
@@ -240,7 +240,7 @@ C   hakt     actual bandwidth
 C   lambda   lambda or lambda*sigma2 for Gaussian models
 C   theta    estimates from last step   (input)
 C   bi       \sum  Wi   (output)
-C   ai       \sum  Wi Y     (output)
+C   thnew       \sum  Wi Y / \sum Wi    (output)
 C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
@@ -250,9 +250,9 @@ C
 
       external kldist,lkern
       double precision kldist,lkern
-      integer n1,n2,n3,model,kern,np,npsize,position(*)
+      integer n1,n2,n3,model,kern,np,npsize,pos(n1,n2,n3)
       logical aws
-      double precision y(*),theta(*),bi(*),ai(*),lambda,wght(2),
+      double precision y(*),theta(*),bi(*),thnew(*),lambda,wght(2),
      1       bi2(*),hakt,lwght(*),spmin,spf,
      2       thpatch(np,*),biipatch(np,*)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
@@ -324,7 +324,7 @@ C  first stochastic term
       END DO
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
-C$OMP& SHARED(ai,bi,bi2,n1,n2,n3,hakt2,hmax2,theta,position,
+C$OMP& SHARED(thnew,bi,bi2,n1,n2,n3,hakt2,hmax2,theta,pos,
 C$OMP& ih3,lwght,wght,y,thpatch,biipatch,nph1,nph2,nph3,np,npsize)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
 C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
@@ -334,8 +334,8 @@ C$OMP& j1,jw1,jind,z1,iip,jip,thrednr,ip1,ip2,ip3,pc,ipind,pcj,
 C$OMP& jp1,jp2,jp3,jpind,iindp,ipindp,jindp,jpindp)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n1*n2*n3
-        iindp = position(iind)
-        if(iindp.eq.0) CYCLE
+C        iindp = pos(iind)
+C        if(iindp.eq.0) CYCLE
 C voxel not in mask
           i1=mod(iind,n1)
 !$         thrednr = omp_get_thread_num()+1
@@ -343,6 +343,8 @@ C voxel not in mask
           i2=mod((iind-i1)/n1+1,n2)
           if(i2.eq.0) i2=n2
           i3=(iind-i1-(i2-1)*n1)/n12+1
+          iindp = pos(i1,i2,i3)
+          if(iindp.eq.0) CYCLE
           pc=0
           DO ip1=i1-nph1,i1+nph1
               if(ip1.le.0.or.ip1.gt.n1) CYCLE
@@ -351,7 +353,8 @@ C voxel not in mask
                 DO ip3=i3-nph3,i3+nph3
                     if(ip3.le.0.or.ip3.gt.n3) CYCLE
                     ipind=ip1+(ip2-1)*n1+(ip3-1)*n1*n2
-                    ipindp=position(ipind)
+C                    ipindp=pos(ipind)
+                    ipindp=pos(ip1,ip2,ip3)
                     if(ipindp.eq.0) CYCLE
                     pc=pc+1
                     thpatch(pc,thrednr)=theta(ipindp)
@@ -384,7 +387,8 @@ C  first stochastic term
                   j1=jw1+i1
                   if(j1.lt.1.or.j1.gt.n1) CYCLE
                   jind=j1+jind2
-                  jindp=position(jind)
+C                  jindp=pos(jind)
+                  jindp=pos(j1,j2,j3)
                   if(jindp.eq.0) CYCLE
                   wj=lwght(jw1+clw1+1+jwind2)
                   z1=jw1
@@ -402,14 +406,16 @@ C  first stochastic term
                                 if(sij.gt.1.d0) CYCLE
                                 if(ip3.le.0.or.ip3.gt.n3) CYCLE
                                 ipind=ip1+(ip2-1)*n1+(ip3-1)*n1*n2
-                                ipindp=position(ipind)
+C                                ipindp=pos(ipind)
+                                ipindp=pos(ip1,ip2,ip3)
                                 if(ipindp.eq.0) CYCLE
                                 jp3=ip3+jw3
                                 if(jp1.le.0.or.jp1.gt.n1) CYCLE
                                 if(jp2.le.0.or.jp2.gt.n2) CYCLE
                                 if(jp3.le.0.or.jp3.gt.n3) CYCLE
                                 jpind=jp1+(jp2-1)*n1+(jp3-1)*n1*n2
-                                jpindp=position(jpind)
+C                                jpindp=pos(jpind)
+                                jpindp=pos(jp1,jp2,jp3)
                                 if(jpindp.eq.0) CYCLE
                                 pcj=pcj+1
                                 sij=max(sij,biipatch(pcj,thrednr)*
@@ -427,13 +433,13 @@ C  first stochastic term
                 END DO
             END DO
           END DO
-          ai(iindp)=swjy
+          thnew(iindp)=swjy/swj
           bi(iindp)=swj
           bi2(iindp)=swj2
       END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
-C$OMP FLUSH(ai,bi,bi2)
+C$OMP FLUSH(thnew,bi,bi2)
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
