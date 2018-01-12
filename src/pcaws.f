@@ -204,6 +204,7 @@ C  first stochastic term
                             END DO
                          END DO
                       END DO
+                     IF(sij.gt.1.d0) CYCLE
                      IF (sij.gt.spmin) THEN
                         wj=wj*(1.d0-spf*(sij-spmin))
                      END IF
@@ -250,7 +251,7 @@ C
 
       external kldist,lkern
       double precision kldist,lkern
-      integer n1,n2,n3,model,kern,np,npsize,pos(n1,n2,n3)
+      integer n1,n2,n3,model,kern,np,npsize,pos(*)
       logical aws
       double precision y(*),theta(*),bi(*),thnew(*),lambda,wght(2),
      1       bi2(*),hakt,lwght(*),spmin,spf,
@@ -334,8 +335,8 @@ C$OMP& j1,jw1,jind,z1,iip,jip,thrednr,ip1,ip2,ip3,pc,ipind,pcj,
 C$OMP& jp1,jp2,jp3,jpind,iindp,ipindp,jindp,jpindp)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n1*n2*n3
-C        iindp = pos(iind)
-C        if(iindp.eq.0) CYCLE
+        iindp = pos(iind)
+        if(iindp.eq.0) CYCLE
 C voxel not in mask
           i1=mod(iind,n1)
 !$         thrednr = omp_get_thread_num()+1
@@ -343,8 +344,6 @@ C voxel not in mask
           i2=mod((iind-i1)/n1+1,n2)
           if(i2.eq.0) i2=n2
           i3=(iind-i1-(i2-1)*n1)/n12+1
-          iindp = pos(i1,i2,i3)
-          if(iindp.eq.0) CYCLE
           pc=0
           DO ip1=i1-nph1,i1+nph1
               if(ip1.le.0.or.ip1.gt.n1) CYCLE
@@ -353,8 +352,7 @@ C voxel not in mask
                 DO ip3=i3-nph3,i3+nph3
                     if(ip3.le.0.or.ip3.gt.n3) CYCLE
                     ipind=ip1+(ip2-1)*n1+(ip3-1)*n1*n2
-C                    ipindp=pos(ipind)
-                    ipindp=pos(ip1,ip2,ip3)
+                    ipindp=pos(ipind)
                     if(ipindp.eq.0) CYCLE
                     pc=pc+1
                     thpatch(pc,thrednr)=theta(ipindp)
@@ -387,8 +385,7 @@ C  first stochastic term
                   j1=jw1+i1
                   if(j1.lt.1.or.j1.gt.n1) CYCLE
                   jind=j1+jind2
-C                  jindp=pos(jind)
-                  jindp=pos(j1,j2,j3)
+                  jindp=pos(jind)
                   if(jindp.eq.0) CYCLE
                   wj=lwght(jw1+clw1+1+jwind2)
                   z1=jw1
@@ -406,16 +403,14 @@ C                  jindp=pos(jind)
                                 if(sij.gt.1.d0) CYCLE
                                 if(ip3.le.0.or.ip3.gt.n3) CYCLE
                                 ipind=ip1+(ip2-1)*n1+(ip3-1)*n1*n2
-C                                ipindp=pos(ipind)
-                                ipindp=pos(ip1,ip2,ip3)
+                                ipindp=pos(ipind)
                                 if(ipindp.eq.0) CYCLE
                                 jp3=ip3+jw3
                                 if(jp1.le.0.or.jp1.gt.n1) CYCLE
                                 if(jp2.le.0.or.jp2.gt.n2) CYCLE
                                 if(jp3.le.0.or.jp3.gt.n3) CYCLE
                                 jpind=jp1+(jp2-1)*n1+(jp3-1)*n1*n2
-C                                jpindp=pos(jpind)
-                                jpindp=pos(jp1,jp2,jp3)
+                                jpindp=pos(jpind)
                                 if(jpindp.eq.0) CYCLE
                                 pcj=pcj+1
                                 sij=max(sij,biipatch(pcj,thrednr)*
@@ -423,6 +418,7 @@ C                                jpindp=pos(jpind)
                             END DO
                           END DO
                       END DO
+                      IF(sij.gt.1.d0) CYCLE
                       IF (sij.gt.spmin) THEN
                         wj=wj*(1.d0-spf*(sij-spmin))
                       END IF

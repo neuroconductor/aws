@@ -503,12 +503,12 @@ paws <-
         dy <- length(y)
       if (length(dy) > 3)
         stop("AWS for more than 3 dimensional grids is not implemented")
-#      if(prod(dy)>(2^31-1)){
-#         stop(paste("number of voxel in image is",prod(dy),"needs to be less than",2^31-1))
-#      }
-      if(nvoxel>(2^31-1)){
-         stop(paste("number of voxel in mask is",nvoxel,"needs to be less than",2^31-1))
+      if(prod(dy)>(2^31-1)){
+        stop(paste("number of voxel in image is",prod(dy),"needs to be less than",2^31-1))
       }
+#      if(nvoxel>(2^31-1)){
+#         stop(paste("number of voxel in mask is",nvoxel,"needs to be less than",2^31-1))
+#      }
       #
       #   set appropriate defaults
       #
@@ -655,7 +655,7 @@ paws <-
             as.double(tobj$theta),
             bi = as.double(tobj$bi),
             bi2 = double(nvoxel),
-            theta = as.double(tobj$theta),
+            theta = double(nvoxel),
             as.integer(cpar$mcode),
             as.integer(lkern),
             as.double(spmin),
@@ -696,7 +696,7 @@ paws <-
             lines(theta, lwd = 2)
             title(paste("Reconstruction  h=", signif(hakt, 3)))
             plot(bi, type = "l", ylim = range(0, bi))
-            title("Sum of weights, eta")
+            title("Sum of weights")
           }
           if (d == 2) {
             mfrow <- if(is.null(u)) c(1,3) else c(2,2)
@@ -711,9 +711,9 @@ paws <-
                   yaxt = "n")
             title(paste(
               "Observed Image  min=",
-              signif(min(y), 3),
+              signif(min(y[mask]), 3),
               " max=",
-              signif(max(y), 3)
+              signif(max(y[mask]), 3)
             ))
             image(
               theta,
@@ -725,9 +725,9 @@ paws <-
               "Reconstruction  h=",
               signif(hakt, 3),
               " min=",
-              signif(min(theta), 3),
+              signif(min(theta[mask]), 3),
               " max=",
-              signif(max(theta), 3)
+              signif(max(theta[mask]), 3)
             ))
             image(
               bi,
@@ -737,11 +737,11 @@ paws <-
             )
             title(paste(
               "Sum of weights: min=",
-              signif(min(bi), 3),
+              signif(min(bi[mask]), 3),
               " mean=",
-              signif(mean(bi), 3),
+              signif(mean(bi[mask]), 3),
               " max=",
-              signif(max(bi), 3)
+              signif(max(bi[mask]), 3)
             ))
             if (!is.null(u)) {
               image(u,
@@ -764,9 +764,9 @@ paws <-
                   yaxt = "n")
             title(paste(
               "Observed Image  min=",
-              signif(min(y), 3),
+              signif(min(y[mask]), 3),
               " max=",
-              signif(max(y), 3)
+              signif(max(y[mask]), 3)
             ))
             image(
               theta[, , n3 %/% 2 + 1],
@@ -778,9 +778,9 @@ paws <-
               "Reconstruction  h=",
               signif(hakt, 3),
               " min=",
-              signif(min(theta), 3),
+              signif(min(theta[mask]), 3),
               " max=",
-              signif(max(theta), 3)
+              signif(max(theta[mask]), 3)
             ))
             image(
               bi[, , n3 %/% 2 + 1],
@@ -790,11 +790,11 @@ paws <-
             )
             title(paste(
               "Sum of weights: min=",
-              signif(min(bi), 3),
+              signif(min(bi[mask]), 3),
               " mean=",
-              signif(mean(bi), 3),
+              signif(mean(bi[mask]), 3),
               " max=",
-              signif(max(bi), 3)
+              signif(max(bi[mask]), 3)
             ))
             if (!is.null(u)) {
               image(u[, , n3 %/% 2 + 1],
@@ -894,7 +894,7 @@ paws <-
         memory,
         args,
         hseq = hseq,
-        homogen = NULL,
+        homogen = FALSE,
         earlystop = FALSE,
         family = family,
         wghts = wghts,
