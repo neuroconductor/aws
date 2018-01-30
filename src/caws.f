@@ -1,5 +1,5 @@
 C
-C    Copyright (C) 2004 Weierstrass-Institut fuer 
+C    Copyright (C) 2004 Weierstrass-Institut fuer
 C                       Angewandte Analysis und Stochastik (WIAS)
 C
 C    Author:  Joerg Polzehl
@@ -19,8 +19,8 @@ C  along with this program; if not, write to the Free Software
 C  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
 C  USA.
 C
-C  The following routines are part of the aws package and contain  
-C  FORTRAN 77 code needed in R functions aws, vaws, 
+C  The following routines are part of the aws package and contain
+C  FORTRAN 77 code needed in R functions aws, vaws,
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -29,7 +29,7 @@ C    location penalty for multivariate non-gridded aws
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       double precision function lmkern(kern,dx,xi,xj,h2)
-      implicit logical (a-z)
+      implicit none
       external lkern
       integer kern,dx,i
       double precision xi(dx),xj(dx),h2,z,zd,lkern
@@ -47,31 +47,31 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
 C
-C   Local constant aws on a grid      
+C   Local constant aws on a grid
 C
 C   this is a reimplementation of the original aws procedure
 C
 C   should be slightly slower for non-Gaussian models (see function kldist)
-C    
+C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
 C
 C          Compute the Kullback-Leibler Distance
 C
-C          Model=1    Gaussian   
-C          Model=2    Bernoulli   
-C          Model=3    Poisson   
-C          Model=4    Exponential   
+C          Model=1    Gaussian
+C          Model=2    Bernoulli
+C          Model=3    Poisson
+C          Model=4    Exponential
 C          Model=5    Variance
-C          Model=6    Noncentral Chi (Gaussian approximation, 
+C          Model=6    Noncentral Chi (Gaussian approximation,
 C                     variance mean dependence is introduces via factor bii)
 C
-C     computing dlog(theta) and dlog(1.d0-theta) outside the AWS-loops 
+C     computing dlog(theta) and dlog(1.d0-theta) outside the AWS-loops
 C     will reduces computational costs at the price of readability
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       double precision function kldist(model,thi,thj)
-      implicit logical (a-z)
+      implicit none
       integer model
       double precision thi,thj,z,tthi
       IF (model.eq.1) THEN
@@ -118,7 +118,7 @@ C          Kern=4     Triweight
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       double precision function lkern(kern,xsq)
-      implicit logical (a-z)
+      implicit none
       integer kern
       double precision xsq,z
       IF (xsq.ge.1) THEN
@@ -143,15 +143,15 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C        use Epanechnikov
          lkern=1.d0-xsq
       ENDIF
-      RETURN 
-      END   
+      RETURN
+      END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
-C        Compute truncated Exponential Kernel 
+C        Compute truncated Exponential Kernel
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       double precision function skern(x,xmin,xmax)
-      implicit logical (a-z)
+      implicit none
       double precision x,xmin,xmax,spf
       spf=xmax/(xmax-xmin)
       IF (x.le.xmin) THEN
@@ -182,7 +182,7 @@ C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C
-      implicit logical (a-z)
+      implicit none
 
       external kldist,lkern
       double precision kldist,lkern
@@ -261,12 +261,12 @@ C$OMP DO SCHEDULE(GUIDED)
          if(i1.eq.0) i1=n1
          i2=mod((iind-i1)/n1+1,n2)
          if(i2.eq.0) i2=n2
-         i3=(iind-i1-(i2-1)*n1)/n12+1         
+         i3=(iind-i1-(i2-1)*n1)/n12+1
          hhomi=hhom(iind)
          hhomi=hhomi*hhomi
          hhommax=hmax2
          IF (fix(iind)) CYCLE
-C    nothing to do, final estimate is already fixed by control 
+C    nothing to do, final estimate is already fixed by control
          thetai=theta(iind)
          bii=bi(iind)/lambda
 C   scaling of sij outside the loop
@@ -321,7 +321,7 @@ C  first stochastic term
          bi2(iind)=swj2
          bi0(iind)=swj0
          hhom(iind)=sqrt(hhommax)
-      END DO 
+      END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2,hhom)
@@ -345,7 +345,7 @@ C   ai       \sum  Wi Y     (output)
 C   kern     specifies the location kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C
-      implicit logical (a-z)
+      implicit none
 
       external kldist,lkern
       double precision kldist,lkern
@@ -425,12 +425,12 @@ C$OMP DO SCHEDULE(GUIDED)
          if(i1.eq.0) i1=n1
          i2=mod((iind-i1)/n1+1,n2)
          if(i2.eq.0) i2=n2
-         i3=(iind-i1-(i2-1)*n1)/n12+1         
+         i3=(iind-i1-(i2-1)*n1)/n12+1
          hhomi=hhom(iind)
          hhomi=hhomi*hhomi
          hhommax=hmax2
          IF (fix(iind)) CYCLE
-C    nothing to do, final estimate is already fixed by control 
+C    nothing to do, final estimate is already fixed by control
          thetai=theta(iind)
          bii=bi(iind)/lambda
          fnci=fnc(iind)
@@ -487,7 +487,7 @@ C  first stochastic term
          bi2(iind)=swj2
          bi0(iind)=swj0
          hhom(iind)=sqrt(hhommax)
-      END DO 
+      END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2,hhom)
@@ -512,7 +512,7 @@ C   ai       \sum  Wi Y     (output)
 C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
 C
-      implicit logical (a-z)
+      implicit none
 
       external kldist,lkern
       double precision kldist,lkern
@@ -571,7 +571,7 @@ C  first stochastic term
             END DO
          END DO
       END DO
-      call rchkusr() 
+      call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(bi,n1,n2,n3,hakt2,hmax2,theta,
 C$OMP& ih3,lwght,wght)
@@ -586,7 +586,7 @@ C$OMP DO SCHEDULE(GUIDED)
          if(i1.eq.0) i1=n1
          i2=mod((iind-i1)/n1+1,n2)
          if(i2.eq.0) i2=n2
-         i3=(iind-i1-(i2-1)*n1)/n12+1         
+         i3=(iind-i1-(i2-1)*n1)/n12+1
          thetai=theta(iind)
          bii=bi(iind)/lambda
 C   scaling of sij outside the loop
@@ -621,7 +621,7 @@ C  first stochastic term
                END DO
             END DO
          END DO
-      END DO 
+      END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(wght)
@@ -629,7 +629,7 @@ C$OMP FLUSH(wght)
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
-C   Perform one iteration in local constant three-variate aws 
+C   Perform one iteration in local constant three-variate aws
 C   for selected points
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -647,7 +647,7 @@ C   ai       \sum  Wi Y     (output)
 C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
 C
-      implicit logical (a-z)
+      implicit none
 
       external kldist,lkern
       double precision kldist,lkern
@@ -706,11 +706,11 @@ C  first stochastic term
             END DO
          END DO
       END DO
-      call rchkusr() 
+      call rchkusr()
       DO iind=1,anz
          i1=inx(iind)
          i2=iny(iind)
-         i3=inz(iind)         
+         i3=inz(iind)
          thetai=theta(i1+(i2-1)*n1+(i3-1)*n1*n2)
          bii=bi(iind)/lambda
 C   scaling of sij outside the loop
@@ -745,7 +745,7 @@ C  first stochastic term
                END DO
             END DO
          END DO
-      END DO 
+      END DO
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -770,7 +770,7 @@ C
 C   components of wght:
 C     1: x-1  2: x+1  3: y-1  4: y+1  5: z-1  6: z+1
 C
-      implicit logical (a-z)
+      implicit none
 
       external kldist,lkern
       double precision kldist,lkern
@@ -829,7 +829,7 @@ C  first stochastic term
             END DO
          END DO
       END DO
-      call rchkusr() 
+      call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(bi,n1,n2,n3,hakt2,hmax2,theta,
 C$OMP& ih3,lwght,wght)
@@ -844,7 +844,7 @@ C$OMP DO SCHEDULE(GUIDED)
          if(i1.eq.0) i1=n1
          i2=mod((iind-i1)/n1+1,n2)
          if(i2.eq.0) i2=n2
-         i3=(iind-i1-(i2-1)*n1)/n12+1         
+         i3=(iind-i1-(i2-1)*n1)/n12+1
          thetai=theta(iind)
          bii=bi(iind)/lambda
 C   scaling of sij outside the loop
@@ -878,17 +878,17 @@ C  first stochastic term
                   if(abs(i1-j1)+abs(i2-j2)+abs(i3-j3).eq.1) THEN
                      ind = (i1-j1)+2*(i2-j2)+3*(i3-j3)
                      SELECT CASE (ind)
-                        CASE(-1) 
+                        CASE(-1)
                            wght(1,i1,i2,i3) = wj
-                        CASE(1) 
+                        CASE(1)
                            wght(2,i1,i2,i3) = wj
-                        CASE(-2) 
+                        CASE(-2)
                            wght(3,i1,i2,i3) = wj
-                        CASE(2) 
+                        CASE(2)
                            wght(4,i1,i2,i3) = wj
-                        CASE(-3) 
+                        CASE(-3)
                            wght(5,i1,i2,i3) = wj
-                        CASE(3) 
+                        CASE(3)
                            wght(6,i1,i2,i3) = wj
                         CASE DEFAULT
                            ind = 0
@@ -897,7 +897,7 @@ C  first stochastic term
                END DO
             END DO
          END DO
-      END DO 
+      END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(wght)
@@ -907,8 +907,8 @@ C$OMP FLUSH(wght)
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
 C   Perform one iteration in local constant three-variate aws (gridded)
-C   used in awstestprop only 
-C   bi0 contains sum of weights (without invers variances) !!! 
+C   used in awstestprop only
+C   bi0 contains sum of weights (without invers variances) !!!
 C   no lambda, fix, spmin, hhom, theta
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -923,7 +923,7 @@ C   ai       \sum  Wi Y     (output)
 C   kern     specifies the location kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C
-      implicit logical (a-z)
+      implicit none
 
       external kldist,lkern
       double precision kldist,lkern
@@ -983,7 +983,7 @@ C  first stochastic term
             END DO
          END DO
       END DO
-      call rchkusr() 
+      call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,n1,n2,n3,hakt2,hmax2,lwght,wght,y)
 C$OMP& FIRSTPRIVATE(ih1,ih2,dlw1,clw1,dlw2,clw2,dlw3,clw3,w1,w2,
@@ -996,8 +996,8 @@ C$OMP DO SCHEDULE(GUIDED)
          if(i1.eq.0) i1=n1
          i2=mod((iind-i1)/n1+1,n2)
          if(i2.eq.0) i2=n2
-         i3=(iind-i1-(i2-1)*n1)/n1/n2+1         
-C    nothing to do, final estimate is already fixed by control 
+         i3=(iind-i1-(i2-1)*n1)/n1/n2+1
+C    nothing to do, final estimate is already fixed by control
          swj=0.d0
          swj2=0.d0
          swj0=0.d0
@@ -1037,7 +1037,7 @@ C  first stochastic term
          bi(iind)=swj
          bi2(iind)=swj2
          bi0(iind)=swj0
-      END DO 
+      END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2)
@@ -1062,7 +1062,7 @@ C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C
-      implicit logical (a-z)
+      implicit none
       external kldist,lkern
       double precision kldist,lkern
       integer n1,n2,n3,model,kern
@@ -1123,7 +1123,7 @@ C  first stochastic term
             END DO
          END DO
       END DO
-      call rchkusr() 
+      call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,si2,vred,n1,n2,n3,hakt2,hakt,theta
 C$OMP& ,lwght,wght,y,fix)
@@ -1140,9 +1140,9 @@ C$OMP DO SCHEDULE(GUIDED)
          if(i1.eq.0) i1=n1
          i2=mod((iind-i1)/n1+1,n2)
          if(i2.eq.0) i2=n2
-         i3=(iind-i1-(i2-1)*n1)/n1/n2+1         
+         i3=(iind-i1-(i2-1)*n1)/n1/n2+1
          IF (fix(iind)) CYCLE
-C    nothing to do, final estimate is already fixed by control 
+C    nothing to do, final estimate is already fixed by control
          thetai=theta(iind)
          bii=bi(iind)/lambda
 C   scaling of sij outside the loop
@@ -1174,7 +1174,7 @@ C  first stochastic term
                   if(j1.lt.1.or.j1.gt.n1) CYCLE
                   jind=j1+jind2
                   wj=lwght(jw1+clw1+1+jwind2)
-                  swj0=swj0+wj*si2(jind)      
+                  swj0=swj0+wj*si2(jind)
                   IF (aws) THEN
                      sij=bii*kldist(model,thetai,theta(jind))
                      IF (sij.gt.1.d0) CYCLE
@@ -1194,7 +1194,7 @@ C  first stochastic term
          bi2(iind)=swj2
          bi0(iind)=swj0
          vred(iind)=sv2/sv1/sv1
-      END DO 
+      END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2,vred)
@@ -1203,8 +1203,8 @@ C$OMP FLUSH(ai,bi,bi0,bi2,vred)
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
 C   Perform one iteration in local constant non-adaptive three-variate aws (gridded)
-C   used in awstestprop only 
-C   bi0 contains sum of weights (without invers variances) !!! 
+C   used in awstestprop only
+C   bi0 contains sum of weights (without invers variances) !!!
 C   no lambda, fix, spmin
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine chaws1(y,si2,n1,n2,n3,hakt,bi,bi2,
@@ -1219,7 +1219,7 @@ C   ai       \sum  Wi Y     (output)
 C   kern     specifies the location kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C
-      implicit logical (a-z)
+      implicit none
       external lkern
       double precision lkern
       integer n1,n2,n3,kern
@@ -1276,7 +1276,7 @@ C  first stochastic term
              END DO
          END DO
       END DO
-      call rchkusr() 
+      call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,si2,vred,n1,n2,n3,hakt2,hakt
 C$OMP& ,lwght,wght,y)
@@ -1291,7 +1291,7 @@ C$OMP DO SCHEDULE(GUIDED)
          if(i1.eq.0) i1=n1
          i2=mod((iind-i1)/n1+1,n2)
          if(i2.eq.0) i2=n2
-         i3=(iind-i1-(i2-1)*n1)/n1/n2+1         
+         i3=(iind-i1-(i2-1)*n1)/n1/n2+1
          swj=0.d0
          swj2=0.d0
          swjy=0.d0
@@ -1332,7 +1332,7 @@ C  first stochastic term
          bi2(iind)=swj2
          bi0(iind)=sv1
          vred(iind)=sv2/sv1/sv1
-      END DO 
+      END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2,vred)
@@ -1357,7 +1357,7 @@ C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C
-      implicit logical (a-z)
+      implicit none
       external lkern
       double precision lkern
       integer n1,n2,n3,kern
@@ -1420,12 +1420,12 @@ C  first stochastic term
             END DO
          END DO
       END DO
-      call rchkusr() 
+      call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,si2,hhom,n1,n2,n3,hakt2,hmax2,theta
 C$OMP& ,lwght,wght,y,fix,mask,vred,gi)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,dlw12,
-C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,w1,w2)
+C$OMP& spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,w1,w2)
 C$OMP& PRIVATE(iind,hhomi,hhommax,thetai,bii,swj
 C$OMP& ,swj2,swj0,swjy,sij,sv1,sv2,i1,i2,i3,wj
 C$OMP& ,j3,jw3,jind3,z3,jwind3
@@ -1437,12 +1437,12 @@ C$OMP DO SCHEDULE(GUIDED)
          if(i1.eq.0) i1=n1
          i2=mod((iind-i1)/n1+1,n2)
          if(i2.eq.0) i2=n2
-         i3=(iind-i1-(i2-1)*n1)/n1/n2+1         
+         i3=(iind-i1-(i2-1)*n1)/n1/n2+1
          hhomi=hhom(iind)
          hhomi=hhomi*hhomi
          hhommax=hmax2
          IF (fix(iind).or..not.mask(iind)) CYCLE
-C    nothing to do, final estimate is already fixed by control 
+C    nothing to do, final estimate is already fixed by control
          thetai=theta(iind)
          bii=bi(iind)/lambda
 C   scaling of sij outside the loop
@@ -1508,7 +1508,7 @@ C
          hhom(iind)=sqrt(hhommax)
          gi(iind)=sv1
          vred(iind)=sv2/sv1/sv1
-      END DO 
+      END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(ai,bi,bi0,bi2,hhom,gi,vred)
@@ -1531,7 +1531,7 @@ C   bi       \sum  Wi   (output)
 C   thnew    \sum  Wi Y / bi     (output)
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C
-      implicit logical (a-z)
+      implicit none
 
       integer nv,n1,n2,n3,ncores
       logical aws,mask(*)
@@ -1544,7 +1544,7 @@ C
      1        w1,w2,spmb
       external lkern
       double precision lkern
-!$      integer omp_get_thread_num 
+!$      integer omp_get_thread_num
 !$      external omp_get_thread_num
       thrednr = 1
 C just to prevent a compiler warning
@@ -1605,7 +1605,7 @@ C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(thnew,bi,nv,n1,n2,n3,hakt2,hmax2,theta,
 C$OMP& ih3,lwght,wght,y,swjy,mask)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
-C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
+C$OMP& spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
 C$OMP& PRIVATE(i1,i2,i3,iind,bii,biinv,swj,spmb,
 C$OMP& sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
 C$OMP& j1,jw1,jind,z1,z,thrednr)
@@ -1618,8 +1618,8 @@ C returns value in 0:(ncores-1)
          if(i1.eq.0) i1=n1
          i2=mod((iind-i1)/n1+1,n2)
          if(i2.eq.0) i2=n2
-         i3=(iind-i1-(i2-1)*n1)/n12+1         
-C    nothing to do, final estimate is already fixed by control 
+         i3=(iind-i1-(i2-1)*n1)/n12+1
+C    nothing to do, final estimate is already fixed by control
          bii=bi(iind)/lambda
          biinv=1.d0/bii
          spmb=spmin/bii
@@ -1672,7 +1672,7 @@ C  first stochastic term
             thnew(k,iind)=swjy(k,thrednr)/swj
          END DO
          bi(iind)=swj
-      END DO 
+      END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(thnew,bi)

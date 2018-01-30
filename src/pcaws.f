@@ -44,7 +44,7 @@ C   kern     specifies the location kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C   np       patch size
 C
-      implicit logical (a-z)
+      implicit none
 
       external kldist,lkern
       double precision kldist,lkern
@@ -247,7 +247,7 @@ C   kern     specifies the location kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C   np       patch size
 C
-      implicit logical (a-z)
+      implicit none
 
       external kldist,lkern
       double precision kldist,lkern
@@ -259,8 +259,7 @@ C
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12,iip,jip,thrednr,ip1,ip2,ip3,nph1,nph2,nph3,pc,
-     3        pcj,jp1,jp2,jp3,np1,np2,np3,iindp,ipindp,
-     4        jindp,jpindp
+     3        jp1,jp2,jp3,np1,np2,np3,iindp,ipindp,jindp,jpindp
       double precision thetai,bii,sij,swj,swj2,swjy,z1,z2,z3,wj,
      1       hakt2,hmax2,w1,w2
 !$      integer omp_get_thread_num
@@ -331,7 +330,7 @@ C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
 C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
 C$OMP& PRIVATE(i1,i2,i3,iind,thetai,bii,swj,swj2,
 C$OMP& swjy,sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
-C$OMP& j1,jw1,jind,z1,iip,jip,thrednr,ip1,ip2,ip3,pc,pcj,
+C$OMP& j1,jw1,jind,z1,iip,jip,thrednr,ip1,ip2,ip3,pc,
 C$OMP& jp1,jp2,jp3,iindp,ipindp,jindp,jpindp)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n1*n2*n3
@@ -390,7 +389,7 @@ C  first stochastic term
                   z1=jw1
                   z1=z2+z1*z1
                   IF (aws) THEN
-                      pcj=0
+                      pc=0
                       sij=0.d0
                       DO ip1=i1-nph1,i1+nph1
                           if(ip1.le.0.or.ip1.gt.n1) CYCLE
@@ -403,15 +402,17 @@ C  first stochastic term
                                 if(ip3.le.0.or.ip3.gt.n3) CYCLE
                               ipindp=pos(ip1+(ip2-1)*n1+(ip3-1)*n1*n2)
                                 if(ipindp.eq.0) CYCLE
-                                jp3=ip3+jw3
+                                pc=pc+1
+C If we got here we have an valid entry in biipatch and thpatch
+C check if we can use it, i.e. corresponding entry for j exists
                                 if(jp1.le.0.or.jp1.gt.n1) CYCLE
                                 if(jp2.le.0.or.jp2.gt.n2) CYCLE
+                                jp3=ip3+jw3
                                 if(jp3.le.0.or.jp3.gt.n3) CYCLE
                               jpindp=pos(jp1+(jp2-1)*n1+(jp3-1)*n1*n2)
                                 if(jpindp.eq.0) CYCLE
-                                pcj=pcj+1
-                                sij=max(sij,biipatch(pcj,thrednr)*
-     1                kldist(model,thpatch(pcj,thrednr),theta(jpindp)))
+                                sij=max(sij,biipatch(pc,thrednr)*
+     1                kldist(model,thpatch(pc,thrednr),theta(jpindp)))
                             END DO
                           END DO
                       END DO
@@ -453,7 +454,7 @@ C   bi       \sum  Wi   (output)
 C   thnew    \sum  Wi Y / bi     (output)
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C
-      implicit logical (a-z)
+      implicit none
 
       integer nv,n1,n2,n3,ncores
       logical aws,mask(*)
@@ -533,7 +534,7 @@ C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(thnew,bi,nv,n1,n2,n3,hakt2,hmax2,theta,
 C$OMP& ih3,lwght,wght,y,swjy,mask,thpatch,biipatch,nph1,nph2,nph3)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
-C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
+C$OMP& spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
 C$OMP& PRIVATE(i1,i2,i3,iind,bii,biinv,swj,spmb,
 C$OMP& sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
 C$OMP& j1,jw1,jind,z1,z,thrednr,ip1,ip2,ip3,pc,ipind,pcj,
@@ -655,7 +656,7 @@ C   bi       \sum  Wi   (output)
 C   thnew    \sum  Wi Y / bi     (output)
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C
-      implicit logical (a-z)
+      implicit none
 
       integer nv,n1,n2,n3,ncores,nvd
       logical aws,mask(*)
@@ -737,7 +738,7 @@ C$OMP& SHARED(thnew,bi,nv,nvd,n1,n2,n3,hakt2,hmax2,theta,invcov,
 C$OMP& ih3,lwght,wght,y,swjy,mask,thpatch,biipatch,nph1,nph2,nph3,
 C$OMP& invcovp)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
-C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
+C$OMP& spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
 C$OMP& PRIVATE(i1,i2,i3,iind,bii,biinv,swj,spmb,
 C$OMP& sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
 C$OMP& j1,jw1,jind,z1,z,thrednr,ip1,ip2,ip3,pc,ipind,pcj,

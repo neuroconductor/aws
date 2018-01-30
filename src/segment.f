@@ -18,7 +18,7 @@ C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C
-      implicit logical (a-z)
+      implicit none
       external lkern,fpchisq
       double precision lkern,fpchisq
       integer n1,n2,n3,kern,segm(*),segmn(*)
@@ -113,7 +113,7 @@ C$OMP& SHARED(thetan,bi,bi0,bi2,si2,n1,n2,n3,theta,kern,hakt,
 C$OMP& lwght,y,fix,vred,gi,segm,segmn,varest)
 C$OMP& FIRSTPRIVATE(lambda,aws,beta,fov,a,b,hakt2,n12,wght1,wght2,
 C$OMP& spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,thresh,ih1,ih2)
-C$OMP& PRIVATE(iind,bii,bii0,swj,thi,cofh,segmi,pvi,
+C$OMP& PRIVATE(iind,bii,bii0,swj,thi,cofh,segmi,
 C$OMP& swj2,swj0,swjy,si,sij,sv1,sv2,i1,i2,i3,wj,j3,jw3,jind3,z3,
 C$OMP& jwind3,j2,jw2,jind2,z2,jwind2,j1,jw1,jind,z1,z,si2j)
 C$OMP DO SCHEDULE(GUIDED)
@@ -122,11 +122,9 @@ C$OMP DO SCHEDULE(GUIDED)
          if(i1.eq.0) i1=n1
          i2=mod((iind-i1)/n1+1,n2)
          if(i2.eq.0) i2=n2
-         i3=(iind-i1-(i2-1)*n1)/n1/n2+1         
+         i3=(iind-i1-(i2-1)*n1)/n1/n2+1
          segmi=segm(iind)
-C         pvi=pvalue(iind)
-C         IF (fix(iind)) CYCLE
-C    nothing to do, final estimate is already fixed by control 
+C    nothing to do, final estimate is already fixed by control
          thi=theta(iind)
          bii=bi(iind)/lambda
 C   scaling of sij outside the loop

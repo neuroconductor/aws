@@ -1,36 +1,36 @@
       subroutine lkern1(x,n,h,kern,m,khx)
-      implicit logical(a-z)
+      implicit none
       integer n,kern,m
       double precision x(n),h,khx(n)
       integer i
       double precision mu0, mu2, mu4, xi, xih, skhx
-      select case (kern)            
+      select case (kern)
          case (1)
 C  Gaussian
             mu0 = 2.506628274631d0
             mu2 = 1.d0
             mu4 = 3.d0
-         case (2) 
+         case (2)
 C  Uniform
             mu0 = 0.5d0
             mu2 = 0.333333333333d0
             mu4 = 0.2d0
-         case (3) 
+         case (3)
 C  Triangular
             mu0 = 1
             mu2 = 0.166666666666d0
             mu4 = 0.066666666666d0
-         case (4) 
+         case (4)
 C  Epanechnikov
             mu0 = 4.d0/3.d0
             mu2 = 0.2d0
             mu4 = 3.d0/3.5d1
-         case (5) 
+         case (5)
 C  Biweight
             mu0 = 1.6d1/1.5d1
             mu2 = 1.d0/7.d0
             mu4 = 1.d0/2.1d1
-         case (6) 
+         case (6)
 C  Triweight
             mu0 = 3.2d1/3.5d1
             mu2 = 1.d0/9.d0
@@ -40,40 +40,40 @@ C  Gaussian
             mu0 = 2.506628274631d0
             mu2 = 1.d0
             mu4 = 3.d0
-      end select                    
+      end select
       skhx = 0.d0
       DO i=1,n
          xi=x(i)
          xih=xi/h
-         select case (kern)            
+         select case (kern)
             case (1)
                khx(i)=exp(-xih*xih/2.d0)/mu0
             case (2)
                xih=abs(xih)
-               if(xih.le.1.d0) khx(i)=1.d0/mu0           
+               if(xih.le.1.d0) khx(i)=1.d0/mu0
             case (3)
                xih=abs(xih)
-               if(xih.le.1.d0) khx(i)=(1.d0-xih)/mu0         
+               if(xih.le.1.d0) khx(i)=(1.d0-xih)/mu0
             case (4)
                if(abs(xih).le.1.d0) THEN
                   xih=xih*xih
                   khx(i)=(1.d0-xih)/mu0
-               ENDIF           
+               ENDIF
             case (5)
                if(abs(xih).le.1.d0) THEN
                   xih=1.d0-xih*xih
                   khx(i)=xih*xih/mu0
-               ENDIF           
+               ENDIF
             case (6)
                if(abs(xih).le.1.d0) THEN
                   xih=1.d0-xih*xih
                   khx(i)=xih*xih*xih/mu0
-               ENDIF           
+               ENDIF
             case default
                khx(i)=exp(-xih*xih/2.d0)/mu0
          end select
          skhx=skhx+khx(i)
-C  compute first order derivatives 
+C  compute first order derivatives
          if(m.eq.1) khx(i)=xi/h*khx(i)/mu2
 C  compute second order derivatives
          IF(m.eq.2) khx(i)=(xi/h*xi/h-mu2)/(mu4-mu2*mu2)*khx(i)
@@ -84,13 +84,13 @@ C  compute second order derivatives
       RETURN
       END
       subroutine sector(x1,n1,x2,n2,nsect,sect,symm,insect)
-      implicit logical (a-z)
+      implicit none
       logical symm
       integer n1,n2,nsect,sect
       double precision x1(n1),x2(n2),insect(n1,n2)
       integer i1,i2,isect
       double precision alpha,xi1,xi2,xnorm,ax
-      if(symm) THEN 
+      if(symm) THEN
          alpha=3.14159265358978d0/nsect
       ELSE
          alpha=6.28318530717958d0/nsect
@@ -114,7 +114,7 @@ C  compute second order derivatives
       RETURN
       END
       subroutine median1d(y,n,yhat)
-      implicit logical (a-z)
+      implicit none
       integer n
       double precision y(n),yhat(n)
       integer i
@@ -131,7 +131,7 @@ C  compute second order derivatives
       RETURN
       END
       subroutine median2d(y,n1,n2,yhat)
-      implicit logical (a-z)
+      implicit none
       integer n1,n2
       double precision y(n1,n2),yhat(n1,n2)
       integer i1,i2
@@ -170,7 +170,7 @@ C  compute second order derivatives
       RETURN
       END
       subroutine median3d(y,n1,n2,n3,yhat)
-      implicit logical (a-z)
+      implicit none
       integer n1,n2,n3
       double precision y(n1,n2,n3),yhat(n1,n2,n3)
       integer i1,i2,i3
@@ -248,5 +248,3 @@ C  compute second order derivatives
       END DO
       RETURN
       END
-      
-      

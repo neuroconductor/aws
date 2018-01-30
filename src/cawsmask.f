@@ -17,7 +17,7 @@ C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
 C   wght     scaling factor for second dimension (larger values shrink)
 C
-      implicit logical (a-z)
+      implicit none
       external kldist,lkern
       double precision kldist,lkern
       integer n1,n2,model,kern,ni(*)
@@ -73,7 +73,7 @@ C$OMP DO SCHEDULE(GUIDED)
             iind=i1+(i2-1)*n1
             if(.not.mask(iind)) CYCLE
             IF (fix(iind)) CYCLE
-C    nothing to do, final estimate is already fixed by control 
+C    nothing to do, final estimate is already fixed by control
             thetai=theta(iind)
             bii=bi(iind)/lambda
 C   scaling of sij outside the loop
@@ -102,7 +102,7 @@ C  first stochastic term
                      IF (sij.gt.1.d0) CYCLE
                      wj=wj*(1.d0-sij)
 C   if sij <= spmin  this just keeps the location penalty
-C    spmin = 0 corresponds to old choice of K_s 
+C    spmin = 0 corresponds to old choice of K_s
 C   new kernel is flat in [0,spmin] and then decays exponentially
                   END IF
                   swj=swj+wj
@@ -141,7 +141,7 @@ C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C
-      implicit logical (a-z)
+      implicit none
       external kldist,lkern
       double precision kldist,lkern
       integer n1,n2,model,kern,ni(*)
@@ -198,7 +198,7 @@ C$OMP DO SCHEDULE(GUIDED)
                iind=i1+(i2-1)*n1
                if(.not.mask(iind)) CYCLE
                IF (fix(iind)) CYCLE
-C    nothing to do, final estimate is already fixed by control 
+C    nothing to do, final estimate is already fixed by control
                thetai=theta(iind)
                bii=bi(iind)/lambda
 C   scaling of sij outside the loop

@@ -2,7 +2,7 @@
 C
 C   wght(1) is voxel extension x / voxel extension y,  i.e. zero in univariate situations
 C   wght(2) is voxel extension x / voxel extension z,  i.e. zero in univariate and bivariate situations
-      implicit logical(a-z)
+      implicit none
       integer kern
       double precision bw,wght(2),vol,sofw
       external sofw
@@ -10,7 +10,7 @@ C   wght(2) is voxel extension x / voxel extension z,  i.e. zero in univariate a
       RETURN
       END
       double precision function sofw(bw,kern,wght)
-      implicit logical(a-z)
+      implicit none
       integer kern
       double precision bw,wght(2)
       integer j1,j2,j3,dlw1,dlw2,dlw3,clw1,clw2,clw3,ih1,ih2,ih3
@@ -70,7 +70,7 @@ C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C  Algorithmus zur Nullstellenbestimmung einer monotonen Funktion auf(0,\infty)
       subroutine gethani(x,y,kern,value,wght,eps,bw)
-      implicit logical(a-z)
+      implicit none
       integer kern
       double precision x,y,value,wght(2),eps,bw
       double precision fw1,fw2,fw3,z
@@ -114,7 +114,7 @@ C   Calculate exceedence probabilities in awstestprop
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine exceed(x,n,z,nz,exprob)
-      implicit logical (a-z)
+      implicit none
       integer n,nz
       double precision x(n),z(nz),exprob(nz)
       integer i,j,k

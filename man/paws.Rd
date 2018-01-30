@@ -5,19 +5,20 @@
  Adaptive weigths smoothing using patches
 }
 \description{The function implements a version the propagation separation approach that
-uses patches instead of individuel voxels for comparisons in parameter space. Functionality is analog to function \code{\link{aws}}. Using patches allows for an improved 
+uses patches instead of individuel voxels for comparisons in parameter space. Functionality is analog to function \code{\link{aws}}. Using patches allows for an improved
 handling of locally smooth functions and in 2D and 3D for improved smoothness of
 discontinuities at the expense of increased computing time.
 }
 \usage{
-paws(y, hmax = NULL, onestep = FALSE, aws = TRUE, family = "Gaussian", lkern = "Triangle", homogen = TRUE, aggkern = "Uniform", sigma2 = NULL, shape = NULL, scorr = 0, spmin = 0.25, ladjust = 1, wghts = NULL, u = NULL, graph = FALSE, demo = FALSE, maxni = FALSE, patchsize = 1)
+paws(y, hmax = NULL, onestep = FALSE, aws = TRUE, family = "Gaussian", lkern = "Triangle",
+     aggkern = "Uniform", sigma2 = NULL, shape = NULL, scorr = 0, spmin = 0.25, ladjust = 1, wghts = NULL, u = NULL, graph = FALSE, demo = FALSE, maxni = FALSE, patchsize = 1)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{y}{\code{y} contains the observed response data. \code{dim(y)} determines the dimensionality and extend of the grid design.
 }
   \item{hmax}{ \code{hmax} specifies the maximal bandwidth. Defaults to \code{hmax=250, 12, 5} for \code{dd=1, 2, 3}, respectively.
-  In case of \code{lkern="Gaussian"} the bandwidth is assumed to be given in full width half maximum (FWHM) units, i.e., \code{0.42466} times gridsize.   
+  In case of \code{lkern="Gaussian"} the bandwidth is assumed to be given in full width half maximum (FWHM) units, i.e., \code{0.42466} times gridsize.
 }
   \item{onestep}{
 apply the last step only (use for test purposes only)
@@ -33,11 +34,9 @@ logical: if TRUE structural adaptation (AWS) is used.
   \item{lkern}{
 character: location kernel, either "Triangle", "Plateau", "Quadratic", "Cubic" or "Gaussian"
 }
-  \item{homogen}{ logical: if TRUE the function tries to determine regions
-   where weights can be fixed to 1. This may increase speed.
-}
+
   \item{aggkern}{
-character: kernel used in stagewise aggregation, either "Triangle" or "Uniform" 
+character: kernel used in stagewise aggregation, either "Triangle" or "Uniform"
 }
   \item{sigma2}{
 \code{sigma2} allows to specify the variance in case of \code{family="Gaussian"}. Not used if \code{family!="Gaussian"}.
@@ -45,7 +44,7 @@ character: kernel used in stagewise aggregation, either "Triangle" or "Uniform"
    is assumed to contain the pointwise variance of \code{y} and a heteroscedastic variance model is used.
 }
   \item{shape}{Allows to specify an additional shape parameter for certain family models. Currently only used for family="Variance", that is \eqn{\chi}-Square distributed observations
-  with \code{shape} degrees of freedom. 
+  with \code{shape} degrees of freedom.
 }
   \item{scorr}{
 The vector \code{scorr} allows to specify a first order correlations of the noise for each coordinate direction,
@@ -63,9 +62,9 @@ factor to increase the default value of lambda
 }
   \item{u}{
 a "true" value of the regression function, may be provided to
-   report risks at each iteration. This can be used to test the propagation condition with \code{u=0} 
+   report risks at each iteration. This can be used to test the propagation condition with \code{u=0}
 }
-  \item{graph}{If  \code{graph=TRUE} intermediate results are illustrated after each iteration step. Defaults to \code{graph=FALSE}. 
+  \item{graph}{If  \code{graph=TRUE} intermediate results are illustrated after each iteration step. Defaults to \code{graph=FALSE}.
 }
   \item{demo}{ If \code{demo=TRUE} the function pauses after each iteration. Defaults to \code{demo=FALSE}.
 }
@@ -84,7 +83,7 @@ returns anobject of class \code{aws} with slots
                         \item{x = "numeric"}{numeric(0)}
                         \item{ni = "integer"}{integer(0)}
                         \item{mask = "logical"}{logical(0)}
-                        \item{theta = "numeric"}{Estimates of regression function, \code{length: length(y)}}                        
+                        \item{theta = "numeric"}{Estimates of regression function, \code{length: length(y)}}
                         \item{hseq = "numeric"}{sequence of bandwidths employed}
                         \item{mae = "numeric"}{Mean absolute error for each iteration step if u was specified,  numeric(0) else}
                         \item{psnr = "numeric"}{Peak signal-to-noise ratio for each iteration step if u was specified,  numeric(0) else}

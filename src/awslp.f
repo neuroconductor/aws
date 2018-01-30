@@ -5,7 +5,7 @@ C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine awsp1b(y,fix,nfix,n,degr,hw,hakt,hhom,lambda,theta,
      1        bi,bi2,bi0,ai,kern,spmin,lw,w,slw,sw,ind)
-C   
+C
 C   y        observed values of regression function
 C   fix      logical TRUE fro points where we have nothing to do
 C   n1,n2    design dimensions
@@ -22,10 +22,10 @@ C   kern     specifies the location kernel
 C   lw       array of location weights dim(dlw,dlw) dlw=2*ih+1
 C   w        array of weights dim(dlw,dlw)
 C   sw       array of "smoothed" weights dim(dls,dls) dls=2*(ih+ihw)+1
-C   
+C
 C   temporary arrays set for maximum degree 2
 C
-      implicit logical (a-z)
+      implicit none
       external kldistp,lkern
       double precision kldistp,lkern
       integer n,kern,degr,ind(*),nfix
@@ -40,7 +40,7 @@ C
      3       hhomimin,hhomimax
 !$    integer omp_get_thread_num
 !$    external omp_get_thread_num
-C   arrays with variable length are organized as 
+C   arrays with variable length are organized as
 C   theta(n,dp1)
 C   bi(n,dp2)
 C   arrays of fixed length correspond to degr=2
@@ -57,7 +57,7 @@ C   first set dimensions for arrays depending on degree
       ELSE IF (degr.eq.1) THEN
          dp1=2
          dp2=3
-      ELSE 
+      ELSE
          dp1=3
          dp2=5
       END IF
@@ -86,7 +86,7 @@ C$OMP&        bi,bi2,bi0,ai,kern,spmin,lw,w,slw,sw,ind)
 C$OMP& FIRSTPRIVATE(aws,lfix,hnfix,ih,spf,spmax,dp1,dp2,hakt2,dlw,clw,
 C$OMP&        hs2,hs,ihs,csw,dsw)
 C$OMP& PRIVATE(j1,k,iind,jind,jw1,l,bii,sij,swj,swj2,swj0,swjy,z1,
-C$OMP&         wj,thij,thi,zz,lwj,yj,z,cc,hhommax,hhommin,az1,hfixmax, 
+C$OMP&         wj,thij,thi,zz,lwj,yj,z,cc,hhommax,hhommin,az1,hfixmax,
 C$OMP&         ssij,hhomimin,hhomimax,thrednr,trl,trs)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n
@@ -96,7 +96,7 @@ C$OMP DO SCHEDULE(GUIDED)
          trs = thrednr*dsw
          zz(1)=1.d0
          IF (fix(iind)) CYCLE
-C    nothing to do, final estimate is already fixed by control 
+C    nothing to do, final estimate is already fixed by control
          hhomimin=hhom(iind,1)
          hhomimax=hhom(iind,2)
          hhommax=hakt
@@ -144,10 +144,10 @@ C
                       ELSE
                          hhommin=min(hhommin,az1)
                       END IF
-                  ELSE 
+                  ELSE
                      w(jw1+trl)=wj
                   END IF
-               ELSE 
+               ELSE
                   w(jw1+trl)=0.d0
                   if(z1.gt.0) THEN
                      hhommax=min(hhommax,az1)
@@ -161,7 +161,7 @@ C
          END DO
 C
 C      Smooth the weights
-C   
+C
          z=0.d0
          DO jw1=1,dlw
             if(jw1.eq.clw) CYCLE
@@ -185,7 +185,7 @@ C
             z1=jw1-csw
             lwj=slw(jw1)
             wj=sw(jw1+trs)
-            if(lwj.le.0.d0.and.wj.le.0.d0) CYCLE  
+            if(lwj.le.0.d0.and.wj.le.0.d0) CYCLE
             zz(2)=z1
             zz(3)=z1*z1
             IF(dp1.gt.2) THEN
@@ -195,7 +195,7 @@ C
             DO k=1,dp2
                swj0(k)=swj0(k)+lwj*zz(k)
             END DO
-            if(wj.le.0.d0) CYCLE  
+            if(wj.le.0.d0) CYCLE
             DO k=1,dp2
                swj(k)=swj(k)+wj*zz(k)
                swj2(k)=swj2(k)+wj*wj*zz(k)
@@ -211,7 +211,7 @@ C
             z1=jw1-csw
             lwj=slw(jw1)
             wj=sw(jw1+trs)
-            if(lwj.le.0.d0.and.wj.le.0.d0) CYCLE  
+            if(lwj.le.0.d0.and.wj.le.0.d0) CYCLE
             zz(2)=z1
             zz(3)=z1*z1
             IF(dp1.gt.2) THEN
@@ -221,7 +221,7 @@ C
             DO k=1,dp2
                swj0(k)=swj0(k)+lwj*zz(k)
             END DO
-            if(wj.le.0.d0) CYCLE  
+            if(wj.le.0.d0) CYCLE
             DO k=1,dp2
                swj(k)=swj(k)+wj*zz(k)
                swj2(k)=swj2(k)+wj*wj*zz(k)
@@ -277,7 +277,7 @@ C   sw       array of "smoothed" weights dim(dls,dls) dls=2*(ih+ihw)+1
 C
 C   temporary arrays set for maximum degree 2
 C
-      implicit logical (a-z)
+      implicit none
       external kldistp,lkern
       double precision kldistp,lkern
       integer n,kern,degr,ind(*),nfix
@@ -289,11 +289,11 @@ C
       double precision bii(5),sij,swj(5),swj2(5),swj0(5),swjy(5),z1,wj,
      1       hakt2,thij(3),thi(3),zz(5),lwj,yj,hs2,hs,z,cc,spf,hhomi,
      2       hhommax,az1,hfixmax,hnfix
-     
+
 !$    integer omp_get_thread_num
 !$    external omp_get_thread_num
 
-C   arrays with variable length are organized as 
+C   arrays with variable length are organized as
 C   theta(n,dp1)
 C   bi(n,dp2)
 C   arrays of fixed length correspond to degr=2
@@ -309,7 +309,7 @@ C   first set dimensions for arrays depending on degree
       ELSE IF (degr.eq.1) THEN
          dp1=2
          dp2=3
-      ELSE 
+      ELSE
          dp1=3
          dp2=5
       END IF
@@ -334,15 +334,15 @@ C  now stochastic term
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(y,si,fix,nfix,n,degr,hw,hakt,hhom,lambda,theta,
 C$OMP&        bi,bi2,bi0,ai,kern,spmin,lw,w,slw,sw,ind)
-C$OMP& FIRSTPRIVATE(aws,lfix,hnfix,ih,spf,spmax,dp1,dp2,hakt2,dlw,clw,
+C$OMP& FIRSTPRIVATE(aws,lfix,hnfix,ih,spf,dp1,dp2,hakt2,dlw,clw,
 C$OMP&        hs2,hs,ihs,csw,dsw)
 C$OMP& PRIVATE(j1,k,iind,jind,jw1,l,bii,sij,swj,swj2,swj0,swjy,z1,
-C$OMP&         wj,thij,thi,zz,lwj,yj,z,cc,hhommax,hhommin,az1,hfixmax, 
-C$OMP&         ssij,hhomi,hhomimin,hhomimax,thrednr,trl,trs)
+C$OMP&         wj,thij,thi,zz,lwj,yj,z,cc,hhommax,az1,hfixmax,
+C$OMP&         hhomi,thrednr,trl,trs)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n
          IF (fix(iind)) CYCLE
-C    nothing to do, final estimate is already fixed by control 
+C    nothing to do, final estimate is already fixed by control
 !$       thrednr = omp_get_thread_num()
          trl = thrednr*dlw
          trs = thrednr*dsw
@@ -388,15 +388,15 @@ C
                   IF (sij.gt.spmin) THEN
                      w(jw1+trl)=wj*(1.d0-spf*(sij-spmin))
                       hhommax=min(hhommax,az1)
-                  ELSE 
+                  ELSE
                      w(jw1+trl)=wj
                   END IF
-               ELSE 
+               ELSE
                   w(jw1+trl)=0.d0
                   hhommax=min(hhommax,az1)
                END IF
             ELSE
-               w(jw1+trl)=wj     
+               w(jw1+trl)=wj
             END IF
          END DO
 C
@@ -425,7 +425,7 @@ C
             z1=jw1-csw
             lwj=slw(jw1)
             wj=sw(jw1+trs)
-            if(lwj.le.0.d0.and.wj.le.0.d0) CYCLE  
+            if(lwj.le.0.d0.and.wj.le.0.d0) CYCLE
             zz(2)=z1
             zz(3)=z1*z1
             IF(dp1.gt.2) THEN
@@ -435,7 +435,7 @@ C
             DO k=1,dp2
                swj0(k)=swj0(k)+lwj*zz(k)
             END DO
-            if(wj.le.0.d0) CYCLE  
+            if(wj.le.0.d0) CYCLE
             DO k=1,dp2
                swj(k)=swj(k)+wj*zz(k)
                swj2(k)=swj2(k)+wj*wj*zz(k)
@@ -490,7 +490,7 @@ C   sw       array of "smoothed" weights dim(dls,dls) dls=2*(ih+ihw)+1
 C
 C   temporary arrays set for maximum degree 2
 C
-      implicit logical (a-z)
+      implicit none
       external kldistp,lkern
       double precision kldistp,lkern
       integer n1,n2,kern,degr,ind(*),nfix
@@ -502,10 +502,10 @@ C
      2        dp1,dp2,ihs,csw,dsw,l,dlw2,thrednr,trl,trs
       double precision bii(15),sij,swj(15),swj2(15),swj0(15),swjy(6),
      1       z1,z2,wj,hakt2,thij(6),thi(6),zz(15),lwj,hs2,hs,z,cc,
-     2       wjy,spf,hhomi,hhommax,az1,hfixmax,hnfix 
+     2       wjy,spf,hhomi,hhommax,az1,hfixmax,hnfix
 !$      integer omp_get_thread_num
 !$      external omp_get_thread_num
-C   arrays with variable length are organized as 
+C   arrays with variable length are organized as
 C   theta(n1,n2,dp1)
 C   bi(n1,n2,dp2)
 C   arrays of fixed length correspond to degr=2
@@ -520,7 +520,7 @@ C   first set dimensions for arrays depending on degree
       ELSE IF (degr.eq.1) THEN
          dp1=3
          dp2=6
-      ELSE 
+      ELSE
          dp1=6
          dp2=15
       END IF
@@ -556,19 +556,19 @@ C  now stochastic term
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(y,fix,nfix,n1,n2,degr,hw,hakt,hhom,lambda,theta,
 C$OMP&        bi,bi2,bi0,ai,kern,spmin,lw,w,slw,sw,ind)
-C$OMP& FIRSTPRIVATE(aws,lfix,hnfix,ih,spf,spmax,dp1,dp2,hakt2,dlw,clw,
+C$OMP& FIRSTPRIVATE(aws,lfix,hnfix,ih,spf,dp1,dp2,hakt2,dlw,clw,
 C$OMP&        hs2,hs,ihs,csw,dsw,dlw2,n)
 C$OMP& PRIVATE(j1,j2,k,iind,jind,jind2,jw1,l,bii,sij,swj,swj2,swj0,
-C$OMP&         swjy,z1,wj,thij,thi,zz,lwj,yj,z,cc,hhommax,hhommin, 
-C$OMP&         az1,hfixmax,ssij,hhomimin,hhomimax,thrednr,trl,trs,
+C$OMP&         swjy,z1,wj,thij,thi,zz,lwj,z,cc,hhommax,
+C$OMP&         az1,hfixmax,thrednr,trl,trs,
 C$OMP&         hhomi,jwind,jwind2,ih1,i1,i2,z2,wjy)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n
          i1=mod(iind,n1)
          if(i1.eq.0) i1=n1
-         i2=(iind-i1)/n1+1          
+         i2=(iind-i1)/n1+1
             IF (fix(iind)) CYCLE
-C    nothing to do, final estimate is already fixed by control 
+C    nothing to do, final estimate is already fixed by control
             zz(1)=1.d0
 !$          thrednr = omp_get_thread_num()
             trl = thrednr*dlw2
@@ -607,7 +607,7 @@ C  get directional differences that only depend on i2-j2
                   wj=lw(jwind)
                   z1=jw1-clw
                   az1=z1*z1+z2*z2
-C  get rest of directional differences 
+C  get rest of directional differences
                   IF (aws.and.az1.gt.hhomi) THEN
                      IF(dp1.gt.1) THEN
                         zz(2)=z1
@@ -638,10 +638,10 @@ C
                         IF (sij.gt.spmin) THEN
                            w(jwind+trl)=wj*(1.d0-spf*(sij-spmin))
                            hhommax=min(hhommax,az1)
-                        ELSE 
+                        ELSE
                            w(jwind+trl)=wj
                         END IF
-                     ELSE 
+                     ELSE
                         w(jwind+trl)=0.d0
                         hhommax=min(hhommax,az1)
                      END IF
@@ -677,7 +677,7 @@ C
                END IF
                IF(dp1.gt.3) THEN
                   zz(10)=z2*zz(6)
-                  zz(15)=z2*zz(10)  
+                  zz(15)=z2*zz(10)
                END IF
                ih1=FLOOR(sqrt(hs2-z2*z2))
                DO jw1=csw-ih1,csw+ih1
@@ -709,7 +709,7 @@ C
                   DO k=1,dp2
                      swj0(k)=swj0(k)+lwj*zz(k)
                   END DO
-                  if(wj.le.0.d0) CYCLE  
+                  if(wj.le.0.d0) CYCLE
                   DO k=1,dp2
                      swj(k)=swj(k)+wj*zz(k)
                      swj2(k)=swj2(k)+wj*wj*zz(k)
@@ -766,7 +766,7 @@ C   sw       array of "smoothed" weights dim(dls,dls) dls=2*(ih+ihw)+1
 C
 C   temporary arrays set for maximum degree 2
 C
-      implicit logical (a-z)
+      implicit none
       external kldistp,lkern
       double precision kldistp,lkern
       integer n1,n2,kern,degr,ind(*),nfix
@@ -781,7 +781,7 @@ C
      2       wjy,spf,hhomi,hhommax,az1,hfixmax,hnfix
 !$    integer omp_get_thread_num
 !$    external omp_get_thread_num
-C   arrays with variable length are organized as 
+C   arrays with variable length are organized as
 C   theta(n1,n2,dp1)
 C   bi(n1,n2,dp2)
 C   arrays of fixed length correspond to degr=2
@@ -796,7 +796,7 @@ C   first set dimensions for arrays depending on degree
       ELSE IF (degr.eq.1) THEN
          dp1=3
          dp2=6
-      ELSE 
+      ELSE
          dp1=6
          dp2=15
       END IF
@@ -832,20 +832,20 @@ C  now stochastic term
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(y,si,fix,nfix,n1,n2,degr,hw,hakt,hhom,lambda,theta,
 C$OMP&        bi,bi2,bi0,ai,kern,spmin,lw,w,slw,sw,ind)
-C$OMP& FIRSTPRIVATE(aws,lfix,hnfix,ih,spf,spmax,dp1,dp2,hakt2,dlw,clw,
+C$OMP& FIRSTPRIVATE(aws,lfix,hnfix,ih,spf,dp1,dp2,hakt2,dlw,clw,
 C$OMP&        hs2,hs,ihs,csw,dsw,dlw2,n)
 C$OMP& PRIVATE(j1,j2,k,iind,jind,jind2,jw1,l,bii,sij,swj,swj2,swj0,
-C$OMP&         swjy,z1,wj,thij,thi,zz,lwj,yj,z,cc,hhommax,hhommin, 
-C$OMP&         az1,hfixmax,ssij,hhomimin,hhomimax,thrednr,trl,trs,
+C$OMP&         swjy,z1,wj,thij,thi,zz,lwj,z,cc,hhommax,
+C$OMP&         az1,hfixmax,thrednr,trl,trs,
 C$OMP&         hhomi,jwind,jwind2,ih1,i1,i2,z2,wjy)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n
          i1=mod(iind,n1)
          if(i1.eq.0) i1=n1
-         i2=(iind-i1)/n1+1          
+         i2=(iind-i1)/n1+1
             IF (fix(iind)) CYCLE
-C    nothing to do, final estimate is already fixed by control 
-            zz(1)=1.d0 
+C    nothing to do, final estimate is already fixed by control
+            zz(1)=1.d0
 !$            thrednr = omp_get_thread_num()
 C         call intpr("nr of core",10,thrednr,1)
             trl = thrednr*dlw2
@@ -883,9 +883,9 @@ C  get directional differences that only depend on i2-j2
                   jwind=jw1+jwind2
                   wj=lw(jwind)
                   z1=jw1-clw
-C  get rest of directional differences 
+C  get rest of directional differences
                   az1=z1*z1+z2*z2
-C  get rest of directional differences 
+C  get rest of directional differences
                   IF (aws.and.az1.ge.hhomi) THEN
                      IF(dp1.gt.1) THEN
                         zz(2)=z1
@@ -916,10 +916,10 @@ C
                         IF (sij.gt.spmin) THEN
                            w(jwind+trl)=wj*(1.d0-spf*(sij-spmin))
                            hhommax=min(hhommax,az1)
-                        ELSE 
+                        ELSE
                            w(jwind+trl)=wj
                         END IF
-                     ELSE 
+                     ELSE
                         w(jwind+trl)=0.d0
                         hhommax=min(hhommax,az1)
                      END IF
@@ -966,7 +966,7 @@ C
                   jind=j1+jind2
                   lwj=slw(jwind)*si(jind)
                   wj=sw(jwind+trs)*si(jind)
-                  if(lwj.le.0.d0.and.wj.le.0.d0) CYCLE  
+                  if(lwj.le.0.d0.and.wj.le.0.d0) CYCLE
                   IF(dp1.gt.1) THEN
                      zz(2)=z1
                      zz(4)=z1*z1
@@ -1024,7 +1024,7 @@ C     thij parameter estimate in j dim(dp1) for basis in i
 C     bii  XTX dim(dp2)
 C     ind   index matrix to access the correct elements in bii
 C
-      implicit logical (a-z)
+      implicit none
       integer dp1,ind(dp1,dp1)
       double precision thij(*),bii(*),thijl
       integer l,k
@@ -1052,7 +1052,7 @@ C     hw   bandwidth for smoothing of w
 C     sw   array of smoothed weights dim(dsw,dsw)   dsw=2*(ihw+ih)+1
 C     cc   dumping factor of weights
 C
-      implicit logical (a-z)
+      implicit none
       integer dw,dsw,cw,csw,cdiff
       double precision w(dw),sw(dsw),hw,hakt,cc
       integer i1,ja1,je1,j1,i10
@@ -1108,7 +1108,7 @@ C     hw   bandwidth for smoothing of w
 C     sw   array of smoothed weights dim(dsw,dsw)   dsw=2*(ihw+ih)+1
 C     cc   dumping factor of weights
 C
-      implicit logical (a-z)
+      implicit none
       integer dw,dsw,cw,csw,cdiff
       double precision w(dw,dw),sw(dsw,dsw),hw,hakt,cc
       integer i1,i2,id,jd,ja1,je1,ja2,je2,j1,j2,i10,i20
@@ -1249,12 +1249,12 @@ C
 C     n          number of design points
 C     dp1        number of parameters  (p+1)
 C     dp2        number of components in bi  (1,6,15)
-C     ai         \sum \Psi^T Wi^k Y       
-C     bi         \sum \Psi^T Wi^k \Psi    
+C     ai         \sum \Psi^T Wi^k Y
+C     bi         \sum \Psi^T Wi^k \Psi
 C     theta      new parameter estimate
 C     dmat       working arrays
 C     restricted to dp2<=20
-      implicit logical (a-z)
+      implicit none
       integer n,dp1,dp2
       double precision ai(n,dp1),bi(n,dp2),theta(n,dp1),dmat(dp1,dp1)
       integer i,j,k,info,ind(dp1,dp1)
@@ -1269,13 +1269,13 @@ C     restricted to dp2<=20
 C     now calculate theta as B_i^{-1} A_i
          call dposv("U",dp1,1,dmat,dp1,aa,dp1,info)
 C    if info>0 just keep the old estimate
-         IF (info.gt.0) CYCLE  
+         IF (info.gt.0) CYCLE
          DO j=1,dp1
             theta(i,j)=aa(j)
          END DO
       END DO
       RETURN
-      END      
+      END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
 C      Generate estimates from ai and bi (univariate case)
@@ -1286,12 +1286,12 @@ C
 C     n          number of design points
 C     dp1        number of parameters  (p+1)
 C     dp2        number of components in bi  (1,6,15)
-C     ai         \sum \Psi^T Wi^k Y       
-C     bi         \sum \Psi^T Wi^k \Psi    
+C     ai         \sum \Psi^T Wi^k Y
+C     bi         \sum \Psi^T Wi^k \Psi
 C     theta      new parameter estimate
 C     dmat       working arrays
 C     restricted to dp2<=20
-      implicit logical (a-z)
+      implicit none
       integer n,dp1,dp2
       double precision ai(n,dp1),bi(n,dp2),theta(n,dp1),dmat(dp1,dp1)
       integer i,j,k,info,ind(dp1,dp1),iii
@@ -1318,17 +1318,17 @@ C    if info>0 just keep the old estimate
             call intpr("i",1,i,1)
             call dblepr("h",1,h,1)
             call dblepr("cii",3,cii,dp2)
-            DO k=1,dp2 
+            DO k=1,dp2
                call dblepr("bi(i,k)",7,bi(i,k),1)
             END DO
             CYCLE
-         END IF  
+         END IF
          DO j=1,dp1
             theta(i,j)=aa(j)/cii(j)
          END DO
       END DO
       RETURN
-      END      
+      END
       subroutine vpaws(n,dp2,bi,bi2,var)
 C   calculate variance (reduction) of estimates
       integer n,dp2
