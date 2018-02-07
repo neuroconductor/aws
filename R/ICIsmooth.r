@@ -3,8 +3,7 @@
 #   nonadaptive 1D -- 3D smoothing on a grid (Gaussian kernel)
 #
 ###########################################################################
-kernsm <-
-  function (y,
+kernsm <- function (y,
             h = 1,
             kern = "Gaussian",
             m = 0,
@@ -67,22 +66,19 @@ kernsm <-
     }
     lkern1 <- function(x, h, ikern, m) {
       nx <- length(x)
-      .Fortran(
-        "lkern1",
+      .Fortran(C_lkern1,
         as.double(x),
         as.integer(nx),
         as.double(h),
         as.integer(ikern),
         as.integer(m),
-        khofx = double(nx),
-        PACKAGE = "aws"
+        khofx = double(nx)
       )$khofx
     }
     if (kern == "Gaussian" &
         unit[1] == "FWHM")
       h <- h / (2 * sqrt(2 * log(2))) ## FWHM bandwidth
-    lkern <-
-      function(xp,
+    lkern <- function(xp,
                kind = "Gaussian",
                m = 0,
                nsector = 1,
@@ -159,8 +155,7 @@ kernsm <-
             }
           }
           if (xp$d == 2) {
-            sector <- .Fortran(
-              "sector",
+            sector <- .Fortran(C_sector,
               as.double(grid(xp$dx1[1])),
               as.integer(xp$dx1[1]),
               as.double(grid(xp$dx1[2])),
@@ -168,8 +163,7 @@ kernsm <-
               as.integer(nsector),
               as.integer(sector),
               as.logical(symmetric),
-              insector = double(xp$dx1[1] * xp$dx1[2]),
-              PACKAGE = "aws"
+              insector = double(xp$dx1[1] * xp$dx1[2])
             )$insector
             kwghts <- kwghts * array(sector, xp$dx1)
           }
@@ -192,7 +186,7 @@ kernsm <-
             if (symmetric)
               sector[-gridind(xp$dx1[1]),-gridind(xp$dx1[2]),-gridind(xp$dx1[3])] <-
               1
-            
+
             kwghts <- kwghts * array(sector, xp$dx1)
           }
           kwghts <- kwghts / sum(kwghts)
@@ -222,8 +216,7 @@ kernsm <-
       call = args
     )
   }
-ICIsmooth <-
-  function(y,
+ICIsmooth <- function(y,
            hmax,
            hinc = 1.45,
            thresh = NULL,
@@ -321,29 +314,23 @@ ICIsmooth <-
     if (presmooth) {
       hbest <- switch(
         d,
-        .Fortran(
-          "median1d",
+        .Fortran(C_median1d,
           as.double(hbest),
           as.integer(n),
-          hbest = double(n),
-          PACKAGE = "aws"
+          hbest = double(n)
         )$hbest,
-        .Fortran(
-          "median2d",
+        .Fortran(C_median2d,
           as.double(hbest),
           as.integer(dy[1]),
           as.integer(dy[2]),
-          hbest = double(n),
-          PACKAGE = "aws"
+          hbest = double(n)
         )$hbest,
-        .Fortran(
-          "median3d",
+        .Fortran(C_median3d,
           as.double(hbest),
           as.integer(dy[1]),
           as.integer(dy[2]),
           as.integer(dy[3]),
-          hbest = double(n),
-          PACKAGE = "aws"
+          hbest = double(n)
         )$hbest
       )
       hakt <- if (all(m == 0)) {
@@ -385,8 +372,7 @@ ICIsmooth <-
       call = args
     )
   }
-ICIcombined <-
-  function(y,
+ICIcombined <- function(y,
            hmax,
            hinc = 1.45,
            thresh = NULL,
@@ -500,7 +486,7 @@ ICIcombined <-
     )
   }
 ##
-##
+##   compute distance measures for images
 ##
 riskyhat <- function(y, u) {
   if (length(u) == 1) {

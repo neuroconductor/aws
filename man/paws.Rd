@@ -10,8 +10,10 @@ handling of locally smooth functions and in 2D and 3D for improved smoothness of
 discontinuities at the expense of increased computing time.
 }
 \usage{
-paws(y, hmax = NULL, onestep = FALSE, aws = TRUE, family = "Gaussian", lkern = "Triangle",
-     aggkern = "Uniform", sigma2 = NULL, shape = NULL, scorr = 0, spmin = 0.25, ladjust = 1, wghts = NULL, u = NULL, graph = FALSE, demo = FALSE, maxni = FALSE, patchsize = 1)
+paws(y, hmax = NULL, onestep = FALSE, aws = TRUE, family = "Gaussian",
+     lkern = "Triangle", aggkern = "Uniform", sigma2 = NULL, shape = NULL,
+     scorr = 0, spmin = 0.25, ladjust = 1, wghts = NULL, u = NULL,
+     graph = FALSE, demo = FALSE, maxni = FALSE, patchsize = 1)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

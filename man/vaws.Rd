@@ -2,16 +2,17 @@
 \alias{vaws}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-vector valued version of function \code{\link{aws}} 
+vector valued version of function \code{\link{aws}}
 The function implements the propagation separation approach to
 nonparametric smoothing (formerly introduced as Adaptive weights smoothing)
-for varying coefficient likelihood models with vector valued response on a 1D, 2D or 3D grid. 
+for varying coefficient likelihood models with vector valued response on a 1D, 2D or 3D grid.
 }
 \description{The function implements a version the propagation separation approach that
-uses vector valued instead of scalar responses. 
+uses vector valued instead of scalar responses.
 }
 \usage{
-vaws(y, kstar = 16, sigma2 = 1, mask = NULL, scorr = 0, spmin = 0.25, ladjust = 1, wghts = NULL, u = NULL, maxni = FALSE)
+vaws(y, kstar = 16, sigma2 = 1, mask = NULL, scorr = 0, spmin = 0.25,
+     ladjust = 1, wghts = NULL, u = NULL, maxni = FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -42,7 +43,7 @@ factor to increase the default value of lambda
 }
   \item{u}{
 a "true" value of the regression function, may be provided to
-   report risks at each iteration. This can be used to test the propagation condition with \code{u=0} 
+   report risks at each iteration. This can be used to test the propagation condition with \code{u=0}
 }
   \item{maxni}{
 If TRUE use \eqn{max_{l<=k}(N_i^{(l)}} instead of \eqn{(N_i^{(k)}} in the definition of the statistical penalty.
@@ -58,7 +59,7 @@ returns anobject of class \code{aws} with slots
                         \item{x = "numeric"}{numeric(0)}
                         \item{ni = "integer"}{integer(0)}
                         \item{mask = "logical"}{logical(0)}
-                        \item{theta = "numeric"}{Estimates of regression function, \code{length: length(y)}}                        
+                        \item{theta = "numeric"}{Estimates of regression function, \code{length: length(y)}}
                         \item{hseq = "numeric"}{sequence of bandwidths employed}
                         \item{mae = "numeric"}{Mean absolute error for each iteration step if u was specified,  numeric(0) else}
                         \item{psnr = "numeric"}{Peak signal-to-noise ratio for each iteration step if u was specified,  numeric(0) else}

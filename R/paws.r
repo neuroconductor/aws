@@ -27,8 +27,7 @@
 #
 #     default parameters:  see function setawsdefaults
 #
-paws <-
-  function(y,
+paws <- function(y,
            hmax = NULL,
            onestep = FALSE,
            aws = TRUE,
@@ -199,8 +198,7 @@ paws <-
         1
       # all other cases
       if (cpar$mcode != 6) {
-        zobj <- .Fortran(
-          "pcaws",
+        zobj <- .Fortran(C_pcaws,
           as.double(y),
           as.integer(n1),
           as.integer(n2),
@@ -220,8 +218,7 @@ paws <-
           as.integer(np1 * np2 * np3),
           as.integer(patchsize),
           double(np1 * np2 * np3 * mc.cores),
-          double(np1 * np2 * np3 * mc.cores),
-          PACKAGE = "aws"
+          double(np1 * np2 * np3 * mc.cores)
         )[c("bi", "bi0", "bi2", "ai", "hakt")]
       } else {
         stop("Non-central chi model not implemented")
@@ -464,8 +461,7 @@ paws <-
   ##
   ##  Version with mask
   ##
-  pawsm <-
-    function(y,
+  pawsm <- function(y,
              mask,
              hmax = NULL,
              onestep = FALSE,
@@ -643,8 +639,7 @@ paws <-
           1
         # all other cases
         if (cpar$mcode != 6) {
-          tobj <- .Fortran(
-            "pcawsm",
+          tobj <- .Fortran(C_pcawsm,
             as.double(y[mask]),
             as.integer(position),
             as.integer(n1),
@@ -664,8 +659,7 @@ paws <-
             as.integer(np1 * np2 * np3),
             as.integer(patchsize),
             double(np1 * np2 * np3 * mc.cores),
-            double(np1 * np2 * np3 * mc.cores),
-            PACKAGE = "aws"
+            double(np1 * np2 * np3 * mc.cores)
           )[c("bi", "bi2", "theta", "hakt")]
         } else {
           stop("Non-central chi model not implemented")

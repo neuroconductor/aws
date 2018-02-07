@@ -160,14 +160,12 @@ awstestprop <- function(dy,
     "Variance" = shape / 2 * (log(y) - 1 + 1 / y),
     "NCchi" = kldistnorm1(theta, y, shape)
   )
-  exceedence0 <- .Fortran(
-    "exceed",
+  exceedence0 <- .Fortran(C_exceed,
     as.double(KLdist0),
     as.integer(length(KLdist0)),
     as.double(z),
     as.integer(nz),
-    exprob = double(nz),
-    PACKAGE = "aws"
+    exprob = double(nz)
   )$exprob
   #
   #  now iterate
@@ -190,8 +188,7 @@ awstestprop <- function(dy,
     #   get nonadaptive estimate
     #
     if (!homogeneous & family == "Gaussian") {
-      zobj0 <- .Fortran(
-        "chaws1",
+      zobj0 <- .Fortran(C_chaws1,
         as.double(y),
         as.double(sigma2),
         as.integer(n1),
@@ -206,12 +203,10 @@ awstestprop <- function(dy,
         ai = double(n),
         as.integer(lkern),
         double(prod(dlw)),
-        as.double(wghts),
-        PACKAGE = "aws"
+        as.double(wghts)
       )[c("bi", "ai", "hakt")]
     } else {
-      zobj0 <- .Fortran(
-        "caws1",
+      zobj0 <- .Fortran(C_caws1,
         as.double(y),
         as.integer(n1),
         as.integer(n2),
@@ -223,8 +218,7 @@ awstestprop <- function(dy,
         ai = double(n),
         as.integer(lkern),
         double(prod(dlw)),
-        as.double(wghts),
-        PACKAGE = "aws"
+        as.double(wghts)
       )[c("bi", "ai", "hakt")]
     }
     if (family %in% c("Bernoulli", "Poisson"))
@@ -255,21 +249,18 @@ awstestprop <- function(dy,
                                   yhat0),
       "NCchi" = kldistnorm1(theta, yhat0, shape)
     )
-    exceedencena[, k] <- .Fortran(
-      "exceed",
+    exceedencena[, k] <- .Fortran(C_exceed,
       as.double(KLdist0),
       as.integer(length(KLdist0)),
       as.double(z / ni),
       as.integer(nz),
-      exprob = double(nz),
-      PACKAGE = "aws"
+      exprob = double(nz)
     )$exprob
     #
     #   get adaptive estimate
     #
     if (!homogeneous & family == "Gaussian") {
-      zobj <- .Fortran(
-        "chaws",
+      zobj <- .Fortran(C_chaws,
         as.double(y),
         as.logical(rep(FALSE, n)),
         as.double(sigma2),
@@ -289,13 +280,11 @@ awstestprop <- function(dy,
         as.integer(lkern),
         as.double(spmin),
         double(prod(dlw)),
-        as.double(wghts),
-        PACKAGE = "aws"
+        as.double(wghts)
       )[c("bi", "bi2", "ai", "hakt")]
     } else {
       if (cpar$mcode != 6) {
-        zobj <- .Fortran(
-          "caws",
+        zobj <- .Fortran(C_caws,
           as.double(y),
           as.logical(rep(FALSE, n)),
           as.integer(n1),
@@ -313,12 +302,10 @@ awstestprop <- function(dy,
           as.integer(lkern),
           as.double(spmin),
           double(prod(dlw)),
-          as.double(wghts),
-          PACKAGE = "aws"
+          as.double(wghts)
         )[c("bi", "bi2", "ai", "hakt")]
       } else {
-        zobj <- .Fortran(
-          "caws6",
+        zobj <- .Fortran(C_caws6,
           as.double(y),
           as.logical(rep(FALSE, n)),
           as.integer(n1),
@@ -336,8 +323,7 @@ awstestprop <- function(dy,
           as.integer(lkern),
           as.double(spmin),
           double(prod(dlw)),
-          as.double(wghts),
-          PACKAGE = "aws"
+          as.double(wghts)
         )[c("bi", "bi2", "ai", "hakt")]
       }
     }
@@ -369,16 +355,14 @@ awstestprop <- function(dy,
                                   yhat0),
       "NCchi" = kldistnorm1(theta, yhat0, shape)
     )
-    exceedence[, k] <- .Fortran(
-      "exceed",
+    exceedence[, k] <- .Fortran(C_exceed,
       as.double(KLdist1),
       as.integer(length(KLdist1)),
       as.double(z / ni),
       as.integer(nz),
-      exprob = double(nz),
-      PACKAGE = "aws"
+      exprob = double(nz)
     )$exprob
-    
+
     contour(
       z,
       0:k,
@@ -432,7 +416,7 @@ awstestprop <- function(dy,
   }
   if (family %in% c("Bernoulli", "Poisson"))
     y <- y0
-  
+
   list(
     h = h,
     z = z,
@@ -524,8 +508,7 @@ awsweights <- function(awsobj, spmin = 0.25, inx = NULL) {
       else
         rep(1, anzx)
     }
-    zobj <- .Fortran(
-      "cawsw1",
+    zobj <- .Fortran(C_cawsw1,
       as.integer(n1),
       as.integer(n2),
       as.integer(n3),
@@ -541,8 +524,7 @@ awsweights <- function(awsobj, spmin = 0.25, inx = NULL) {
       as.integer(lkern),
       as.double(spmin),
       double(prod(dlw)),
-      wghts = double(n * anzx),
-      PACKAGE = "aws"
+      wghts = double(n * anzx)
     )$wghts
     dim(zobj) <- if (anzx == 1)
       dy
@@ -551,8 +533,7 @@ awsweights <- function(awsobj, spmin = 0.25, inx = NULL) {
   } else{
     if (n > 128 ^ 2)
       stop("Weight scheme would use more than 2 GB memory, please specify locations in inx ")
-    zobj <- .Fortran(
-      "cawsw",
+    zobj <- .Fortran(C_cawsw,
       as.integer(n1),
       as.integer(n2),
       as.integer(n3),
@@ -564,8 +545,7 @@ awsweights <- function(awsobj, spmin = 0.25, inx = NULL) {
       as.integer(lkern),
       as.double(spmin),
       double(prod(dlw)),
-      wghts = double(n * n),
-      PACKAGE = "aws"
+      wghts = double(n * n)
     )$wghts
     dim(zobj) <- c(dy, dy)
   }

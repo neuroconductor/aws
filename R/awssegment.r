@@ -44,7 +44,16 @@ aws.segment <- function(y,
                         demo = FALSE,
                         fov = NULL)
 {
-  #
+  setawsthresh <- function(d, kstar, ladjust, ext) {
+    ladjust <- min(ladjust, switch(d, 1.68, 2.37, 2.44))
+    #  for ladjust>=switch(d,1.68,2.37,2.44) use nonadaptive thresholds
+    switch(
+      d,
+      1.65  + 0.1952 * log(kstar) - 0.0473 * ladjust - 0.6771 * ext,
+      1.729 + 0.2831 * log(kstar) - 0.2715 * ladjust - 0.4576 * ext,
+      1.696 + 0.4010 * log(kstar) - 0.2975 * ladjust - 0.4273 * ext
+    )
+  }
   #    first check arguments and initialize
   #
   args <- match.call()
@@ -180,8 +189,7 @@ aws.segment <- function(y,
   if (is.null(hpre))
     hpre <- 20 ^ (1 / d)
   dlw <- (2 * trunc(hpre / c(1, wghts)) + 1)[1:d]
-  hobj <- .Fortran(
-    "caws",
+  hobj <- .Fortran(C_caws,
     as.double(y),
     as.logical(fix),
     as.integer(n1),
@@ -199,8 +207,7 @@ aws.segment <- function(y,
     as.integer(lkern),
     as.double(0.25),
     double(prod(dlw)),
-    as.double(wghts),
-    PACKAGE = "aws"
+    as.double(wghts)
   )[c("bi", "ai")]
   hobj$theta <- hobj$ai / hobj$bi
   dim(hobj$theta) <- dim(hobj$bi) <- dy
@@ -223,8 +230,7 @@ aws.segment <- function(y,
     # Correction for spatial correlation depends on h^{(k)}
     hakt0 <- hakt
     # heteroskedastic Gaussian case
-    zobj <- .Fortran(
-      "segment",
+    zobj <- .Fortran(C_segment,
       as.double(y),
       fix = as.logical(fix),
       as.double(level),
@@ -254,8 +260,7 @@ aws.segment <- function(y,
       as.double(thresh),
       as.double(ext),
       as.double(fov),
-      varest = as.double(varest),
-      PACKAGE = "aws"
+      varest = as.double(varest)
     )[c("fix",
         "bi",
         "bi0",
@@ -495,15 +500,5 @@ aws.segment <- function(y,
     varmodel = varmodel,
     vcoef = coef,
     mae = mae
-  )
-}
-setawsthresh <- function(d, kstar, ladjust, ext) {
-  ladjust <- min(ladjust, switch(d, 1.68, 2.37, 2.44))
-  #  for ladjust>=switch(d,1.68,2.37,2.44) use nonadaptive thresholds
-  switch(
-    d,
-    1.65  + 0.1952 * log(kstar) - 0.0473 * ladjust - 0.6771 * ext,
-    1.729 + 0.2831 * log(kstar) - 0.2715 * ladjust - 0.4576 * ext,
-    1.696 + 0.4010 * log(kstar) - 0.2975 * ladjust - 0.4273 * ext
   )
 }

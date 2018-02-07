@@ -61,14 +61,12 @@ aws.irreg <- function(y,
     apply(zbins$x, 2, max)
   mask <- ni > 0
   if (!is.null(henv))
-    mask <- .Fortran(
-      "mask",
+    mask <- .Fortran(C_mask,
       as.logical(mask),
       mask = as.logical(mask),
       as.integer(nbins[1]),
       as.integer(switch(d, 1, nbins[2])),
-      as.integer(max(0, henv)),
-      PACKAGE = "aws"
+      as.integer(max(0, henv))
     )$mask
   yy <- rep(mean(y), length(mask))
   dim(yy) <- dim(mask) <- dim(ni)
@@ -164,8 +162,7 @@ aws.irreg <- function(y,
   if (is.null(hpre))
     hpre <- (20 * nn / n) ^ (1 / d)
   dlw <- (2 * trunc(hpre / c(1, wghts)) + 1)[1:d]
-  hobj <- .Fortran(
-    "cawsmask",
+  hobj <- .Fortran(C_cawsmask,
     as.double(yy),
     as.logical(ni > 0),
     # bins where we need estimates
@@ -185,8 +182,7 @@ aws.irreg <- function(y,
     as.integer(lkern),
     as.double(0.25),
     double(prod(dlw)),
-    as.double(wghts),
-    PACKAGE = "aws"
+    as.double(wghts)
   )[c("bi", "ai")]
   hobj$theta <- hobj$ai / hobj$bi
   hobj$theta[ni == 0] <- mean(hobj$theta[ni > 0])
@@ -207,8 +203,7 @@ aws.irreg <- function(y,
     }
     dlw <- (2 * trunc(hakt / c(1, wghts)) + 1)[1:d]
     # heteroskedastic Gaussian case
-    zobj <- .Fortran(
-      "cgawsmas",
+    zobj <- .Fortran(C_cgawsmas,
       as.double(yy),
       as.logical(mask),
       # bins where we need estimates
@@ -230,8 +225,7 @@ aws.irreg <- function(y,
       as.integer(lkern),
       as.double(0.25),
       double(prod(dlw)),
-      as.double(wghts),
-      PACKAGE = "aws"
+      as.double(wghts)
     )[c("bi", "bi0", "bi2", "vred", "ai", "hakt")]
     vred[!tobj$fix] <- zobj$vred[!tobj$fix]
     dim(zobj$ai) <- dy
@@ -380,7 +374,7 @@ aws.irreg <- function(y,
     xmin = xmin,
     xmax = xmax
   )
-  
+
 }
 ############################################################################
 #

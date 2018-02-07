@@ -6,16 +6,17 @@ vector valued version of function \code{\link{paws}} with full covariance struct
 }
 \description{
 The function implements a vector-valued version the propagation separation approach that
-uses patches instead of individuel voxels for comparisons in parameter space. Functionality is analog to function \code{\link{vpaws}}. The function differs from 
+uses patches instead of individuel voxels for comparisons in parameter space. Functionality is analog to function \code{\link{vpaws}}. The function differs from
 \code{\link{vpaws}} inverse covariance matrices (stored as lower diagonals) for each
-grid point. 
-Using patches allows for an improved 
+grid point.
+Using patches allows for an improved
 handling of locally smooth functions and in 2D and 3D for improved smoothness of
-discontinuities at the expense of increased computing time. 
+discontinuities at the expense of increased computing time.
 
 }
 \usage{
-vpawsfull(y, kstar = 16, invcov = NULL, mask = NULL, scorr = 0, spmin = 0.25, ladjust = 1, wghts = NULL, u = NULL, maxni = FALSE, patchsize = 1)
+vpawsfull(y, kstar = 16, invcov = NULL, mask = NULL, scorr = 0, spmin = 0.25,
+          ladjust = 1, wghts = NULL, u = NULL, maxni = FALSE, patchsize = 1)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -24,7 +25,7 @@ vpawsfull(y, kstar = 16, invcov = NULL, mask = NULL, scorr = 0, spmin = 0.25, la
   \item{kstar}{maximal number of steps to employ. Determines maximal bandwidth.
 }
   \item{invcov}{
-array of dimension \code{c(dim(y)[1]*(dim(y)[1]+1)/2,dim(y)[-1])} containing inverse covariance matrices (lower triangular form) for each grid point. 
+array of dimension \code{c(dim(y)[1]*(dim(y)[1]+1)/2,dim(y)[-1])} containing inverse covariance matrices (lower triangular form) for each grid point.
 }
   \item{mask}{
 logical mask. All computations are restrikted to design poins within the mask.
@@ -60,7 +61,7 @@ returns anobject of class \code{aws} with slots
                         \item{x = "numeric"}{numeric(0)}
                         \item{ni = "integer"}{integer(0)}
                         \item{mask = "logical"}{logical(0)}
-                        \item{theta = "numeric"}{Estimates of regression function, \code{length: length(y)}}                        
+                        \item{theta = "numeric"}{Estimates of regression function, \code{length: length(y)}}
                         \item{hseq = "numeric"}{sequence of bandwidths employed}
                         \item{mae = "numeric"}{Mean absolute error for each iteration step if u was specified,  numeric(0) else}
                         \item{psnr = "numeric"}{Peak signal-to-noise ratio for each iteration step if u was specified,  numeric(0) else}

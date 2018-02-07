@@ -73,8 +73,7 @@ vpaws <- function(y,
       lambda0 <-
       lambda0 * Spatialvar.gauss(hakt0 / 0.42445 / 4, h0, d) / Spatialvar.gauss(hakt0 /
                                                                                   0.42445 / 4, 1e-5, d)
-    zobj <- .Fortran(
-      "vpaws",
+    zobj <- .Fortran(C_pvaws,
       as.double(y),
       as.logical(mask),
       as.integer(nvec),
@@ -95,8 +94,7 @@ vpaws <- function(y,
       as.integer(np2),
       as.integer(np3),
       double(nvec * np1 * np2 * np3 * mc.cores),
-      double(np1 * np2 * np3 * mc.cores),
-      PACKAGE = "aws"
+      double(np1 * np2 * np3 * mc.cores)
     )[c("bi", "theta", "hakt")]
     dim(zobj$theta) <- c(nvec, dy)
     if (maxni)
@@ -229,8 +227,7 @@ vpawsfull <- function(y,
       lambda0 <-
       lambda0 * Spatialvar.gauss(hakt0 / 0.42445 / 4, h0, d) / Spatialvar.gauss(hakt0 /
                                                                                   0.42445 / 4, 1e-5, d)
-    zobj <- .Fortran(
-      "pvaws2",
+    zobj <- .Fortran(C_pvaws2,
       as.double(y),
       as.logical(mask),
       as.integer(nvec),
@@ -255,8 +252,7 @@ vpawsfull <- function(y,
       double(nvec * np1 * np2 * np3 * mc.cores),
       double(nvec * (nvec + 1) / 2 * np1 * np2 * np3 *
                mc.cores),
-      double(np1 * np2 * np3 * mc.cores),
-      PACKAGE = "aws"
+      double(np1 * np2 * np3 * mc.cores)
     )[c("bi", "theta", "hakt")]
     dim(zobj$theta) <- c(nvec, dy)
     if (maxni)

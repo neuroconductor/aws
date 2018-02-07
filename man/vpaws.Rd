@@ -5,13 +5,14 @@
 vector valued version of function \code{\link{paws}} with homogeneous covariance structure
 }
 \description{The function implements a vector-valued version the propagation separation approach that
-uses patches instead of individuel voxels for comparisons in parameter space. Functionality is analog to function \code{\link{vaws}}. Using patches allows for an improved 
+uses patches instead of individuel voxels for comparisons in parameter space. Functionality is analog to function \code{\link{vaws}}. Using patches allows for an improved
 handling of locally smooth functions and in 2D and 3D for improved smoothness of
-discontinuities at the expense of increased computing time. 
+discontinuities at the expense of increased computing time.
 
 }
 \usage{
-vpaws(y, kstar = 16, sigma2 = 1, mask = NULL, scorr = 0, spmin = 0.25, ladjust = 1, wghts = NULL, u = NULL, maxni = FALSE, patchsize = 1)
+vpaws(y, kstar = 16, sigma2 = 1, mask = NULL, scorr = 0, spmin = 0.25,
+      ladjust = 1, wghts = NULL, u = NULL, maxni = FALSE, patchsize = 1)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -42,7 +43,7 @@ factor to increase the default value of lambda
 }
   \item{u}{
 a "true" value of the regression function, may be provided to
-   report risks at each iteration. This can be used to test the propagation condition with \code{u=0} 
+   report risks at each iteration. This can be used to test the propagation condition with \code{u=0}
 }
   \item{maxni}{
 If TRUE use \eqn{max_{l<=k}(N_i^{(l)}} instead of \eqn{(N_i^{(k)}} in the definition of the statistical penalty.
@@ -60,7 +61,7 @@ returns anobject of class \code{aws} with slots
                         \item{x = "numeric"}{numeric(0)}
                         \item{ni = "integer"}{integer(0)}
                         \item{mask = "logical"}{logical(0)}
-                        \item{theta = "numeric"}{Estimates of regression function, \code{length: length(y)}}                        
+                        \item{theta = "numeric"}{Estimates of regression function, \code{length: length(y)}}
                         \item{hseq = "numeric"}{sequence of bandwidths employed}
                         \item{mae = "numeric"}{Mean absolute error for each iteration step if u was specified,  numeric(0) else}
                         \item{psnr = "numeric"}{Peak signal-to-noise ratio for each iteration step if u was specified,  numeric(0) else}

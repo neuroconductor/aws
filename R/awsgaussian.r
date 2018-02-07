@@ -27,8 +27,7 @@
 #
 #     default parameters:  see function setawsdefaults
 #
-aws.gaussian <-
-  function(y,
+aws.gaussian <- function(y,
            hmax = NULL,
            hpre = NULL,
            aws = TRUE,
@@ -139,8 +138,7 @@ aws.gaussian <-
     if (is.null(hpre))
       hpre <- 20 ^ (1 / d)
     dlw <- (2 * trunc(hpre / c(1, wghts)) + 1)[1:d]
-    hobj <- .Fortran(
-      "caws",
+    hobj <- .Fortran(C_caws,
       as.double(y),
       as.logical(tobj$fix),
       as.integer(n1),
@@ -158,8 +156,7 @@ aws.gaussian <-
       as.integer(lkern),
       as.double(0.25),
       double(prod(dlw)),
-      as.double(wghts),
-      PACKAGE = "aws"
+      as.double(wghts)
     )[c("bi", "ai")]
     hobj$theta <- hobj$ai / hobj$bi
     dim(hobj$theta) <- dim(hobj$bi) <- dy
@@ -184,8 +181,7 @@ aws.gaussian <-
       # Correction for spatial correlation depends on h^{(k)}
       hakt0 <- hakt
       # heteroskedastic Gaussian case
-      zobj <- .Fortran(
-        "cgaws",
+      zobj <- .Fortran(C_cgaws,
         as.double(y),
         as.logical(tobj$fix),
         as.logical(mask),
@@ -206,8 +202,7 @@ aws.gaussian <-
         as.integer(lkern),
         as.double(0.25),
         double(prod(dlw)),
-        as.double(wghts),
-        PACKAGE = "aws"
+        as.double(wghts)
       )[c("bi", "bi0", "bi2", "hhom", "vred", "ai", "gi", "hakt")]
       vred[!tobj$fix] <- zobj$vred[!tobj$fix]
       dim(zobj$ai) <- dy

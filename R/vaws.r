@@ -63,8 +63,7 @@ vaws <- function(y,
       lambda0 <-
       lambda0 * Spatialvar.gauss(hakt0 / 0.42445 / 4, h0, d) / Spatialvar.gauss(hakt0 /
                                                                                   0.42445 / 4, 1e-5, d)
-    zobj <- .Fortran(
-      "vaws",
+    zobj <- .Fortran(C_vaws,
       as.double(y),
       as.logical(mask),
       as.integer(nvec),
@@ -80,8 +79,7 @@ vaws <- function(y,
       as.double(spmin),
       double(prod(dlw)),
       as.double(wghts),
-      double(nvec * mc.cores),
-      PACKAGE = "aws"
+      double(nvec * mc.cores)
     )[c("bi", "theta", "hakt")]
     dim(zobj$theta) <- c(nvec, dy)
     if (maxni)
@@ -134,106 +132,4 @@ vaws <- function(y,
     psnr = NULL,
     ni = zobj$bi
   )
-}
-
-vsegm <- function(theta, bi, mask, level) {
-  dth <- dim(theta)
-  dy <- dth[-1]
-  nv <- dth[1]
-  n1 <- dy[1]
-  n2 <- dy[2]
-  n3 <- dy[3]
-  n <- n1 * n2 * n3
-  segm <- .Fortran(
-    "vsegmen0",
-    as.double(theta),
-    as.double(bi),
-    as.logical(mask),
-    as.double(level),
-    double(prod(2 * dy + 1)),
-    as.integer(nv),
-    as.integer(2 * n1 + 1),
-    as.integer(2 * n2 + 1),
-    as.integer(2 * n3 + 1),
-    integer(n),
-    segm = integer(n),
-    PACKAGE = "aws"
-  )$segm
-  dim(segm) <- dy
-  segm
-}
-
-fillsegm <- function(segm, mask, slevel) {
-  ##
-  ##  replace segment number>slevel with a segment number
-  ##  from an adjacent region (in mask and segm<=slevel)
-  ##
-  ds <- dim(segm)
-  n1 <- ds[1]
-  n2 <- ds[2]
-  n3 <- ds[3]
-  n <- n1 * n2 * n3
-  ntbl <- sum(segm[mask] > slevel)
-  z <- .Fortran(
-    "fillsegm",
-    nseg = as.integer(segm),
-    as.integer(n1),
-    as.integer(n2),
-    as.integer(n3),
-    as.logical(mask),
-    integer(3 * ntbl),
-    as.integer(ntbl),
-    as.integer(slevel),
-    PACKAGE = "aws"
-  )$nseg
-  array(z, ds)
-}
-
-vdetrend <- function(theta, mask, h) {
-  ##
-  ##  remove spatial trends using a median filter
-  ##  trend removal will be everywhere as long as there are
-  ##  active (mask==TRUE) voxel within a ball of radius h
-  ##
-  dth <- dim(theta)
-  dy <- dth[-1]
-  nv <- dth[1]
-  n1 <- dy[1]
-  n2 <- dy[2]
-  n3 <- dy[3]
-  n <- n1 * n2 * n3
-  newtheta <- theta
-  mc.cores <- setCores(, reprt = FALSE)
-  nwmd <- (2 * as.integer(h) + 1) ^ 3
-  parammd <- .Fortran(
-    "paramw3",
-    as.double(h),
-    as.double(c(1, 1)),
-    ind = integer(3 * nwmd),
-    w = double(nwmd),
-    n = as.integer(nwmd),
-    PACKAGE = "aws"
-  )[c("ind", "n")]
-  nwmd <- parammd$n
-  parammd$ind <- parammd$ind[1:(3 * nwmd)]
-  dim(parammd$ind) <- c(3, nwmd)
-  nind <- (2 * h + 1) ^ 3
-  for (k in 1:nv) {
-    z <- .Fortran(
-      "medsm1",
-      as.double(theta[k, , , ]),
-      as.logical(mask),
-      as.integer(n1),
-      as.integer(n2),
-      as.integer(n3),
-      as.integer(parammd$ind),
-      as.integer(nwmd),
-      double(2 * nwmd * mc.cores),
-      as.integer(mc.cores),
-      thnew = double(n),
-      PACKAGE = "aws"
-    )$thnew
-    newtheta[k, , , ] <- z
-  }
-  theta - newtheta
 }

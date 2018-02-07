@@ -190,8 +190,7 @@ aws <- function(y,
     # Correction for spatial correlation depends on h^{(k)}
     if (family == "Gaussian" & length(sigma2) == n) {
       # heteroskedastic Gaussian case
-      zobj <- .Fortran(
-        "chaws",
+      zobj <- .Fortran(C_chaws,
         as.double(y),
         as.logical(tobj$fix),
         as.double(sigma2),
@@ -210,15 +209,13 @@ aws <- function(y,
         as.integer(lkern),
         as.double(spmin),
         double(prod(dlw)),
-        as.double(wghts),
-        PACKAGE = "aws"
+        as.double(wghts)
       )[c("bi", "bi0", "bi2", "vred", "ai", "hakt")]
       vred[!tobj$fix] <- zobj$vred[!tobj$fix]
     } else {
       # all other cases
       if (cpar$mcode != 6) {
-        zobj <- .Fortran(
-          "caws",
+        zobj <- .Fortran(C_caws,
           as.double(y),
           as.logical(tobj$fix),
           as.integer(n1),
@@ -236,12 +233,10 @@ aws <- function(y,
           as.integer(lkern),
           as.double(spmin),
           double(prod(dlw)),
-          as.double(wghts),
-          PACKAGE = "aws"
+          as.double(wghts)
         )[c("bi", "bi0", "bi2", "ai", "hakt", "hhom")]
       } else {
-        zobj <- .Fortran(
-          "caws6",
+        zobj <- .Fortran(C_caws6,
           as.double(y),
           as.logical(tobj$fix),
           as.integer(n1),
@@ -256,12 +251,10 @@ aws <- function(y,
           bi2 = double(n),
           bi0 = double(n),
           ai = as.double(zobj$ai),
-          as.integer(cpar$mcode),
           as.integer(lkern),
           as.double(spmin),
           double(prod(dlw)),
-          as.double(wghts),
-          PACKAGE = "aws"
+          as.double(wghts)
         )[c("bi", "bi0", "bi2", "ai", "hakt", "hhom")]
       }
     }
@@ -544,8 +537,7 @@ aws <- function(y,
 # see script aws_propagation.r
 #
 #######################################################################################
-setawsdefaults <-
-  function(dy,
+setawsdefaults <- function(dy,
            meany,
            family,
            lkern,
@@ -749,12 +741,6 @@ KLdist <- function(mcode, th1, th2, bi0, shape) {
   z[is.na(z)] <- 0
   z
 }
-KLdist6 <- function(th1, th2, bi0, shape1, shape2) {
-  # case mcode=6 Symmetrized Gauss approximation
-  (th1 - th2) ^ 2 / (shape1 + shape2)
-  z[is.na(z)] <- 0
-  z
-}
 ####################################################################################
 #
 #    Memory step for local constant aws
@@ -906,25 +892,21 @@ awsfamily <- function(family,
 }
 
 getvofh <- function(bw, lkern, wght) {
-  .Fortran(
-    "getvofh",
+  .Fortran(C_getvofh,
     as.double(bw),
     as.integer(lkern),
     as.double(wght),
-    vol = double(1),
-    PACKAGE = "aws"
+    vol = double(1)
   )$vol
 }
 gethani <- function(x, y, lkern, value, wght, eps = 1e-2) {
-  .Fortran(
-    "gethani",
+  .Fortran(C_gethani,
     as.double(x),
     as.double(y),
     as.integer(lkern),
     as.double(value),
     as.double(wght),
     as.double(eps),
-    bw = double(1),
-    PACKAGE = "aws"
+    bw = double(1)
   )$bw
 }

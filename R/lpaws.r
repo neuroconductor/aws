@@ -27,8 +27,7 @@
 #   Local polynomal AWS (Gaussian case on a grid) max. polynomial degree 2
 #
 ##############################################################################
-lpaws <-
-  function(y,
+lpaws <- function(y,
            degree = 1,
            hmax = NULL,
            aws = TRUE,
@@ -60,47 +59,13 @@ lpaws <-
       }
       if (d == 2) {
         ind <- matrix(
-          c(
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            2,
-            4,
-            5,
-            7,
-            8,
-            9,
-            3,
-            5,
-            6,
-            8,
-            9,
-            10,
-            4,
-            7,
-            8,
-            11,
-            12,
-            13,
-            5,
-            8,
-            9,
-            12,
-            13,
-            14,
-            6,
-            9,
-            10,
-            13,
-            14,
-            15
-          ),
-          6,
-          6
-        )[1:dp1, 1:dp1, drop = FALSE]
+          c(1,2,3,4,5,6,
+            2,4,5,7,8,9,
+            3,5,6,8,9,10,
+            4,7,8,11,12,13,
+            5,8,9,12,13,14,
+            6,9,10,13,14,15),
+          6,6)[1:dp1, 1:dp1, drop = FALSE]
         dist <- 0
         for (i in 1:dp1)
           for (j in 1:dp1)
@@ -119,8 +84,7 @@ lpaws <-
         ind <- matrix(c(1, 2, 3,
                         2, 3, 4,
                         3, 4, 5), 3, 3)[1:dp1, 1:dp1]
-        theta <- .Fortran(
-          "mpaws1",
+        theta <- .Fortran(C_mpaws1,
           as.integer(n),
           as.integer(dp1),
           as.integer(dp2),
@@ -128,8 +92,7 @@ lpaws <-
           as.double(bi),
           theta = double(dp1 * n),
           double(dp1 * dp1),
-          as.integer(ind),
-          PACKAGE = "aws"
+          as.integer(ind)
         )$theta
       }  else {
         n1 <- dim(ai)[1]
@@ -138,49 +101,14 @@ lpaws <-
         dp1 <- dim(ai)[3]
         dp2 <- dim(bi)[3]
         ind <- matrix(
-          c(
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            2,
-            4,
-            5,
-            7,
-            8,
-            9,
-            3,
-            5,
-            6,
-            8,
-            9,
-            10,
-            4,
-            7,
-            8,
-            11,
-            12,
-            13,
-            5,
-            8,
-            9,
-            12,
-            13,
-            14,
-            6,
-            9,
-            10,
-            13,
-            14,
-            15
-          ),
-          6,
-          6
-        )[1:dp1, 1:dp1]
-        theta <- .Fortran(
-          "mpaws2",
+          c(1,2,3,4,5,6,
+            2,4,5,7,8,9,
+            3,5,6,8,9,10,
+            4,7,8,11,12,13,
+            5,8,9,12,13,14,
+            6,9,10,13,14,15),
+          6,6)[1:dp1, 1:dp1]
+        theta <- .Fortran(C_mpaws2,
           as.integer(n),
           as.integer(dp1),
           as.integer(dp2),
@@ -188,8 +116,7 @@ lpaws <-
           as.double(bi),
           theta = double(dp1 * n),
           double(dp1 * dp1),
-          as.integer(ind),
-          PACKAGE = "aws"
+          as.integer(ind)
         )$theta
       }
       dim(theta) <- switch(d, c(n, dp1), c(n1, n2, dp1))
@@ -406,47 +333,12 @@ lpaws <-
                            2, 3, 4,
                            3, 4, 5), 3, 3)[1:dp1, 1:dp1],
                   matrix(
-                    c(
-                      1,
-                      2,
-                      3,
-                      4,
-                      5,
-                      6,
-                      2,
-                      4,
-                      5,
-                      7,
-                      8,
-                      9,
-                      3,
-                      5,
-                      6,
-                      8,
-                      9,
-                      10,
-                      4,
-                      7,
-                      8,
-                      11,
-                      12,
-                      13,
-                      5,
-                      8,
-                      9,
-                      12,
-                      13,
-                      14,
-                      6,
-                      9,
-                      10,
-                      13,
-                      14,
-                      15
-                    ),
-                    6,
-                    6
-                  )[1:dp1, 1:dp1])
+                    c(1,2,3,4,5,6,
+                      2,4,5,7,8,9,
+                      3,5,6,8,9,10,
+                      4,7,8,11,12,13,
+                      5,8,9,12,13,14,
+                      6,9,10,13,14,15),6,6)[1:dp1, 1:dp1])
     if (is.null(hw))
       hw <- switch(d, degree + 1.1, degree + .1)
     else
@@ -482,8 +374,7 @@ lpaws <-
         # heteroskedastic Gaussian case
         zobj <- switch(
           d,
-          .Fortran(
-            "awsph1",
+          .Fortran(C_awsph1,
             as.double(y),
             as.double(sigma2),
             fix = as.logical(fix),
@@ -509,11 +400,9 @@ lpaws <-
             # array for smoothed location weights
             double(twohhwp1 * mc.cores),
             # array for smoothed general weights
-            as.integer(ind),
-            PACKAGE = "aws"
+            as.integer(ind)
           )[c("bi", "bi0", "bi2", "ai", "hakt", "hhom", "fix")],
-          .Fortran(
-            "awsph2",
+          .Fortran(C_awsph2,
             as.double(y),
             as.double(sigma2),
             fix = as.logical(fix),
@@ -540,16 +429,14 @@ lpaws <-
             # array for smoothed location weights
             double(twohhwp1 * twohhwp1 * mc.cores),
             # array for smoothed general weights
-            as.integer(ind),
-            PACKAGE = "aws"
+            as.integer(ind)
           )[c("bi", "bi0", "bi2", "ai", "hakt", "hhom", "fix")]
         )
       } else {
         # all other cases
         zobj <- switch(
           d,
-          .Fortran(
-            "awsp1b",
+          .Fortran(C_awsp1b,
             as.double(y),
             fix = as.logical(fix),
             as.integer(nfix),
@@ -574,11 +461,9 @@ lpaws <-
             # array for smoothed location weights
             double(twohhwp1 * mc.cores),
             # array for smoothed general weights
-            as.integer(ind),
-            PACKAGE = "aws"
+            as.integer(ind)
           )[c("bi", "bi0", "bi2", "ai", "hakt", "hhom", "fix")],
-          .Fortran(
-            "awsp2",
+          .Fortran(C_awsp2,
             as.double(y),
             fix = as.logical(fix),
             as.integer(nfix),
@@ -604,8 +489,7 @@ lpaws <-
             # array for smoothed location weights
             double(twohhwp1 * twohhwp1 * mc.cores),
             # array for smoothed general weights
-            as.integer(ind),
-            PACKAGE = "aws"
+            as.integer(ind)
           )[c("bi", "bi0", "bi2", "ai", "hakt", "hhom", "fix")]
         )
       }
@@ -735,14 +619,12 @@ lpaws <-
     ###
     ###   component var contains an estimate of Var(theta) if and aggkern="Uniform", or if !memory
     ###
-    vartheta <- .Fortran(
-      "vpaws",
+    vartheta <- .Fortran(C_vpaws,
       as.integer(n),
       as.integer(dp2),
       as.double(bi),
       as.double(bi2),
-      var = double(n),
-      PACKAGE = "aws"
+      var = double(n)
     )$var
     dim(vartheta) <- dy
     if (length(sigma2) != n) {

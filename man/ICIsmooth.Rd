@@ -9,8 +9,9 @@ The function performs adaptive smoothing by Intersection of Confidence Intervals
 as described in Katkovnik et al (2006)
 }
 \usage{
-ICIsmooth(y, hmax, hinc = 1.45, thresh = NULL, kern = "Gaussian", m = 0, sigma = NULL,
-          nsector = 1, sector = 1, symmetric = FALSE, presmooth = FALSE, unit = c("SD","FWHM"))
+ICIsmooth(y, hmax, hinc = 1.45, thresh = NULL, kern = "Gaussian", m = 0,
+          sigma = NULL, nsector = 1, sector = 1, symmetric = FALSE,
+          presmooth = FALSE, unit = c("SD","FWHM"))
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

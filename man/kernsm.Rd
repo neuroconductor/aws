@@ -8,9 +8,9 @@ Kernel smoothing on a 1D, 2D or 3D grid
 Performs Kernel smoothing on a 1D, 2D or 3D grid by fft
 }
 \usage{
-kernsm(y, h = 1, kern = "Gaussian", m = 0, nsector = 1, sector = 1, symmetric = FALSE, unit = c("SD","FWHM"))
+kernsm(y, h = 1, kern = "Gaussian", m = 0, nsector = 1, sector = 1,
+       symmetric = FALSE, unit = c("SD","FWHM"))
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{y}{
 Object of class \code{"array"} containing the original (response) data

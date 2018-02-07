@@ -115,8 +115,7 @@ setClass(
     call = "call"
   )
 )
-kernsmobj <-
-  function(y,
+kernsmobj <-  function(y,
            x = numeric(0),
            h,
            kern,
@@ -151,8 +150,7 @@ kernsmobj <-
       )
     )
   }
-ICIsmoothobj <-
-  function(y,
+ICIsmoothobj <-  function(y,
            x = numeric(0),
            h,
            hinc,
@@ -199,8 +197,7 @@ ICIsmoothobj <-
     )
   }
 
-awsobj <-
-  function(y,
+awsobj <-  function(y,
            theta,
            var,
            hmax,
@@ -278,8 +275,7 @@ awsobj <-
       )
     )
   }
-awssegmentobj <-
-  function(y,
+  awssegmentobj <- function(y,
            theta,
            segment,
            var,
@@ -293,6 +289,7 @@ awssegmentobj <-
            aws,
            memory,
            call,
+           hseq = NULL,
            homogen = FALSE,
            earlystop = FALSE,
            family = "Gaussian",
@@ -304,6 +301,7 @@ awssegmentobj <-
            wghts = numeric(0),
            scorr = 0,
            mae = numeric(0),
+           psnr = numeric(0),
            shape = numeric(0),
            varmodel = "Constant",
            vcoef = NULL,
@@ -315,25 +313,25 @@ awssegmentobj <-
       dim(y)
     invisible(
       new(
-        "awssegment",
+        "aws",
         .Data = data,
         y = array(y, dy),
         dy = dy,
         x = as.numeric(x),
-        ni = as.numeric(ni),
+        ni = array(ni, dy),
         mask = as.logical(mask),
-        segment = array(as.integer(segment), dy),
-        level = as.numeric(level),
-        delta = as.numeric(delta),
-        theta = array(theta, c(dy, degree + 1)),
+        segment = array(segment, dy),
+        level = level,
+        delta = delta,
+        theta = array(theta, dy),
         mae = as.numeric(mae),
+        psnr = as.numeric(psnr),
         var = as.numeric(var),
         xmin = as.numeric(xmin),
         xmax = as.numeric(xmax),
         wghts = as.numeric(wghts),
         degree = as.integer(degree),
         hmax  = as.numeric(hmax),
-        #
         sigma2  = as.numeric(sigma2),
         # error variance
         scorr = as.numeric(scorr),
@@ -348,10 +346,7 @@ awssegmentobj <-
         homogen = homogen,
         earlystop = earlystop,
         varmodel = varmodel,
-        vcoef = if (is.null(vcoef))
-          mean(sigma2)
-        else
-          vcoef,
+        vcoef = mean(sigma2),
         call = call
       )
     )
