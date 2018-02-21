@@ -1,5 +1,6 @@
 \name{vaws}
 \alias{vaws}
+\alias{vawscov}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 vector valued version of function \code{\link{aws}}
@@ -13,6 +14,8 @@ uses vector valued instead of scalar responses.
 \usage{
 vaws(y, kstar = 16, sigma2 = 1, mask = NULL, scorr = 0, spmin = 0.25,
      ladjust = 1, wghts = NULL, u = NULL, maxni = FALSE)
+vawscov(y, kstar = 16, invcov = NULL, mask = NULL, scorr = 0, spmin = 0.25,
+          ladjust = 1, wghts = NULL, u = NULL, maxni = FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -23,6 +26,10 @@ maximal number of steps to employ. Determines maximal bandwidth.
 }
   \item{sigma2}{
 specifies a homogeneous error variance.
+}
+\item{invcov}{
+ array of voxelwise inverse covariance matrixes, first index corresponds to
+ upper diagonal inverse covariance matrix.
 }
   \item{mask}{
 logical mask. All computations are restrikted to design poins within the mask.
@@ -63,13 +70,16 @@ returns anobject of class \code{aws} with slots
                         \item{hseq = "numeric"}{sequence of bandwidths employed}
                         \item{mae = "numeric"}{Mean absolute error for each iteration step if u was specified,  numeric(0) else}
                         \item{psnr = "numeric"}{Peak signal-to-noise ratio for each iteration step if u was specified,  numeric(0) else}
-                        \item{var = "numeric"}{approx. variance of the estimates of the regression function. Please note that this does not reflect variability due to randomness of weights.}
+                        \item{var = "numeric"}{approx. variance of the estimates
+                            of the regression function.
+                            Please note that this does not reflect variability due to
+                            randomness of weights.}
                         \item{xmin = "numeric"}{numeric(0)}
                         \item{xmax = "numeric"}{numeric(0)}
                         \item{wghts = "numeric"}{numeric(0)}
                         \item{degree = "integer"}{0}
                         \item{hmax  = "numeric"}{effective hmax}
-                        \item{sigma2  = "numeric"}{provided or estimated error variance}
+                        \item{sigma2  = "numeric"}{provided or estimated (inverse) error variance}
                         \item{scorr = "numeric"}{scorr}
                         \item{family = "character"}{family}
                         \item{shape = "numeric"}{shape}
@@ -101,7 +111,7 @@ use \code{setCores='number of threads'} to enable parallel execution.
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
-\seealso{See also \code{\link{aws}}, \code{\link{vpaws}}, \code{\link{vpawsfull}},\code{link{awsdata}}
+\seealso{See also \code{\link{aws}}, \code{\link{vpaws}}, \code{\link{vpawscov}},\code{link{awsdata}}
 }
 \examples{\dontrun{
 setCores(2)

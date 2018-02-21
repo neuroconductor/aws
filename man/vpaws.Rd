@@ -1,5 +1,6 @@
 \name{vpaws}
 \alias{vpaws}
+\alias{vpawscov}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 vector valued version of function \code{\link{paws}} with homogeneous covariance structure
@@ -13,6 +14,8 @@ discontinuities at the expense of increased computing time.
 \usage{
 vpaws(y, kstar = 16, sigma2 = 1, mask = NULL, scorr = 0, spmin = 0.25,
       ladjust = 1, wghts = NULL, u = NULL, maxni = FALSE, patchsize = 1)
+vpawscov(y, kstar = 16, invcov = NULL, mask = NULL, scorr = 0, spmin = 0.25,
+      ladjust = 1, wghts = NULL, u = NULL, maxni = FALSE, patchsize = 1)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -23,6 +26,10 @@ maximal number of steps to employ. Determines maximal bandwidth.
 }
   \item{sigma2}{
 specifies a homogeneous error variance.
+}
+\item{invcov}{
+ array of voxelwise inverse covariance matrixes, first index corresponds to
+ upper diagonal inverse covariance matrix.
 }
   \item{mask}{
 logical mask. All computations are restrikted to design poins within the mask.
@@ -103,7 +110,7 @@ use \code{setCores='number of threads'} to enable parallel execution.
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
-\seealso{See also \code{\link{vaws}}, \code{\link{lpaws}}, \code{\link{vpawsfull}},\code{link{awsdata}}
+\seealso{See also \code{\link{vaws}}, \code{\link{lpaws}}, \code{\link{vawscov}},\code{link{awsdata}}
 }
 \examples{
 \dontrun{

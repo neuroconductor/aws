@@ -110,8 +110,12 @@ void F77_NAME(segment)(double* y, int* fix, double* level,
   double* beta, double* thresh, double* ext, double* fov, double* varest);
 void F77_NAME(vaws)(double* y, int* mask, int* nv, int* n1, int* n2,
   int* n3, double* hakt, double* lambda, double* theta, double* bi,
-  double* thnew, int* ncores, double* spmin, double* lwght,
+  double* vred, double* thnew, int* ncores, double* spmin, double* lwght,
   double* wght, double* swjy);
+  void F77_NAME(vaws2)(double* y, int* mask, int* nv, int* nvd, int* n1,
+    int* n2, int* n3, double* hakt, double* lambda, double* theta, double* bi,
+    double* vred, double* thnew, double* invcov, int* ncores, double* spmin,
+    double* lwght, double* wght, double* swjy, double* thi, double* invcovi);
 void F77_NAME(vpaws)(int* n, int* dp2, double* bi, double* bi2, double* var);
 static R_NativePrimitiveArgType awsph1_t[]={REALSXP, REALSXP, LGLSXP, INTSXP,
   INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
@@ -190,8 +194,12 @@ static R_NativePrimitiveArgType segment_t[]={REALSXP, LGLSXP, REALSXP, REALSXP,
   REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, REALSXP, REALSXP, REALSXP, INTSXP,
   INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP};
 static R_NativePrimitiveArgType vaws_t[]={REALSXP, LGLSXP, INTSXP, INTSXP,
-  INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, REALSXP,
-  REALSXP, REALSXP, REALSXP};
+  INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP,
+  REALSXP, REALSXP, REALSXP, REALSXP};
+  static R_NativePrimitiveArgType vaws2_t[]={REALSXP, LGLSXP, INTSXP, INTSXP,
+    INTSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
+    REALSXP, REALSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
+    REALSXP};
 static R_NativePrimitiveArgType vpaws_t[]={INTSXP, INTSXP, REALSXP, REALSXP,
   REALSXP};
 
@@ -226,7 +234,8 @@ static const R_FortranMethodDef fmethods[] = {
             {"pvaws2", (DL_FUNC) &pvaws2_ ,24, pvaws2_t},
             {"sector", (DL_FUNC) &sector_ ,8, sector_t},
             {"segment", (DL_FUNC) &segment_ ,28, segment_t},
-            {"vaws", (DL_FUNC) &vaws_ ,16, vaws_t},
+            {"vaws", (DL_FUNC) &vaws_ ,17, vaws_t},
+            {"vaws2", (DL_FUNC) &vaws2_ ,21, vaws2_t},
             {"vpaws", (DL_FUNC) &vpaws_ ,5, vpaws_t},
             {NULL, NULL, 0,NULL}
 };

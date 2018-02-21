@@ -149,7 +149,7 @@ vpaws <- function(y,
   )
 }
 
-vpawsfull <- function(y,
+vpawscov <- function(y,
                       kstar = 16,
                       invcov = NULL,
                       mask = NULL,
