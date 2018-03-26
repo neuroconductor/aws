@@ -85,7 +85,7 @@ paws <- function(y,
     } else if(length(dy)==2){
        ladjust <- switch(patchsize,.8,1.2,1.6)*ladjust
   } else {
-       ladjust <- switch(patchsize,1.3,1.7)*ladjust
+       ladjust <- switch(patchsize,1.8,2.4)*ladjust
   }
 
     cpar <-
@@ -133,15 +133,9 @@ paws <- function(y,
     kstar <- cpar$kstar
     if (onestep)
       k <- kstar
-    tobj <-
-      list(
-        bi = rep(1, n),
-        bi2 = rep(1, n),
-        theta = y / shape
-      )
-    if (maxni)
-      bi <- tobj$bi
-    zobj <- list(ai = y, bi0 = rep(1, n))
+      theta <- y/shape
+      if (maxni) bi <- rep(1, n)
+    zobj <- list(ai = y, bi0 = rep(1, n), bi = rep(1, n))
 #    if (family == "Gaussian" & length(sigma2) == n)
 #      vred <- rep(1, n)
     mae <- psnr <- NULL
@@ -150,13 +144,13 @@ paws <- function(y,
       1e50 # that removes the stochstic term for the first step, Initialization by kernel estimates
     if (!is.null(u)) {
       maxI <- diff(range(u))
-      mse <- mean((tobj$theta - u) ^ 2)
+      mse <- mean((theta - u) ^ 2)
       psnr <- 20 * log(maxI, 10) - 10 * log(mse, 10)
       cat(
         "Initial    MSE: ",
         signif(mse, 3),
         "   MAE: ",
-        signif(mean(abs(tobj$theta - u)), 3),
+        signif(mean(abs(theta - u)), 3),
         "PSNR: ",
         signif(psnr, 3),
         "\n"
@@ -205,8 +199,8 @@ paws <- function(y,
           as.integer(n3),
           hakt = as.double(hakt),
           as.double(lambda0),
-          as.double(tobj$theta),
-          bi = as.double(tobj$bi),
+          as.double(theta),
+          bi = as.double(zobj$bi),
           bi2 = double(n),
           bi0 = double(n),
           ai = as.double(zobj$ai),
@@ -227,12 +221,11 @@ paws <- function(y,
       if (family %in% c("Bernoulli", "Poisson"))
         zobj <- regularize(zobj, family)
       dim(zobj$ai) <- dy
-      tobj <- updtheta(zobj, tobj, cpar)
-      dim(tobj$theta) <- dy
+      theta <- zobj$ai/zobj$bi
+      dim(theta) <- dy
       if (maxni)
-        bi <- tobj$bi <- pmax(bi, tobj$bi)
-      dim(tobj$bi) <- dy
-      dim(tobj$eta) <- dy
+        bi <- zobj$bi <- pmax(bi, zobj$bi)
+      dim(zobj$bi) <- dy
       #
       #
       if (graph) {
@@ -245,14 +238,13 @@ paws <- function(y,
             mar = c(3, 3, 3, .2),
             mgp = c(2, 1, 0)
           )
-          plot(y, ylim = range(y, tobj$theta), col = 3)
+          plot(y, ylim = range(y, theta), col = 3)
           if (!is.null(u))
             lines(u, col = 2)
-          lines(tobj$theta, lwd = 2)
+          lines(theta, lwd = 2)
           title(paste("Reconstruction  h=", signif(hakt, 3)))
-          plot(tobj$bi, type = "l", ylim = range(0, tobj$bi))
-          lines(tobj$eta * max(tobj$bi), col = 2)
-          title("Sum of weights, eta")
+          plot(zobj$bi, type = "l", ylim = range(0, zobj$bi))
+          title("Sum of weights")
         }
         if (d == 2) {
           mfrow <- if(is.null(u)) c(1,3) else c(2,2)
@@ -272,7 +264,7 @@ paws <- function(y,
             signif(max(y), 3)
           ))
           image(
-            tobj$theta,
+            theta,
             col = gray((0:255) / 255),
             xaxt = "n",
             yaxt = "n"
@@ -281,23 +273,23 @@ paws <- function(y,
             "Reconstruction  h=",
             signif(hakt, 3),
             " min=",
-            signif(min(tobj$theta), 3),
+            signif(min(theta), 3),
             " max=",
-            signif(max(tobj$theta), 3)
+            signif(max(theta), 3)
           ))
           image(
-            tobj$bi,
+            zobj$bi,
             col = gray((0:255) / 255),
             xaxt = "n",
             yaxt = "n"
           )
           title(paste(
             "Sum of weights: min=",
-            signif(min(tobj$bi), 3),
+            signif(min(zobj$bi), 3),
             " mean=",
-            signif(mean(tobj$bi), 3),
+            signif(mean(zobj$bi), 3),
             " max=",
-            signif(max(tobj$bi), 3)
+            signif(max(zobj$bi), 3)
           ))
           if (!is.null(u)) {
             image(u,
@@ -325,7 +317,7 @@ paws <- function(y,
             signif(max(y), 3)
           ))
           image(
-            tobj$theta[, , n3 %/% 2 + 1],
+            theta[, , n3 %/% 2 + 1],
             col = gray((0:255) / 255),
             xaxt = "n",
             yaxt = "n"
@@ -334,23 +326,23 @@ paws <- function(y,
             "Reconstruction  h=",
             signif(hakt, 3),
             " min=",
-            signif(min(tobj$theta), 3),
+            signif(min(theta), 3),
             " max=",
-            signif(max(tobj$theta), 3)
+            signif(max(theta), 3)
           ))
           image(
-            tobj$bi[, , n3 %/% 2 + 1],
+            zobj$bi[, , n3 %/% 2 + 1],
             col = gray((0:255) / 255),
             xaxt = "n",
             yaxt = "n"
           )
           title(paste(
             "Sum of weights: min=",
-            signif(min(tobj$bi), 3),
+            signif(min(zobj$bi), 3),
             " mean=",
-            signif(mean(tobj$bi), 3),
+            signif(mean(zobj$bi), 3),
             " max=",
-            signif(max(tobj$bi), 3)
+            signif(max(zobj$bi), 3)
           ))
           if (!is.null(u)) {
             image(u[, , n3 %/% 2 + 1],
@@ -369,24 +361,22 @@ paws <- function(y,
       #
       if (!is.null(u)) {
         maxI <- diff(range(u))
-        mse <- mean((tobj$theta - u) ^ 2)
+        mse <- mean((theta - u) ^ 2)
         psnrk <- 20 * log(maxI, 10) - 10 * log(mse, 10)
         cat(
           "bandwidth: ",
           signif(hakt, 3),
-          "eta==1",
-          sum(tobj$eta == 1),
           "   MSE: ",
           signif(mse, 3),
           "   MAE: ",
-          signif(mean(abs(tobj$theta - u)), 3),
+          signif(mean(abs(theta - u)), 3),
           "PSNR: ",
           signif(psnrk, 3),
           " mean(bi)=",
-          signif(mean(tobj$bi), 3),
+          signif(mean(zobj$bi), 3),
           "\n"
         )
-        mae <- c(mae, signif(mean(abs(tobj$theta - u)), 3))
+        mae <- c(mae, signif(mean(abs(theta - u)), 3))
         psnr <- c(psnr, psnrk)
       }
       if (demo)
@@ -407,28 +397,28 @@ paws <- function(y,
     ###
     ###            end iterations now prepare results
     ###
-    ###   component var contains an estimate of Var(tobj$theta) if aggkern="Uniform", or if !memory
+    ###   component var contains an estimate of Var(theta) if aggkern="Uniform", or if !memory
     ###
 
     vartheta <- switch(
       family,
       Gaussian = sigma2,
-      Bernoulli = tobj$theta * (1 - tobj$theta),
-      Poisson = tobj$theta,
-      Exponential = tobj$theta ^ 2,
-      Volatility = 2 * tobj$theta,
-      Variance = 2 * tobj$theta,
+      Bernoulli = theta * (1 - theta),
+      Poisson = theta,
+      Exponential = theta ^ 2,
+      Volatility = 2 * theta,
+      Variance = 2 * theta,
       0
-    ) * tobj$bi2 / tobj$bi ^ 2
-#    vred <- tobj$bi2 / tobj$bi ^ 2
+    ) * zobj$bi2 / zobj$bi ^ 2
+#    vred <- zobj$bi2 / zobj$bi ^ 2
     sigma2 <- switch(
       family,
       Gaussian = sigma2,
-      Bernoulli = tobj$theta * (1 - tobj$theta),
-      Poisson = tobj$theta,
-      Exponential = tobj$theta ^ 2,
-      Volatility = 2 * tobj$theta,
-      Variance = 2 * tobj$theta,
+      Bernoulli = theta * (1 - theta),
+      Poisson = theta,
+      Exponential = theta ^ 2,
+      Volatility = 2 * theta,
+      Variance = 2 * theta,
       0
     )
     if (family == "Gaussian") {
@@ -438,7 +428,7 @@ paws <- function(y,
     }
     awsobj(
       y,
-      tobj$theta,
+      theta,
       vartheta,
       hakt,
       sigma2,
@@ -449,13 +439,13 @@ paws <- function(y,
       memory,
       args,
       hseq = hseq,
-      homogen = NULL,
+      homogen = FALSE,
       earlystop = FALSE,
       family = family,
       wghts = wghts,
       mae = mae,
       psnr = psnr,
-      ni = tobj$bi
+      ni = zobj$bi
     )
   }
   ##

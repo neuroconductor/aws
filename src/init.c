@@ -64,7 +64,7 @@ void F77_NAME(chaws1)(double* y, double* si2, int* n1, int* n2,
   double* vred, double* ai, int* kern, double* lwght, double* wght);
 void F77_NAME(exceed)(double* x, int* n, double* z, int* nz,
   double* exprob);
-void F77_NAME(gethani)(double* x, double* y, double* kern,
+void F77_NAME(gethani)(double* x, double* y, int* kern,
   double* value, double* wght, double* eps, double* bw);
 void F77_NAME(getvofh)(double* bw, int* kern, double* wght,
   double* vol);
@@ -160,7 +160,7 @@ static R_NativePrimitiveArgType chaws1_t[]={REALSXP, REALSXP, INTSXP, INTSXP,
   REALSXP};
 static R_NativePrimitiveArgType exceed_t[]={REALSXP, INTSXP, REALSXP, INTSXP,
   REALSXP};
-static R_NativePrimitiveArgType gethani_t[]={REALSXP, REALSXP, REALSXP,
+static R_NativePrimitiveArgType gethani_t[]={REALSXP, REALSXP, INTSXP,
   REALSXP, REALSXP, REALSXP, REALSXP};
 static R_NativePrimitiveArgType getvofh_t[]={REALSXP, INTSXP, REALSXP, REALSXP};
 static R_NativePrimitiveArgType lkern1_t[]={REALSXP, INTSXP, REALSXP, INTSXP,

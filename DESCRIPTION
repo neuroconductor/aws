@@ -1,6 +1,6 @@
 Package: aws
-Version: 2.0-1
-Date: 2018-02-06
+Version: 2.0-3
+Date: 2018-03-26
 Title: Adaptive Weights Smoothing
 Authors@R: c(person("Joerg","Polzehl",role=c("aut","cre"),email="joerg.polzehl@wias-berlin.de"),person("Felix","Anker",role=c("ctb")))
 Author: Joerg Polzehl [aut, cre],
@@ -17,7 +17,7 @@ Description: Collection of R-functions implementing the
     <DOI:10.1007/s00440-005-0464-1>"
     and "J. Polzehl and V. Spokoiny (2004) <DOI:10.20347/WIAS.PREPRINT.998>".
 License: GPL (>=2)
-Copyright: This package is Copyright (C) 2005-2016 Weierstrass Institute
+Copyright: This package is Copyright (C) 2005-2018 Weierstrass Institute
     for Applied Analysis and Stochastics.
 URL: http://www.wias-berlin.de/people/polzehl/
 RoxygenNote: 5.0.1
