@@ -81,12 +81,12 @@ void F77_NAME(mpaws2)(int* n, int* dp1, int* dp2, double* ai,
   double* bi, double* theta, double* dmat, int* ind);
 void F77_NAME(pcaws)(double* y, int* n1, int* n2, int* n3,
   double* hakt, double* lambda, double* theta, double* bi,
-  double* bi2, double* bi0, double* ai, int* model, int* kern,
+  double* bi2, double* bi0, double(bin), double* ai, int* model, int* kern,
   double* spmin, double* lwght, double* wght, int* np,
   int* npsize, double* thpatch, double* biipatch);
 void F77_NAME(pcawsm)(double* y, int* pos, int* n1, int* n2, int* n3,
   double* hakt, double* lambda, double* theta, double* bi,
-  double* bi2, double* thnew, int* model, int* kern, double* spmin,
+  double* bi2, double* bin, double* thnew, int* model, int* kern, double* spmin,
   double* lwght, double* wght, int* np, int* npsize,
   double* thpatch, double* biipatch);
 void F77_NAME(pvaws)(double* y, int* mask, int* nv, int* n1, int* n2,
@@ -96,7 +96,7 @@ void F77_NAME(pvaws)(double* y, int* mask, int* nv, int* n1, int* n2,
   double* thpatch, double* biipatch);
 void F77_NAME(pvaws2)(double* y, int* mask, int* nv, int* nvd,
   int* n1, int* n2, int* n3, double* hakt, double* lambda,
-  double* theta, double* bi, double* thnew, double* invcov,
+  double* theta, double* bi, double*bi2, double* thnew, double* invcov,
   int* ncores, double* spmin, double* lwght, double* wght,
   double* swjy, int* np1, int* np2, int* np3, double* thpatch,
   double* invcovp, double* biipatch);
@@ -109,7 +109,7 @@ void F77_NAME(segment)(double* y, int* fix, double* level,
   double* spmin, double* lwght, double* wght, int* segm, int* segmn,
   double* beta, double* thresh, double* ext, double* fov, double* varest);
 void F77_NAME(vaws)(double* y, int* mask, int* nv, int* n1, int* n2,
-  int* n3, double* hakt, double* lambda, double* theta, double* bi,
+  int* n3, double* hakt, double* lambda, double* theta, double* bi, double* bin,
   double* vred, double* thnew, int* ncores, double* spmin, double* lwght,
   double* wght, double* swjy);
   void F77_NAME(vaws2)(double* y, int* mask, int* nv, int* nvd, int* n1,
@@ -175,16 +175,16 @@ static R_NativePrimitiveArgType mpaws1_t[]={INTSXP, INTSXP, INTSXP, REALSXP,
 static R_NativePrimitiveArgType mpaws2_t[]={INTSXP, INTSXP, INTSXP, REALSXP,
   REALSXP, REALSXP, REALSXP, INTSXP};
 static R_NativePrimitiveArgType pcaws_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
-  REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP,
+  REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP,
   REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, REALSXP, REALSXP};
 static R_NativePrimitiveArgType pcawsm_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
-  INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP,
+  INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP,
   REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, REALSXP, REALSXP};
 static R_NativePrimitiveArgType pvaws_t[]={REALSXP, LGLSXP, INTSXP, INTSXP,
   INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, REALSXP,
   REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, INTSXP, REALSXP, REALSXP};
 static R_NativePrimitiveArgType pvaws2_t[]={REALSXP, LGLSXP, INTSXP, INTSXP,
-  INTSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
+  INTSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
   INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, INTSXP, REALSXP,
   REALSXP, REALSXP};
 static R_NativePrimitiveArgType sector_t[]={REALSXP, INTSXP, REALSXP, INTSXP,
@@ -194,7 +194,7 @@ static R_NativePrimitiveArgType segment_t[]={REALSXP, LGLSXP, REALSXP, REALSXP,
   REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, REALSXP, REALSXP, REALSXP, INTSXP,
   INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP};
 static R_NativePrimitiveArgType vaws_t[]={REALSXP, LGLSXP, INTSXP, INTSXP,
-  INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP,
+  INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP,
   REALSXP, REALSXP, REALSXP, REALSXP};
   static R_NativePrimitiveArgType vaws2_t[]={REALSXP, LGLSXP, INTSXP, INTSXP,
     INTSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
@@ -228,10 +228,10 @@ static const R_FortranMethodDef fmethods[] = {
             {"median3d", (DL_FUNC) &median3d_ ,5, median3d_t},
             {"mpaws1", (DL_FUNC) &mpaws1_ ,8, mpaws1_t},
             {"mpaws2", (DL_FUNC) &mpaws2_ ,8, mpaws2_t},
-            {"pcaws", (DL_FUNC) &pcaws_ ,20, pcaws_t},
-            {"pcawsm", (DL_FUNC) &pcawsm_ ,20, pcawsm_t},
-            {"pvaws", (DL_FUNC) &pvaws_ ,21, pvaws_t},
-            {"pvaws2", (DL_FUNC) &pvaws2_ ,24, pvaws2_t},
+            {"pcaws", (DL_FUNC) &pcaws_ ,21, pcaws_t},
+            {"pcawsm", (DL_FUNC) &pcawsm_ ,21, pcawsm_t},
+            {"pvaws", (DL_FUNC) &pvaws_ ,22, pvaws_t},
+            {"pvaws2", (DL_FUNC) &pvaws2_ ,25, pvaws2_t},
             {"sector", (DL_FUNC) &sector_ ,8, sector_t},
             {"segment", (DL_FUNC) &segment_ ,28, segment_t},
             {"vaws", (DL_FUNC) &vaws_ ,17, vaws_t},

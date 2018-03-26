@@ -29,7 +29,7 @@ C   Patch based aws
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine pcaws(y,n1,n2,n3,hakt,lambda,theta,bi,bi2,
-     1                bi0,ai,model,kern,spmin,lwght,wght,np,npsize,
+     1                bi0,bin,ai,model,kern,spmin,lwght,wght,np,npsize,
      2                thpatch,biipatch)
 C
 C   y        observed values of regression function
@@ -51,7 +51,7 @@ C
       integer n1,n2,n3,model,kern,np,npsize
       logical aws
       double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght(2),
-     1       bi2(*),hakt,lwght(*),spmin,spf,
+     1       bi2(*),bin(*),hakt,lwght(*),spmin,spf,
      2       thpatch(np,*),biipatch(np,*)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
@@ -121,7 +121,7 @@ C  first stochastic term
       END DO
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
-C$OMP& SHARED(ai,bi,bi0,bi2,n1,n2,n3,hakt2,hmax2,theta,
+C$OMP& SHARED(ai,bi,bi0,bi2,bin,n1,n2,n3,hakt2,hmax2,theta,
 C$OMP& ih3,lwght,wght,y,thpatch,biipatch,nph1,nph2,nph3,np,npsize)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
 C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
@@ -216,13 +216,13 @@ C  first stochastic term
             END DO
          END DO
          ai(iind)=swjy
-         bi(iind)=swj
+         bin(iind)=swj
          bi2(iind)=swj2
          bi0(iind)=swj0
       END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
-C$OMP FLUSH(ai,bi,bi0,bi2)
+C$OMP FLUSH(ai,bin,bi0,bi2)
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -230,8 +230,8 @@ C
 C   Patch based aws using mask
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine pcawsm(y,pos,n1,n2,n3,hakt,lambda,theta,bi,
-     1                bi2,thnew,model,kern,spmin,lwght,wght,np,npsize,
+      subroutine pcawsm(y,pos,n1,n2,n3,hakt,lambda,theta,bi,bi2,
+     1                bin,thnew,model,kern,spmin,lwght,wght,np,npsize,
      2                thpatch,biipatch)
 C
 C   y        observed values of regression function
@@ -254,7 +254,7 @@ C
       integer n1,n2,n3,model,kern,np,npsize,pos(*)
       logical aws
       double precision y(*),theta(*),bi(*),thnew(*),lambda,wght(2),
-     1       bi2(*),hakt,lwght(*),spmin,spf,
+     1       bi2(*),bin(*),hakt,lwght(*),spmin,spf,
      2       thpatch(np,*),biipatch(np,*)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
@@ -324,7 +324,7 @@ C  first stochastic term
       END DO
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
-C$OMP& SHARED(thnew,bi,bi2,n1,n2,n3,hakt2,hmax2,theta,pos,
+C$OMP& SHARED(thnew,bi,bi2,bin,n1,n2,n3,hakt2,hmax2,theta,pos,
 C$OMP& ih3,lwght,wght,y,thpatch,biipatch,nph1,nph2,nph3,np,npsize)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
 C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
@@ -428,12 +428,12 @@ C check if we can use it, i.e. corresponding entry for j exists
             END DO
           END DO
           thnew(iindp)=swjy/swj
-          bi(iindp)=swj
+          bin(iindp)=swj
           bi2(iindp)=swj2
       END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
-C$OMP FLUSH(thnew,bi,bi2)
+C$OMP FLUSH(thnew,bin,bi2)
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -442,7 +442,7 @@ C   Perform one iteration in local constant three-variate aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine pvaws(y,mask,nv,n1,n2,n3,hakt,lambda,theta,bi,
-     1                thnew,ncores,spmin,lwght,wght,swjy,
+     1                bin,thnew,ncores,spmin,lwght,wght,swjy,
      2                np1,np2,np3,thpatch,biipatch)
 C
 C   y        observed values of regression function
@@ -459,7 +459,7 @@ C
       integer nv,n1,n2,n3,ncores
       logical aws,mask(*)
       double precision y(nv,*),theta(nv,*),bi(*),thnew(nv,*),lambda,
-     1  wght(2),hakt,lwght(*),spmin,spf,swjy(nv,ncores)
+     1  wght(2),hakt,lwght(*),spmin,spf,swjy(nv,ncores),bin(*)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12,k,thrednr
@@ -531,7 +531,7 @@ C  first stochastic term
       END DO
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
-C$OMP& SHARED(thnew,bi,nv,n1,n2,n3,hakt2,hmax2,theta,
+C$OMP& SHARED(thnew,bi,nv,n1,n2,n3,hakt2,hmax2,theta,bin,
 C$OMP& ih3,lwght,wght,y,swjy,mask,thpatch,biipatch,nph1,nph2,nph3)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
 C$OMP& spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
@@ -636,15 +636,15 @@ C  first stochastic term
          DO k=1,nv
             thnew(k,iind)=swjy(k,thrednr)/swj
          END DO
-         bi(iind)=swj
+         bin(iind)=swj
       END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
-C$OMP FLUSH(thnew,bi)
+C$OMP FLUSH(thnew,bin)
       RETURN
       END
       subroutine pvaws2(y,mask,nv,nvd,n1,n2,n3,hakt,lambda,theta,bi,
-     1                thnew,invcov,ncores,spmin,lwght,wght,swjy,
+     1                bin,thnew,invcov,ncores,spmin,lwght,wght,swjy,
      2                np1,np2,np3,thpatch,invcovp,biipatch)
 C
 C   y        observed values of regression function
@@ -661,7 +661,8 @@ C
       integer nv,n1,n2,n3,ncores,nvd
       logical aws,mask(*)
       double precision y(nv,*),theta(nv,*),bi(*),thnew(nv,*),lambda,
-     1  wght(2),hakt,lwght(*),spmin,spf,swjy(nv,ncores),invcov(nvd,*)
+     1  wght(2),hakt,lwght(*),spmin,spf,swjy(nv,ncores),invcov(nvd,*),
+     2  bin(*)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12,k,thrednr
@@ -736,7 +737,7 @@ C  first stochastic term
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(thnew,bi,nv,nvd,n1,n2,n3,hakt2,hmax2,theta,invcov,
 C$OMP& ih3,lwght,wght,y,swjy,mask,thpatch,biipatch,nph1,nph2,nph3,
-C$OMP& invcovp)
+C$OMP& invcovp,bin)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
 C$OMP& spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
 C$OMP& PRIVATE(i1,i2,i3,iind,bii,biinv,swj,spmb,
@@ -854,10 +855,10 @@ C   need both ipind and jpind in mask, pcj only depends on i
          DO k=1,nv
             thnew(k,iind)=swjy(k,thrednr)/swj
          END DO
-         bi(iind)=swj
+         bin(iind)=swj
       END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
-C$OMP FLUSH(thnew,bi)
+C$OMP FLUSH(thnew,bin)
       RETURN
       END
