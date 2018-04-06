@@ -84,6 +84,11 @@ void F77_NAME(pcaws)(double* y, int* n1, int* n2, int* n3,
   double* bi2, double* bi0, double(bin), double* ai, int* model, int* kern,
   double* spmin, double* lwght, double* wght, int* np,
   int* npsize, double* thpatch, double* biipatch);
+  void F77_NAME(pcaws2)(double* y, int* n1, int* n2, int* n3,
+    double* hakt, double* lambda, double* theta, double* bi,
+    double* bi2, double* bi0, double(bin), double* ai, int* model, int* kern,
+    double* spmin, double* lwght, double* wght, int* np,
+    int* npsize, double* thpatch, double* biipatch);
 void F77_NAME(pcawsm)(double* y, int* pos, int* n1, int* n2, int* n3,
   double* hakt, double* lambda, double* theta, double* bi,
   double* bi2, double* bin, double* thnew, int* model, int* kern, double* spmin,
@@ -177,6 +182,9 @@ static R_NativePrimitiveArgType mpaws2_t[]={INTSXP, INTSXP, INTSXP, REALSXP,
 static R_NativePrimitiveArgType pcaws_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
   REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP,
   REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, REALSXP, REALSXP};
+static R_NativePrimitiveArgType pcaws2_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
+  REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP,
+  REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, REALSXP, REALSXP};
 static R_NativePrimitiveArgType pcawsm_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
   INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP,
   REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, REALSXP, REALSXP};
@@ -196,10 +204,10 @@ static R_NativePrimitiveArgType segment_t[]={REALSXP, LGLSXP, REALSXP, REALSXP,
 static R_NativePrimitiveArgType vaws_t[]={REALSXP, LGLSXP, INTSXP, INTSXP,
   INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP,
   REALSXP, REALSXP, REALSXP, REALSXP};
-  static R_NativePrimitiveArgType vaws2_t[]={REALSXP, LGLSXP, INTSXP, INTSXP,
-    INTSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
-    REALSXP, REALSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
-    REALSXP};
+static R_NativePrimitiveArgType vaws2_t[]={REALSXP, LGLSXP, INTSXP, INTSXP,
+  INTSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
+  REALSXP, REALSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
+  REALSXP};
 static R_NativePrimitiveArgType vpaws_t[]={INTSXP, INTSXP, REALSXP, REALSXP,
   REALSXP};
 
@@ -229,6 +237,7 @@ static const R_FortranMethodDef fmethods[] = {
             {"mpaws1", (DL_FUNC) &mpaws1_ ,8, mpaws1_t},
             {"mpaws2", (DL_FUNC) &mpaws2_ ,8, mpaws2_t},
             {"pcaws", (DL_FUNC) &pcaws_ ,21, pcaws_t},
+            {"pcaws2", (DL_FUNC) &pcaws2_ ,21, pcaws2_t},
             {"pcawsm", (DL_FUNC) &pcawsm_ ,21, pcawsm_t},
             {"pvaws", (DL_FUNC) &pvaws_ ,22, pvaws_t},
             {"pvaws2", (DL_FUNC) &pvaws2_ ,25, pvaws2_t},

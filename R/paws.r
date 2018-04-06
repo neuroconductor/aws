@@ -44,7 +44,8 @@ paws <- function(y,
            graph = FALSE,
            demo = FALSE,
            maxni = FALSE,
-           patchsize = 1)
+           patchsize = 1,
+           patchkrit = 1)
   {
     #
     #   patch based version (patches of patchsize neighbors in each direction)
@@ -56,6 +57,9 @@ paws <- function(y,
     #    wghts is interpreted as voxel extensions ..., wghts for nonexisting dimensions are are set to INFTY
     #
     #    first check arguments and initialize
+    #
+    #  patchkrit may take 1 (for max_P s_ij) and
+    #                     2 (for (sum_P bii s_ij)/(sum_P bii) )
     #
     args <- match.call()
     memory <- FALSE
@@ -80,12 +84,14 @@ paws <- function(y,
     }
     patchsize <- min(patchsize,5-length(dy))
     # additional adjustments for taking the maximum of s_{ij} over patches
+    # adjusted using simulations such that for homogeneous structures
+    # loss by adaptation < 1% in MAE and <.1 in PSNR
     if(length(dy)==1){
-       ladjust <- switch(patchsize,.8,.9,1,1.1)*ladjust
+       ladjust <- switch(patchsize,.75,.75,.7,.65)*ladjust
     } else if(length(dy)==2){
-       ladjust <- switch(patchsize,.8,1.2,1.6)*ladjust
+       ladjust <- switch(patchsize,1.1,1.1,1.2)*ladjust
   } else {
-       ladjust <- switch(patchsize,1.8,2.4)*ladjust
+       ladjust <- switch(patchsize,1.44,1.6)*ladjust
   }
 
     cpar <-
@@ -140,8 +146,8 @@ paws <- function(y,
 #      vred <- rep(1, n)
     mae <- psnr <- NULL
     hseq <- 1
-    lambda0 <-
-      1e50 # that removes the stochstic term for the first step, Initialization by kernel estimates
+    lambda0 <- if(onestep) lambda else 1e50
+      # that removes the stochstic term for the first step, Initialization by kernel estimates
     if (!is.null(u)) {
       maxI <- diff(range(u))
       mse <- mean((theta - u) ^ 2)
@@ -192,7 +198,7 @@ paws <- function(y,
         1
       # all other cases
       if (cpar$mcode != 6) {
-        zobj <- .Fortran(C_pcaws,
+        zobj <- .Fortran(switch(patchkrit,C_pcaws,C_pcaws2),
           as.double(y),
           as.integer(n1),
           as.integer(n2),
@@ -515,12 +521,14 @@ paws <- function(y,
       }
       patchsize <- min(patchsize,5-length(dy))
       # additional adjustments for taking the maximum of s_{ij} over patches
+      # adjusted using simulations such that for homogeneous structures
+      # loss by adaptation < 1% in MAE and <.1 in PSNR
       if(length(dy)==1){
-         ladjust <- switch(patchsize,.8,.9,1,1.1)*ladjust
+         ladjust <- switch(patchsize,.75,.75,.7,.65)*ladjust
       } else if(length(dy)==2){
-         ladjust <- switch(patchsize,.8,1.2,1.6)*ladjust
+         ladjust <- switch(patchsize,1.1,1.1,1.2)*ladjust
     } else {
-         ladjust <- switch(patchsize,1.3,1.7)*ladjust
+         ladjust <- switch(patchsize,1.44,1.6)*ladjust
     }
 
       cpar <-
@@ -577,8 +585,8 @@ paws <- function(y,
 #        vred <- rep(1, n)
       mae <- psnr <- NULL
       hseq <- 1
-      lambda0 <-
-        1e50 # that removes the stochstic term for the first step, Initialization by kernel estimates
+      lambda0 <- if(onestep) lambda else 1e50
+      # that removes the stochstic term for the first step, Initialization by kernel estimates
       if (!is.null(u)) {
         maxI <- diff(range(u))
         mse <- mean((y[mask]/shape - u[mask]) ^ 2)

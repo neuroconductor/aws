@@ -188,15 +188,6 @@ vawscov <- function(y,
   cat("Progress:")
   total <- cumsum(1.25 ^ (1:kstar)) / sum(1.25 ^ (1:kstar))
   mc.cores <- setCores(, reprt = FALSE)
-  np1 <- 2 * patchsize + 1
-  np2 <- if (n2 > 1)
-    2 * patchsize + 1
-  else
-    1
-  np3 <- if (n3 > 1)
-    2 * patchsize + 1
-  else
-    1
   k <- 1
   hmax <- 1.25 ^ (kstar / d)
   lambda0 <- lambda

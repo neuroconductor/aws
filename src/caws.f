@@ -1514,8 +1514,8 @@ C
      1        w1,w2,spmb,swj2
       integer l,m
       double precision thi(nv,*),invcovi(nvd,*)
-      external lkern
-      double precision lkern
+      external lkern, KLdistsi
+      double precision lkern, KLdistsi
 !$      integer omp_get_thread_num
 !$      external omp_get_thread_num
       thrednr = 1
@@ -1629,20 +1629,8 @@ C  first stochastic term
                   if(.not.mask(jind)) CYCLE
                   wj=lwght(jw1+clw1+1+jwind2)
                   IF (aws) THEN
-                     sij=0.d0
-                     m=1
-                     DO k=1,nv
-                        z=thi(k,thrednr)-theta(k,jind)
-                        sij=sij+z*z*invcovi(m,thrednr)
-                        m=m+1
-                        if(k.eq.nv) CYCLE
-                        DO l=k+1,nv
-                          z2=thi(l,thrednr)-theta(l,jind)
-                          sij=sij+2.d0*z*z2*invcovi(m,thrednr)
-                          m=m+1
-                        END DO
-                      END DO
-                      sij=bii*sij
+                     sij=bii*KLdistsi(thi(1,thrednr),theta(1,jind),
+     1                   invcovi(1,thrednr),nv)
                      IF (sij.ge.1.d0) CYCLE
                      IF (sij.gt.spmin) wj=wj*(1.d0-spf*(sij-spmin))
                   END IF

@@ -672,8 +672,8 @@ C
       double precision thpatch(nv,np1*np2*np3,*),
      1        invcovp(nvd,np1*np2*np3,*),biipatch(np1*np2*np3,*)
       integer ip1,ip2,ip3,nph1,nph2,nph3,pc,ipind,pcj,jp1,jp2,jp3,jpind
-      external lkern
-      double precision lkern
+      external lkern, KLdistsi
+      double precision lkern, KLdistsi
 !$      integer omp_get_thread_num
 !$      external omp_get_thread_num
       thrednr = 1
@@ -825,19 +825,9 @@ C  first stochastic term
                               pcj=pcj+1
                               if(.not.mask(jpind)) CYCLE
 C   need both ipind and jpind in mask, pcj only depends on i
-                              sijp=0.d0
-                              m=1
-                              DO k=1,nv
-                                 z=thpatch(k,pcj,thrednr)-theta(k,jpind)
-                                 sijp=sijp+z*z*invcovp(m,pcj,thrednr)
-                                 m=m+1
-                                 if(k.eq.nv) CYCLE
-                                 DO l=k+1,nv
-                            z2=thpatch(l,pcj,thrednr)-theta(l,jpind)
-                            sijp=sijp+2.d0*z*z2*invcovp(m,pcj,thrednr)
-                                   m=m+1
-                                 END DO
-                              END DO
+                              sijp=KLdistsi(theta(1,jpind),
+     1                                thpatch(1,pcj,thrednr),
+     2                                invcovp(1,pcj,thrednr),nv)
                               sij=max(sij,biipatch(pcj,thrednr)*sijp)
                            END DO
                         END DO
@@ -860,5 +850,29 @@ C   need both ipind and jpind in mask, pcj only depends on i
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
 C$OMP FLUSH(thnew,bin)
+      RETURN
+      END
+
+      real*8 function KLdistsi(thi,thj,si2,nv)
+      implicit logical (a-z)
+      integer nv
+      real*8 thi(nv), thj(nv), si2(*)
+      integer k,l,m
+      real*8 z,thik,zdk
+      z=0.d0
+      m=1
+      DO k=1,nv
+         thik=thi(k)
+         zdk=thi(k)-thj(k)
+         if(k.gt.1) THEN
+           DO l=1,k-1
+              z=z+2.d0*(thi(l)-thj(l))*zdk*si2(m)
+              m=m+1
+           END DO
+         ENDIF
+         z=z+zdk*zdk*si2(m)
+         m=m+1
+      END DO
+      KLdistsi=z
       RETURN
       END
