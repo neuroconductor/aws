@@ -198,7 +198,28 @@ paws <- function(y,
         1
       # all other cases
       if (cpar$mcode != 6) {
-        zobj <- .Fortran(switch(patchkrit,C_pcaws,C_pcaws2),
+        if(patchkrit==1){
+        zobj <- .Fortran(C_pcaws,
+          as.double(y),
+          as.integer(n1),
+          as.integer(n2),
+          as.integer(n3),
+          hakt = as.double(hakt),
+          as.double(lambda0),
+          as.double(theta),
+          as.double(zobj$bi),
+          bi2 = double(n),
+          bi0 = double(n),
+          bi = double(n), #biout
+          ai = as.double(zobj$ai),
+          as.integer(cpar$mcode),
+          as.integer(lkern),
+          as.double(spmin),
+          double(prod(dlw)),
+          as.double(wghts),
+          as.integer(patchsize))[c("bi", "bi0", "bi2", "ai", "hakt")]
+         } else {
+        zobj <- .Fortran(C_pcaws2,
           as.double(y),
           as.integer(n1),
           as.integer(n2),
@@ -221,6 +242,7 @@ paws <- function(y,
           double(np1 * np2 * np3 * mc.cores),
           double(np1 * np2 * np3 * mc.cores)
         )[c("bi", "bi0", "bi2", "ai", "hakt")]
+      }
       } else {
         stop("Non-central chi model not implemented")
       }
@@ -656,11 +678,7 @@ paws <- function(y,
             as.double(spmin),
             double(prod(dlw)),
             as.double(wghts),
-            as.integer(np1 * np2 * np3),
-            as.integer(patchsize),
-            double(np1 * np2 * np3 * mc.cores),
-            double(np1 * np2 * np3 * mc.cores)
-          )[c("bi", "bi2", "theta", "hakt")]
+            as.integer(patchsize))[c("bi", "bi2", "theta", "hakt")]
         } else {
           stop("Non-central chi model not implemented")
         }
@@ -897,3 +915,70 @@ paws <- function(y,
         ni = bi
       )
     }
+
+    pawswghts <- function(awsobj,
+               patchsize,
+               position)
+      {
+        #
+        #   patch based version (patches of patchsize neighbors in each direction)
+        #   compute weighting scheme in position corresponding to ths situation
+        #   after the last iteration step of patch based aws
+        #   Gaussian model only
+        #
+        hmax <- awsobj@hmax
+        theta <- awsobj@theta
+        bi <- awsobj@ni
+        sigma2 <- awsobj@sigma2
+        lambda <- awsobj@lambda
+        lkern <- awsobj@lkern
+        spmin <- .25
+        wghts <- awsobj@wghts
+        mcode <- 1
+
+        dy <- dim(theta)
+        if (is.null(dy))
+        dy <- length(theta)
+        d <- length(dy)
+        if (d > 3)
+          stop("AWS for more than 3 dimensional grids is not implemented")
+        #
+        #   family dependent transformations that depend on the value of family
+        #
+        n1 <- switch(d, n, dy[1], dy[1])
+        n2 <- switch(d, 1, dy[2], dy[2])
+        n3 <- switch(d, 1, 1, dy[3])
+        i1 <- position[1]
+        i2 <- if(n2>1) position[2] else 1
+        i3 <- if(n2>1) position[3] else 1
+        #
+        #    Initialize  for the iteration
+        #
+        hakt <- 1.25^(1/d)*hmax
+        dlw <- (2 * trunc(hakt / c(1, wghts)) + 1)[1:d]
+        np1 <- if (patchsize > 0) 2 * patchsize + 1 else 1
+          ## patchsize == 0 includes immediate neighbors only
+        np2 <- if (n2 > 1) 2 * patchsize + 1 else 1
+        np3 <- if (n3 > 1) 2 * patchsize + 1 else 1
+          # all other cases
+        wi <- .Fortran(C_pawswght,
+              as.integer(n1),
+              as.integer(n2),
+              as.integer(n3),
+              as.integer(i1),
+              as.integer(i2),
+              as.integer(i3),
+              hakt = as.double(hakt),
+              as.double(lambda),
+              as.double(theta),
+              as.double(bi),
+              as.integer(mcode),
+              as.integer(lkern),
+              as.double(spmin),
+              double(prod(dlw)),
+              as.double(wghts),
+              as.integer(patchsize),
+              w=double(n1*n2*n3))[["w"]]
+          dim(wi) <- dim(theta)
+          wi
+        }

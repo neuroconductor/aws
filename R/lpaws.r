@@ -494,15 +494,19 @@ lpaws <- function(y,
         )
       }
       gc()
-      dim(zobj$ai) <- c(switch(d, n, dy), dp1)
-      dim(zobj$bi) <- c(switch(d, n, dy), dp2)
+      dim(zobj$ai) <- dim(thetakm1) <- c(switch(d, n, dy), dp1)
+      dim(zobj$bi) <- dim(bikm1) <- c(switch(d, n, dy), dp2)
+      dim(zobj$bi2) <- dim(bi2km1) <- c(switch(d, n, dy), dp2)
       if (hakt > n ^ (1 / d) / 2)
         zobj$bi0 <- zobj$bi0 <- biold
       biold <- zobj$bi0
       dim(zobj$bi0) <- c(switch(d, n, dy), dp2)
       if (!homogen)
         zobj$hhom <- switch(d, rep(1, 2 * n), rep(1, n))
+      dim(fix) <- switch(d, n, dy)
       tobj <- updtheta(d, zobj, fix, cpar, aggkern, bikm1, bi2km1, thetakm1)
+      dim(bikm1) <- dim(bi2km1) <- dim(bi) <- dim(bi2) <- c(n, dp2)
+      dim(thetakm1) <- dim(theta) <- c(n, dp1)
       if (!is.null(zobj$hhom))
         hhom <- zobj$hhom
       else
@@ -512,21 +516,19 @@ lpaws <- function(y,
       dim(fix) <- switch(d, n, dy)
       rm(zobj)
       gc()
-      dim(tobj$theta) <- c(switch(d, n, dy), dp1)
-      dim(tobj$bi) <- c(switch(d, n, dy), dp2)
-      dim(tobj$bi2) <- c(switch(d, n, dy), dp2)
-      dim(tobj$eta) <- switch(d, NULL, dy)
       dim(bikm1) <- dim(bi2km1) <- dim(bi) <- dim(bi2) <- c(n, dp2)
       dim(thetakm1) <- dim(theta) <- c(n, dp1)
       bikm1[!fix, ] <- bi[!fix, ]
       bi2km1[!fix, ] <- bi2[!fix, ]
       thetakm1[!fix, ] <- theta[!fix, ]
-      dim(bikm1) <-
-        dim(bi2km1) <- dim(bi) <- dim(bi2) <- c(switch(d, n, dy), dp2)
+      dim(tobj$bi) <- dim(tobj$bi2) <- c(n, dp2)
+      dim(tobj$theta) <- dim(theta) <- c(n, dp1)
+      indbi <- tobj$bi[,1] >= bi[,1]
+      bi[indbi,] <- tobj$bi[indbi,]
+      bi2[indbi,] <- tobj$bi2[indbi,]
+      theta[indbi,] <- tobj$theta[indbi,]
+      dim(bi2km1) <- dim(bi) <- dim(bi2) <- c(switch(d, n, dy), dp2)
       dim(thetakm1) <- dim(theta) <- c(switch(d, n, dy), dp1)
-      bi <- tobj$bi
-      bi2 <- tobj$bi2
-      theta <- tobj$theta
       eta <- tobj$eta
       rm(tobj)
       gc()

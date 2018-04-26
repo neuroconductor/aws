@@ -93,10 +93,7 @@ vpaws <- function(y,
       double(nvec * mc.cores),
       as.integer(np1),
       as.integer(np2),
-      as.integer(np3),
-      double(nvec * np1 * np2 * np3 * mc.cores),
-      double(np1 * np2 * np3 * mc.cores)
-    )[c("bi", "theta", "hakt")]
+      as.integer(np3))[c("bi", "theta", "hakt")]
     dim(zobj$theta) <- c(nvec, dy)
     if (maxni)
       bi <- zobj$bi <- pmax(bi, zobj$bi)
@@ -250,12 +247,7 @@ vpawscov <- function(y,
       double(nvec * mc.cores),
       as.integer(np1),
       as.integer(np2),
-      as.integer(np3),
-      double(nvec * np1 * np2 * np3 * mc.cores),
-      double(nvec * (nvec + 1) / 2 * np1 * np2 * np3 *
-               mc.cores),
-      double(np1 * np2 * np3 * mc.cores)
-    )[c("bi", "theta", "hakt")]
+      as.integer(np3))[c("bi", "theta", "hakt")]
     dim(zobj$theta) <- c(nvec, dy)
     if (maxni)
       bi <- zobj$bi <- pmax(bi, zobj$bi)
