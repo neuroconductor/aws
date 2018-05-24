@@ -53,13 +53,10 @@ C
      1       bi2(*),bin(*),hakt,lwght(*),spmin,spf
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
-     2        dlw12,n12,thrednr,ip1,ip2,ip3,nph1,nph2,nph3,
+     2        dlw12,n12,ip1,ip2,ip3,nph1,nph2,nph3,
      3        ipind,jp1,jp2,jp3,jpind,np1,np2,np3
       double precision sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,
      1       hakt2,hmax2,w1,w2
-!$      integer omp_get_thread_num
-!$      external omp_get_thread_num
-      thrednr = 1
       hakt2=hakt*hakt
       spf=1.d0/(1.d0-spmin)
       aws=lambda.lt.1d35
@@ -125,12 +122,11 @@ C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
 C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
 C$OMP& PRIVATE(i1,i2,i3,iind,swj,swj2,
 C$OMP& swj0,swjy,sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
-C$OMP& j1,jw1,jind,z1,thrednr,ip1,ip2,ip3,ipind,
+C$OMP& j1,jw1,jind,z1,ip1,ip2,ip3,ipind,
 C$OMP& jp1,jp2,jp3,jpind)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n1*n2*n3
          i1=mod(iind,n1)
-!$         thrednr = omp_get_thread_num()+1
          if(i1.eq.0) i1=n1
          i2=mod((iind-i1)/n1+1,n2)
          if(i2.eq.0) i2=n2
@@ -239,13 +235,10 @@ C
      1       bi2(*),bin(*),hakt,lwght(*),spmin,spf
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
-     2        dlw12,n12,thrednr,ip1,ip2,ip3,nph1,nph2,nph3,
+     2        dlw12,n12,ip1,ip2,ip3,nph1,nph2,nph3,
      3        jp1,jp2,jp3,np1,np2,np3,iindp,ipindp,jindp,jpindp
       double precision sij,swj,swj2,swjy,z1,z2,z3,wj,
      1       hakt2,hmax2,w1,w2
-!$      integer omp_get_thread_num
-!$      external omp_get_thread_num
-      thrednr = 1
       hakt2=hakt*hakt
       spf=1.d0/(1.d0-spmin)
       aws=lambda.lt.1d35
@@ -311,7 +304,7 @@ C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
 C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
 C$OMP& PRIVATE(i1,i2,i3,iind,swj,swj2,
 C$OMP& swjy,sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
-C$OMP& j1,jw1,jind,z1,thrednr,ip1,ip2,ip3,
+C$OMP& j1,jw1,jind,z1,ip1,ip2,ip3,
 C$OMP& jp1,jp2,jp3,iindp,ipindp,jindp,jpindp)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n1*n2*n3
@@ -319,7 +312,6 @@ C$OMP DO SCHEDULE(GUIDED)
         if(iindp.eq.0) CYCLE
 C voxel not in mask
           i1=mod(iind,n1)
-!$         thrednr = omp_get_thread_num()+1
           if(i1.eq.0) i1=n1
           i2=mod((iind-i1)/n1+1,n2)
           if(i2.eq.0) i2=n2

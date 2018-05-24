@@ -45,7 +45,8 @@ paws <- function(y,
            demo = FALSE,
            maxni = FALSE,
            patchsize = 1,
-           patchkrit = 1)
+           patchkrit = "max",
+           pquant = NULL)
   {
     #
     #   patch based version (patches of patchsize neighbors in each direction)
@@ -59,7 +60,7 @@ paws <- function(y,
     #    first check arguments and initialize
     #
     #  patchkrit may take 1 (for max_P s_ij) and
-    #                     2 (for (sum_P bii s_ij)/(sum_P bii) )
+    #                     p>1 (for (sum_P bii^(p+1) s_ij)/(sum_P bii^p) )
     #
     args <- match.call()
     memory <- FALSE
@@ -83,6 +84,16 @@ paws <- function(y,
       #
     }
     patchsize <- min(patchsize,5-length(dy))
+    usemax <- usequant <- FALSE
+    if(patchkrit=="max") usemax <- TRUE
+    if(patchkrit=="quantile"){
+        usequant <- TRUE
+        if(is.null(pquant)) pquant <- (patchsize+1)/(2*patchsize+1)
+        if(pquant<=0 | pquant>1) stop("illegal value of pquant")
+        cat("using version with quantile",pquant," for sij \n")
+      }
+    if(!usemax & !usequant & !is.numeric(patchkrit))
+        stop("patchkrit needs to be numeric or equal 'max' or 'quantile' ")
     # additional adjustments for taking the maximum of s_{ij} over patches
     # adjusted using simulations such that for homogeneous structures
     # loss by adaptation < 1% in MAE and <.1 in PSNR
@@ -198,7 +209,7 @@ paws <- function(y,
         1
       # all other cases
       if (cpar$mcode != 6) {
-        if(patchkrit==1){
+        if(usemax){
         zobj <- .Fortran(C_pcaws,
           as.double(y),
           as.integer(n1),
@@ -218,8 +229,34 @@ paws <- function(y,
           double(prod(dlw)),
           as.double(wghts),
           as.integer(patchsize))[c("bi", "bi0", "bi2", "ai", "hakt")]
-         } else {
+        } else if(is.numeric(patchkrit)){
+        bip <- (zobj$bi/mean(zobj$bi))^patchkrit
+        bip[bip>1e50] <- 1e50
         zobj <- .Fortran(C_pcaws2,
+          as.double(y),
+          as.integer(n1),
+          as.integer(n2),
+          as.integer(n3),
+          hakt = as.double(hakt),
+          as.double(lambda0),
+          as.double(theta),
+          as.double(zobj$bi),
+          as.double(bip),
+          bi2 = double(n),
+          bi0 = double(n),
+          bi = double(n), #biout
+          ai = as.double(zobj$ai),
+          as.integer(cpar$mcode),
+          as.integer(lkern),
+          as.double(spmin),
+          double(prod(dlw)),
+          as.double(wghts),
+          as.integer(patchsize)
+        )[c("bi", "bi0", "bi2", "ai", "hakt")]
+      } else {
+        qind <- max(1,np1*np2*np3*pquant)
+        if(np1*np2*np3>125) stop("patchsize to large")
+        zobj <- .Fortran(C_pcaws3,
           as.double(y),
           as.integer(n1),
           as.integer(n2),
@@ -237,11 +274,10 @@ paws <- function(y,
           as.double(spmin),
           double(prod(dlw)),
           as.double(wghts),
-          as.integer(np1 * np2 * np3),
           as.integer(patchsize),
-          double(np1 * np2 * np3 * mc.cores),
-          double(np1 * np2 * np3 * mc.cores)
+          as.integer(qind)
         )[c("bi", "bi0", "bi2", "ai", "hakt")]
+
       }
       } else {
         stop("Non-central chi model not implemented")
