@@ -38,7 +38,7 @@ qmeasures(img, ref,
  Calculates specified quality indices.
 }
 \value{
- A list with componennts as specified in \code{list}.
+ A vector with names as specified in \code{which}.
 }
 \author{
 Joerg Polzehl, \email{polzehl@wias-berlin.de},

@@ -2,32 +2,62 @@ qmeasures <- function(img,ref,
      which=c("PSNR","MAE","MSE","RMSE","SSIM","MAGE","RMSGE"),mask=FALSE){
      results <- list(NULL)
      if("PSNR" %in% which) results$PSNR <- getPSNR(img,ref,mask)
-     if("MAE" %in% which) results$MAE <- mean(abs(img-ref)[mask])
-     if("MSE" %in% which) results$MSE <- mean(((img-ref)^2)[mask])
-     if("RMSE" %in% which) results$RMSE <- sqrt(mean(((img-ref)^2)[mask]))
+     if("MAE" %in% which) results$MAE <- getMAE(img,ref,mask)
+     if("MSE" %in% which) results$MSE <- getMSE(img,ref,mask)
+     if("RMSE" %in% which) results$RMSE <- getRMSE(img,ref,mask)
      if("SSIM" %in% which) results$SSIM <- getSSIM(img,ref,mask)
      if("MAGE" %in% which) results$MAGE <- getMAGE(img,ref)
      if("RMSGE" %in% which) results$RMSGE <- getRMSGE(img,ref)
-     results
+     unlist(results)
    }
 
 getPSNR <- function(img,ref,mask){
   if(!is.null(mask)){
      if(length(mask) == length(img)){
      img <- img[mask]
-     ref <- ref(mask)
+     ref <- ref[mask]
    }
     }
   drref <- diff(range(ref))
   20*log(drref,10)-10*log(mean((img-ref)^2),10)
 }
 
-getSSIM <- function(img,ref,alpha=1,beta=1,gamma=1,mask){
+getMAE <- function(img,ref,mask){
+  if(!is.null(mask)){
+     if(length(mask) == length(img)){
+     img <- img[mask]
+     ref <- ref[mask]
+   }
+    }
+  mean(abs(img-ref))
+}
+
+getMSE <- function(img,ref,mask){
+  if(!is.null(mask)){
+     if(length(mask) == length(img)){
+     img <- img[mask]
+     ref <- ref[mask]
+   }
+    }
+  mean((img-ref)^2)
+}
+
+getRMSE <- function(img,ref,mask){
+  if(!is.null(mask)){
+     if(length(mask) == length(img)){
+     img <- img[mask]
+     ref <- ref[mask]
+   }
+    }
+  sqrt(mean((img-ref)^2))
+}
+
+getSSIM <- function(img,ref,mask,alpha=1,beta=1,gamma=1){
 
   if(!is.null(mask)){
-     if(length(mask) != length(img)){
+     if(length(mask) == length(img)){
      img <- img[mask]
-     ref <- ref(mask)
+     ref <- ref[mask]
    }
     }
   m1 <- mean(img)
