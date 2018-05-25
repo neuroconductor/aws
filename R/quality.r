@@ -13,9 +13,10 @@ qmeasures <- function(img,ref,
 
 getPSNR <- function(img,ref,mask){
   if(!is.null(mask)){
-     if(length(mask) != length(img)) break
+     if(length(mask) == length(img)){
      img <- img[mask]
      ref <- ref(mask)
+   }
     }
   drref <- diff(range(ref))
   20*log(drref,10)-10*log(mean((img-ref)^2),10)
@@ -24,9 +25,10 @@ getPSNR <- function(img,ref,mask){
 getSSIM <- function(img,ref,alpha=1,beta=1,gamma=1,mask){
 
   if(!is.null(mask)){
-     if(length(mask) != length(img)) break
+     if(length(mask) != length(img)){
      img <- img[mask]
      ref <- ref(mask)
+   }
     }
   m1 <- mean(img)
   m2 <- mean(ref)
