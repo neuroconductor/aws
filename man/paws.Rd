@@ -1,5 +1,6 @@
 \name{paws}
 \alias{paws}
+\alias{pawsm}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
  Adaptive weigths smoothing using patches
@@ -13,11 +14,18 @@ discontinuities at the expense of increased computing time.
 paws(y, hmax = NULL, onestep = FALSE, aws = TRUE, family = "Gaussian",
      lkern = "Triangle", aggkern = "Uniform", sigma2 = NULL, shape = NULL,
      scorr = 0, spmin = 0.25, ladjust = 1, wghts = NULL, u = NULL,
-     graph = FALSE, demo = FALSE, maxni = FALSE, patchsize = 1)
+     graph = FALSE, demo = FALSE, maxni = FALSE, patchsize = 1,
+     patchkrit = "max", pquant = NULL)
+pawsm(y, mask, hmax = NULL, onestep = FALSE, aws = TRUE, family = "Gaussian",
+     lkern = "Triangle", aggkern = "Uniform", sigma2 = NULL, shape = NULL,
+     scorr = 0, spmin = 0.25, ladjust = 1, wghts = NULL, u = NULL,
+     graph = FALSE, demo = FALSE, patchsize = 1)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{y}{\code{y} contains the observed response data. \code{dim(y)} determines the dimensionality and extend of the grid design.
+}
+\item{mask}{logical array defining a mask. All computations are restricted to the mask.
 }
   \item{hmax}{ \code{hmax} specifies the maximal bandwidth. Defaults to \code{hmax=250, 12, 5} for \code{dd=1, 2, 3}, respectively.
   In case of \code{lkern="Gaussian"} the bandwidth is assumed to be given in full width half maximum (FWHM) units, i.e., \code{0.42466} times gridsize.
@@ -74,6 +82,13 @@ a "true" value of the regression function, may be provided to
 }
   \item{patchsize}{
   positive integer defining the size of patches. Number of grid points within the patch is \code{(2*patchsize+1)^d} with \code{d} denoting the dimensionality of the design.
+}
+  \item{patchkrit}{ defaults to our recommended statistical penalty. Alternatives
+   are \code{"quantile"} and numerical values (specifying a norm for patch comparisons). This argument is for
+   internal use (tests) only.
+}
+  \item{pquant}{
+  quantile to use with \code{patchkrit="quantile"}. For internal use only.
 }
 }
 \details{ see \code{\link{aws}. The procedure is supposed to produce superior results if the assumption of a local constant image is violated or if smooothness of discontinuities is desired.}

@@ -707,7 +707,7 @@ paws <- function(y,
             as.double(tobj$theta),
             as.double(tobj$bi),
             bi2 = double(nvoxel),
-            bi =double(n),
+            bi =double(nvoxel),
             theta = double(nvoxel),
             as.integer(cpar$mcode),
             as.integer(lkern),
@@ -972,6 +972,7 @@ paws <- function(y,
         wghts <- awsobj@wghts
         mcode <- 1
 
+        n <- length(theta)
         dy <- dim(theta)
         if (is.null(dy))
         dy <- length(theta)
