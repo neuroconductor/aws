@@ -1,5 +1,5 @@
 TGV_denoising <- function(datanoisy,alpha,beta,
-                   iter=1000,eps=1e-6,epssup=1e-4,scale=1){
+          iter=1000,tolmean=1e-6,tolsup=1e-4,scale=1,verbose=FALSE){
 # translated from original matlab code of K. Papafitsoros
 # Noisy data
 f <- datanoisy/scale
@@ -44,7 +44,7 @@ while(k<=iter){
     change <- abs(uold-unew)
     maxchange <- max(change)
     meanchange <- mean(change)
-    if(maxchange<=epssup||meanchange<=eps) break
+    if(maxchange<=tolsup||meanchange<=tolmean) break
 
     p1_new <- p1_old+tau*(v1+Dx_plus(w11)+Dy_plus(w12))
     p2_new <- p2_old+tau*(v2+Dy_plus(w22)+Dx_plus(w12))
@@ -57,6 +57,7 @@ while(k<=iter){
 
     p1_old <- p1_new
     p2_old <- p2_new
+    if(verbose) cat(k," out of ",iter," iterations completed, changed (mean,max)",meanchange,maxchange,"\n")
     k <- k+1
 }
 cat(k-1,"Chambolle-Pock iterations completed\n")
@@ -64,7 +65,7 @@ unew*scale
 }
 
 TV_denoising <- function(datanoisy,alpha,
-                  iter=1000,eps=1e-6,epssup=1e-4,scale=1){
+                  iter=1000,tolmean=1e-6,tolsup=1e-4,scale=1,verbose=FALSE){
 # Noisy data
 f <- datanoisy/scale
 df <- dim(f)
@@ -103,10 +104,11 @@ while (k <= iter) {
     change <- abs(u_old-u_new)
     maxchange <- max(change)
     meanchange <- mean(change)
-    if(maxchange<=epssup||meanchange<=eps) break
+    if(maxchange<=tolsup||meanchange<=tolmean) break
 
     ubar <- 2*u_new-u_old
     u_old <- u_new
+    if(verbose) cat(k," out of ",iter," iterations completed, changed (mean,max)",meanchange,maxchange,"\n")
     k <- k+1
   }
   cat(k-1,"Chambolle-Pock iterations completed\n")
@@ -114,7 +116,7 @@ while (k <= iter) {
 }
 
 TGV_denoising_colour <- function(datanoisy,alpha,beta,
-                          iter=1000,eps=1e-6,epssup=1e-4,scale=1){
+          iter=1000,tolmean=1e-6,tolsup=1e-4,scale=1,verbose=FALSE){
 # translated from original matlab code of K. Papafitsoros
 # Noisy data
 f <- datanoisy/scale
@@ -205,7 +207,7 @@ while(k<iter){
     change <- abs(uold_r-unew_r)+abs(uold_g-unew_g)+abs(uold_b-unew_b)
     maxchange <- max(change)
     meanchange <- mean(change)
-    if(maxchange<=epssup||meanchange<=eps) break
+    if(maxchange<=tolsup||meanchange<=tolmean) break
 
     p1_new_r <- p1_old_r+tau*(v1_r+Dx_plus(w11_r)+Dy_plus(w12_r))
     p2_new_r <- p2_old_r+tau*(v2_r+Dy_plus(w22_r)+Dx_plus(w12_r))
@@ -240,7 +242,7 @@ while(k<iter){
     p1_old_b <- p1_new_b
     p2_old_b <- p2_new_b
 
-    cat(k," out of ",iter," iterations completed, changed (mean,max)",meanchange,maxchange,"\n")
+    if(verbose) cat(k," out of ",iter," iterations completed, changed (mean,max)",meanchange,maxchange,"\n")
     k <- k+1
 }
 cat(k-1,"Chambolle-Pock iterations completed\n")
@@ -251,7 +253,7 @@ f*scale
 }
 
 TV_denoising_colour <- function(datanoisy,alpha,
-                         iter=1000,eps=1e-6,epssup=1e-4,scale=1){
+        iter=1000,tolmean=1e-6,tolsup=1e-4,scale=1,verbose=FALSE){
 # Noisy data
 f <- datanoisy/scale
 f_r <- f[,,1]
@@ -314,7 +316,7 @@ while (k <= iter) {
     change <- abs(u_old_r-u_new_r)+abs(u_old_g-u_new_g)+abs(u_old_b-u_new_b)
     maxchange <- max(change)
     meanchange <- mean(change)
-    if(maxchange<=epssup||meanchange<=eps) break
+    if(maxchange<=tolsup||meanchange<=tolmean) break
 
     ubar_r <- 2*u_new_r-u_old_r
     ubar_g <- 2*u_new_g-u_old_g
@@ -323,7 +325,7 @@ while (k <= iter) {
     u_old_r <- u_new_r
     u_old_g <- u_new_g
     u_old_b <- u_new_b
-    cat(k," out of ",iter," iterations completed, changed (mean,max)",meanchange,maxchange,"\n")
+    if(verbose) cat(k," out of ",iter," iterations completed, changed (mean,max)",meanchange,maxchange,"\n")
     k <- k+1
 }
   cat(k-1,"Chambolle-Pock iterations completed\n")
@@ -349,9 +351,9 @@ Dx_plus <- function(u){
 du <- dim(u)
 n <- du[1]
 m <- du[2]
-v <- u
+v <- matrix(0,n,m)
+v[1,] <- u[1,]
 v[1:(n-1),] <- u[2:n,] - u[1:(n-1),]
-v[n,] <- 0
 v
 }
 Dy_minus <- function(u){
@@ -367,8 +369,8 @@ Dy_plus <- function(u){
   du <- dim(u)
   n <- du[1]
   m <- du[2]
-v <- u
+v <- matrix(0,n,m)
+v[,1] <- u[,1]
 v[,1:(m-1)] <- u[,2:m] - u[,1:(m-1)]
-v[,m] <- 0
 v
 }

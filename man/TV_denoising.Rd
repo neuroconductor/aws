@@ -12,14 +12,14 @@
    for image denoising.
 }
 \usage{
-TV_denoising(datanoisy, alpha,
-        iter = 1000, eps = 1e-06, epssup = 1e-04, scale = 1)
-TGV_denoising(datanoisy, alpha, beta,
-        iter = 1000, eps = 1e-06, epssup = 1e-04, scale = 1)
-TV_denoising_colour(datanoisy, alpha,
-        iter = 1000, eps = 1e-06, epssup = 1e-04, scale = 1)
-TGV_denoising_colour(datanoisy, alpha, beta,
-        iter = 1000, eps = 1e-06, epssup = 1e-04, scale = 1)
+TV_denoising(datanoisy, alpha, iter = 1000, tolmean = 1e-06,
+             tolsup = 1e-04, scale = 1, verbose=FALSE)
+TGV_denoising(datanoisy, alpha, beta, iter = 1000, tolmean = 1e-06,
+              tolsup = 1e-04, scale = 1, verbose=FALSE)
+TV_denoising_colour(datanoisy, alpha, iter = 1000, tolmean = 1e-06,
+                    tolsup = 1e-04, scale = 1, verbose=FALSE)
+TGV_denoising_colour(datanoisy, alpha, beta, iter = 1000, tolmean = 1e-06,
+                     tolsup = 1e-04, scale = 1, verbose=FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -37,14 +37,17 @@ TGV_denoising_colour(datanoisy, alpha, beta,
   \item{iter}{
     max. number of iterations
 }
-  \item{eps}{
+  \item{tolmean}{
     requested accuracy for mean image correction
 }
-  \item{epssup}{
+  \item{tolsup}{
     requested accuracy for max (over pixel) image correction
 }
   \item{scale}{
     image scale
+}
+\item{verbose}{
+  report convergence diagnostics.
 }
 }
 \details{
