@@ -125,6 +125,13 @@ void F77_NAME(vaws)(double* y, int* mask, int* nv, int* n1, int* n2,
     double* vred, double* thnew, double* invcov, int* ncores, double* spmin,
     double* lwght, double* wght, double* swjy, double* thi, double* invcovi);
 void F77_NAME(vpaws)(int* n, int* dp2, double* bi, double* bi2, double* var);
+void F77_NAME(fillpat1)(double* x, int* n1, int* phw, int* psize, double* pmat);
+void F77_NAME(fillpat2)(double* x, int* n1, int* n2, int* phw, int* psize,
+  double* pmat);
+void F77_NAME(fillpat3)(double* x, int* n1, int* n2, int* n3, int* phw,
+  int* psize, double* pmat);
+void F77_NAME(nlmeans)(double* x, int* n1, int* n2, int* n3, double* patch,
+  int* pd, int* swd, double* tau, double* xhat);
 static R_NativePrimitiveArgType awsph1_t[]={REALSXP, REALSXP, LGLSXP, INTSXP,
   INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
   REALSXP, REALSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP};
@@ -218,6 +225,14 @@ static R_NativePrimitiveArgType vaws2_t[]={REALSXP, LGLSXP, INTSXP, INTSXP,
   REALSXP};
 static R_NativePrimitiveArgType vpaws_t[]={INTSXP, INTSXP, REALSXP, REALSXP,
   REALSXP};
+static R_NativePrimitiveArgType fillpat1_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
+  REALSXP};
+static R_NativePrimitiveArgType fillpat2_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
+  INTSXP, REALSXP};
+static R_NativePrimitiveArgType fillpat3_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
+  INTSXP, INTSXP, REALSXP};
+static R_NativePrimitiveArgType nlmeans_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
+  REALSXP, INTSXP, INTSXP, REALSXP, REALSXP};
 
 static const R_FortranMethodDef fmethods[] = {
             {"awsph1", (DL_FUNC) &awsph1_ , 22, awsph1_t},
@@ -256,6 +271,10 @@ static const R_FortranMethodDef fmethods[] = {
             {"vaws", (DL_FUNC) &vaws_ ,17, vaws_t},
             {"vaws2", (DL_FUNC) &vaws2_ ,21, vaws2_t},
             {"vpaws", (DL_FUNC) &vpaws_ ,5, vpaws_t},
+            {"fillpat1", (DL_FUNC) &fillpat1_ ,5, fillpat1_t},
+            {"fillpat2", (DL_FUNC) &fillpat2_ ,6, fillpat2_t},
+            {"fillpat3", (DL_FUNC) &fillpat3_ ,7, fillpat3_t},
+            {"nlmeans", (DL_FUNC) &nlmeans_ ,9, nlmeans_t},
             {NULL, NULL, 0,NULL}
 };
 
