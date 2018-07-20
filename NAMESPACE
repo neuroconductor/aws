@@ -8,7 +8,7 @@ import("methods","awsMethods","gsl")
   importFrom("stats", "IQR", "coefficients", "cor", "dnorm", "fft", "lm",
              "median", "mvfft", "nextn", "pchisq", "qchisq", "qnorm",
              "quantile", "rbinom", "rchisq", "rexp", "rnorm", "rpois",
-             "sd", "cov", "var")
+             "sd", "cov", "var", "prcomp")
 exportClasses("aws","awssegment","kernsm","ICIsmooth")
 exportMethods("extract","print","summary","show","plot","risk")
 export(aws,lpaws,aws.irreg,aws.gaussian,aws.segment,paws,pawsm)

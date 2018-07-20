@@ -54,10 +54,14 @@ TGV_denoising_colour(datanoisy, alpha, beta, iter = 1000, tolmean = 1e-06,
    Reimplementation of original matlab code by Kostas Papafitsoros (WIAS).
 }
 \value{
-   TV/TGV reconstructed image data (2D or 3D array)
+   TV/TGV reconstructed image data (2D array)
 }
 \references{
-%% ~put references to the literature/web site here ~
+   Rudin, L.I., Osher, S. and Fatemi, E. (1992). Nonlinear total variation based
+   noise removal algorithms. Phys. D, 60, 259-268.
+
+   Bredies, K., Kunisch, K. and Pock, T. (2010). Total Generalized Variation.
+   SIAM J. Imaging Sci., 3, 492-526.
 }
 \author{
 Joerg Polzehl, \email{polzehl@wias-berlin.de},
