@@ -15,10 +15,11 @@ qmeasures(img, ref,
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{img}{
-   2D/3D image
+   2D/3D image, object of class \code{"aws", "ICIsmooth", "kernsm", "nlmeans"}
+   or array.
 }
   \item{ref}{
-   Reference image for comparison.
+   Reference image (array, matrix or vector) for comparison.
 }
   \item{which}{
    Criterion to use for Quality assessment. Please specify a subset of
