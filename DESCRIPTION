@@ -12,7 +12,7 @@ Depends:
     awsMethods (>= 1.0-1),
     gsl
 Description: We provide a collection of R-functions implementing 
-    adaptive smoothing procedures in 1D, 2D and 3D. Thisincludes the
+    adaptive smoothing procedures in 1D, 2D and 3D. This includes the
     Propagation-Separation Approach to adaptive smoothing as
     described in "J. Polzehl and V. Spokoiny (2006)
     <DOI:10.1007/s00440-005-0464-1>",

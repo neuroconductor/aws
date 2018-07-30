@@ -761,12 +761,12 @@ C$OMP FLUSH(thnew,bin)
       RETURN
       END
 
-      real*8 function KLdistsi(thi,thj,si2,nv)
+      double precision function KLdistsi(thi,thj,si2,nv)
       implicit logical (a-z)
       integer nv
-      real*8 thi(nv), thj(nv), si2(*)
+      double precision thi(nv), thj(nv), si2(*)
       integer k,l,m
-      real*8 z,zdk
+      double precision z,zdk
       z=0.d0
       m=1
       DO k=1,nv

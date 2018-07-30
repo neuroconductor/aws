@@ -1,7 +1,7 @@
       subroutine fillpat3(x,n1,n2,n3,phw,psize,pmat)
       implicit NONE
       integer n1,n2,n3,phw,psize
-      real*8 x(n1,n2,n3),pmat(n1,n2,n3,psize)
+      double precision x(n1,n2,n3),pmat(n1,n2,n3,psize)
       integer i1,i2,i3,j1,j2,j3,k,l1,l2,l3
       DO i1=1,n1
         DO i2=1,n2
@@ -32,7 +32,7 @@
       subroutine fillpat2(x,n1,n2,phw,psize,pmat)
       implicit NONE
       integer n1,n2,phw,psize
-      real*8 x(n1,n2),pmat(n1,n2,psize)
+      double precision x(n1,n2),pmat(n1,n2,psize)
       integer i1,i2,j1,j2,k,l1,l2
       DO i1=1,n1
         DO i2=1,n2
@@ -56,7 +56,7 @@
       subroutine fillpat1(x,n1,phw,psize,pmat)
       implicit NONE
       integer n1,phw,psize
-      real*8 x(n1),pmat(n1,psize)
+      double precision x(n1),pmat(n1,psize)
       integer i1,j1,k,l1
       DO i1=1,n1
         k=0
@@ -73,11 +73,12 @@
       subroutine nlmeans(x,n1,n2,n3,patch,pd,swd,tau,xhat)
       implicit none
       integer n1,n2,n3,pd,swd
-      real*8 x(n1,n2,n3),patch(pd,n1,n2,n3),tau,xhat(n1,n2,n3)
+      double precision x(n1,n2,n3),patch(pd,n1,n2,n3),tau,
+     1                 xhat(n1,n2,n3)
       integer i1,i2,i3,j1,j2,j3
-      real*8 dij,swi,sywi,wi,pd2
+      double precision dij,swi,sywi,wi,pd2
       external enorm
-      real*8 enorm
+      double precision enorm
       pd2=-2*pd
       pd2=pd2*tau*tau
 C$OMP PARALLEL DEFAULT(NONE)
@@ -109,10 +110,10 @@ C$OMP FLUSH(xhat)
       RETURN
       END
 
-      real*8 function enorm(x,y,n)
+      double precision function enorm(x,y,n)
       implicit none
       integer n,i
-      real*8 x(n),y(n),s,si
+      double precision x(n),y(n),s,si
       s=0.d0
       DO i=1,n
         si=x(i)-y(i)
