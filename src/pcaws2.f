@@ -48,7 +48,7 @@ C
 
       external kldist,lkern
       double precision kldist,lkern
-      integer n1,n2,n3,model,kern,np,npsize
+      integer n1,n2,n3,model,kern,npsize
       logical aws
       double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght(2),
      1       bi2(*),bin(*),hakt,lwght(*),spmin,spf,bip(*)
