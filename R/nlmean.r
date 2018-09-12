@@ -37,11 +37,10 @@ nlmeans <- function(x,lambda,sigma,patchhw=1,searchhw=7,pd=NULL){
                                 as.integer(patchhw),
                                 as.integer(psize),
                                 pmat = double(psize*n))$pmat)
-  if(pd<psize){
-     dim(patchmat) <- c(n,psize)
-     patchmat <- prcomp(patchmat, rank. = pd)$x
+   dim(patchmat) <- c(n,psize)
+   if(pd<psize){
+     patchmat <- prcomp(patchmat, rank. = pd)$x[,1:pd]
   }
-  dim(patchmat) <- c(n,pd)
   xhat <- .Fortran(C_nlmeans,
                    as.double(x),
                    as.integer(dimx[1]),
