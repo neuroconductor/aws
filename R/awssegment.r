@@ -3,7 +3,7 @@
 #    for local constant Gaussian, Bernoulli, Exponential, Poisson, Weibull and
 #    Volatility models
 #
-#    emaphazises on the propagation-separation approach
+#    emphazises on the propagation-separation approach
 #
 #    Copyright (C) 2006 Weierstrass-Institut fuer
 #                       Angewandte Analysis und Stochastik (WIAS)
