@@ -76,7 +76,7 @@ returns anobject of class \code{aws} with slots
                         \code{sum(wij^2)/ni^2}}
                         \item{xmin = "numeric"}{numeric(0)}
                         \item{xmax = "numeric"}{numeric(0)}
-                        \item{wghts = "numeric"}{numeric(0)}
+                        \item{wghts = "numeric"}{numeric(0), ratio of distances \code{wghts[-1]/wghts[1]}}
                         \item{degree = "integer"}{0}
                         \item{hmax  = "numeric"}{effective hmax}
                         \item{sigma2  = "numeric"}{provided or estimated error variance}

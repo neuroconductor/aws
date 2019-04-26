@@ -17,8 +17,9 @@ aws(y,hmax=NULL,aws=TRUE,memory=FALSE,family="Gaussian",
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{y}{ \code{y} contains the observed response data. \code{dim(y)} determines the dimensionality and extend of the grid design.}
-  \item{hmax}{ \code{hmax} specifies the maximal bandwidth. Defaults to \code{hmax=250, 12, 5} for \code{dd=1, 2, 3}, respectively.
+  \item{y}{array \code{y} containing the observe response (image intensity) data. \code{dim(y)} determines the dimensionality and extend of the grid design.}
+  \item{hmax}{ \code{hmax} specifies the maximal bandwidth. Defaults to \code{hmax=250, 12, 5}
+  for 1D, 2D, 3D images, respectively.
   In case of \code{lkern="Gaussian"} the bandwidth is assumed to be given in full width half maximum (FWHM) units, i.e., \code{0.42466} times gridsize.   }
   \item{aws}{ logical: if TRUE structural adaptation (AWS) is used. }
   \item{memory}{ logical: if TRUE stagewise aggregation is used as an additional
@@ -27,7 +28,10 @@ aws(y,hmax=NULL,aws=TRUE,memory=FALSE,family="Gaussian",
    are "Bernoulli", "Poisson", "Exponential", "Volatility", "Variance" and "NCchi". \code{family="Volatility"} specifies a Gaussian distribution with
    expectation 0 and unknown variance. \code{family="Volatility"} specifies that \code{p*y/theta} is distributed as \eqn{\chi^2} with \code{p=shape}
    degrees of freedom. \code{family="NCchi"} uses a noncentral Chi distribution with \code{p=shape} degrees of freedom and noncentrality parameter \code{theta}}
-  \item{lkern}{ character: location kernel, either "Triangle", "Plateau", "Quadratic", "Cubic" or "Gaussian"}
+  \item{lkern}{ character: location kernel, either "Triangle", "Plateau", "Quadratic", "Cubic" or "Gaussian".
+   The default "Triangle" is equivalent to using an Epanechnikov kernel, "Quadratic" and  "Cubic" refer to a Bi-weight and Tri-weight
+    kernel, see Fan and Gijbels (1996). "Gaussian" is a truncated (compact support) Gaussian kernel.
+    This is included for comparisons only and should be avoided due to its large computational costs.}
   \item{homogen}{ logical: if TRUE the function tries to determine regions
    where weights can be fixed to 1. This may increase speed.}
   \item{aggkern}{ character: kernel used in stagewise aggregation, either "Triangle" or "Uniform" }
@@ -92,7 +96,7 @@ returns anobject of class \code{aws} with slots
                         \item{var = "numeric"}{approx. variance of the estimates of the regression function. Please note that this does not reflect variability due to randomness of weights.}
                         \item{xmin = "numeric"}{numeric(0)}
                         \item{xmax = "numeric"}{numeric(0)}
-                        \item{wghts = "numeric"}{numeric(0)}
+                        \item{wghts = "numeric"}{numeric(0), ratio of distances \code{wghts[-1]/wghts[1]}}
                         \item{degree = "integer"}{0}
                         \item{hmax  = "numeric"}{effective hmax}
                         \item{sigma2  = "numeric"}{provided or estimated error variance}

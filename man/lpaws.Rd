@@ -3,12 +3,12 @@
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{Local polynomial smoothing by AWS}
 \description{
-The function allows for structural adaptive smoothing using a local 
-polynomial (degree <=2) structural assumption. Response variables are assumed to be observed on a 1 or 2 dimensional regular grid. 
+The function allows for structural adaptive smoothing using a local
+polynomial (degree <=2) structural assumption. Response variables are assumed to be observed on a 1 or 2 dimensional regular grid.
 }
 \usage{
-lpaws(y, degree = 1, hmax = NULL, aws = TRUE, memory = FALSE, lkern = "Triangle", 
-      homogen = TRUE, earlystop = TRUE, aggkern = "Uniform", sigma2 = NULL, 
+lpaws(y, degree = 1, hmax = NULL, aws = TRUE, memory = FALSE, lkern = "Triangle",
+      homogen = TRUE, earlystop = TRUE, aggkern = "Uniform", sigma2 = NULL,
       hw = NULL, ladjust = 1, u = NULL, graph = FALSE, demo = FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -19,17 +19,20 @@ lpaws(y, degree = 1, hmax = NULL, aws = TRUE, memory = FALSE, lkern = "Triangle"
   \item{aws}{ logical: if TRUE structural adaptation (AWS) is used. }
   \item{memory}{ logical: if TRUE stagewise aggregation is used as an additional
    adaptation scheme. }
-  \item{lkern}{ character: location kernel, either "Triangle", "Plateau", "Quadratic", "Cubic" or "Gaussian"}
-  \item{homogen}{ logical: if TRUE the function tries to determine regions 
+  \item{lkern}{ character: location kernel, either "Triangle", "Plateau", "Quadratic", "Cubic" or "Gaussian".
+  The default "Triangle" is equivalent to using an Epanechnikov kernel, "Quadratic" and  "Cubic" refer to a Bi-weight and Tri-weight
+   kernel, see Fan and Gijbels (1996). "Gaussian" is a truncated (compact support) Gaussian kernel.
+   This is included for comparisons only and should be avoided due to its large computational costs.}
+  \item{homogen}{ logical: if TRUE the function tries to determine regions
    where weights can be fixed to 1. This may increase speed.}
-  \item{earlystop}{ logical: if TRUE the function tries to determine points 
+  \item{earlystop}{ logical: if TRUE the function tries to determine points
    where the homogeneous region is unlikely to change in further steps. This may increase speed.}
   \item{aggkern}{ character: kernel used in stagewise aggregation, either "Triangle" or "Uniform" }
   \item{sigma2}{ Error variance, the value is estimated if not provided. }
   \item{hw}{ Regularisation bandwidth, used to prevent from unidentifiability of
    local estimates for small bandwidths. }
   \item{ladjust}{ factor to increase the default value of lambda }
-  \item{u}{ a "true" value of the regression function, may be provided to 
+  \item{u}{ a "true" value of the regression function, may be provided to
    report risks at each iteration. This can be used to test the propagation condition with \code{u=0} }
   \item{graph}{ logical: If TRUE intermediate results are illustrated graphically. May significantly slow down the computations in 2D. Please
    avoid using the default \code{X11()} on systems build with \code{cairo}, use
@@ -47,7 +50,7 @@ lpaws(y, degree = 1, hmax = NULL, aws = TRUE, memory = FALSE, lkern = "Triangle"
                         \item{var = "numeric"}{approx. variance of the estimates of the regression function. Please note that this does not reflect variability due to randomness of weights.}
                         \item{xmin = "numeric"}{numeric(0)}
                         \item{xmax = "numeric"}{numeric(0)}
-                        \item{wghts = "numeric"}{numeric(0)}
+                        \item{wghts = "numeric"}{numeric(0), ratio of distances \code{wghts[-1]/wghts[1]}}
                         \item{degree = "integer"}{degree}
                         \item{hmax  = "numeric"}{effective hmax}
                         \item{sigma2  = "numeric"}{provided or estimated error variance}
@@ -69,9 +72,9 @@ lpaws(y, degree = 1, hmax = NULL, aws = TRUE, memory = FALSE, lkern = "Triangle"
 \references{Joerg Polzehl, Vladimir Spokoiny, in V. Chen, C.; Haerdle, W. and Unwin, A. (ed.) Handbook of Data Visualization Structural adaptive smoothing by propagation-separation methods Springer-Verlag, 2008, 471-492
 }
 \author{Joerg Polzehl \email{polzehl@wias-berlin.de} }
-\note{If you specify \code{graph=TRUE} for 2D problems 
+\note{If you specify \code{graph=TRUE} for 2D problems
    avoid using the default \code{X11()} on systems build with \code{cairo}, use
-   \code{X11(type="Xlib")} instead (faster by a factor of 30). 
+   \code{X11(type="Xlib")} instead (faster by a factor of 30).
 }
 \seealso{\code{link{awsdata}},\code{\link{aws}}, \code{\link{aws.irreg}}}
 \examples{

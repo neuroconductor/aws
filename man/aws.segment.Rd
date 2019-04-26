@@ -3,12 +3,12 @@
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{ Segmentation by adaptive weights for Gaussian models. }
 \description{
-The function implements a modification of the adaptive weights smoothing algorithm for 
-segmentation into three classes. The 
+The function implements a modification of the adaptive weights smoothing algorithm for
+segmentation into three classes. The
 }
 \usage{
-aws.segment(y, level, delta = 0, hmax = NULL, hpre = NULL, varmodel = "Constant", 
-            lkern = "Triangle", scorr = 0, ladjust = 1, wghts = NULL, u = NULL, 
+aws.segment(y, level, delta = 0, hmax = NULL, hpre = NULL, varmodel = "Constant",
+            lkern = "Triangle", scorr = 0, ladjust = 1, wghts = NULL, u = NULL,
             varprop = 0.1, ext = 0, graph = FALSE, demo = FALSE, fov=NULL)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -20,13 +20,16 @@ aws.segment(y, level, delta = 0, hmax = NULL, hpre = NULL, varmodel = "Constant"
   \item{hpre}{ Describe \code{hpre} Bandwidth used for an initial nonadaptive estimate. The first estimate
    of variance parameters  is obtained from residuals with respect to this estimate. }
   \item{varmodel}{Implemented are "Constant", "Linear" and "Quadratic" refering to a polynomial model of degree 0 to 2.}
-  \item{lkern}{ character: location kernel, either "Triangle", "Plateau", "Quadratic", "Cubic" or "Gaussian"}
+  \item{lkern}{ character: location kernel, either "Triangle", "Plateau", "Quadratic", "Cubic" or "Gaussian".
+  The default "Triangle" is equivalent to using an Epanechnikov kernel, "Quadratic" and  "Cubic" refer to a Bi-weight and Tri-weight
+   kernel, see Fan and Gijbels (1996). "Gaussian" is a truncated (compact support) Gaussian kernel.
+   This is included for comparisons only and should be avoided due to its large computational costs.}
   \item{scorr}{The vector \code{scorr} allows to specify a first order correlations of the noise for each coordinate direction,
     defaults to 0 (no correlation). }
   \item{ladjust}{ factor to increase the default value of lambda }
   \item{wghts}{ \code{wghts} specifies the  diagonal elements of a weight matrix to adjust for different distances between grid-points
   in different coordinate directions, i.e. allows to define a more appropriate metric in the design space. }
-  \item{u}{ a "true" value of the regression function, may be provided to 
+  \item{u}{ a "true" value of the regression function, may be provided to
    report risks at each iteration. This can be used to test the propagation condition with \code{u=0} }
   \item{varprop}{ Small variance estimates are replaced by \code{varprop} times the mean variance.}
   \item{ext}{ Intermediate results are fixed if the test statistics exceeds the critical value by \code{ext}.}
@@ -35,16 +38,16 @@ aws.segment(y, level, delta = 0, hmax = NULL, hpre = NULL, varmodel = "Constant"
   \item{fov}{Field of view. Size of region (sample size) to adjust for in multiscale testing.}
 }
 \details{
-  The image is segmented into three parts by performing multiscale tests 
+  The image is segmented into three parts by performing multiscale tests
 of the hypotheses H1
 \code{value >= level - delta} and H2 \code{value <= level + delta}.
 Pixel where the first hypotesis is rejected are classified as \code{-1} (segment 1)
 while rejection of H2 results in classification  \code{1} (segment 3).
 Pixel where neither H1 or H2 are rejected ar assigned to a value \code{0} (segment 2). Critical values for the tests are adjusted for smoothness at the different scales inspected in the iteration process using results from multiscale testing,
-see e.g. Duembgen and Spokoiny (2001). Critical values also depend on the 
+see e.g. Duembgen and Spokoiny (2001). Critical values also depend on the
 size of the region of interest specified in parameter \code{fov}.
 
-Within segment 2 structural adaptive smoothing is performed while if a pair of pixel belongs to segment 1 or segment 3 the corresponding weight will be nonadaptive. 
+Within segment 2 structural adaptive smoothing is performed while if a pair of pixel belongs to segment 1 or segment 3 the corresponding weight will be nonadaptive.
 }
 \value{
 returns anobject of class \code{aws} with slots
@@ -59,7 +62,7 @@ returns anobject of class \code{aws} with slots
                         \item{var = "numeric"}{approx. variance of the estimates of the regression function. Please note that this does not reflect variability due to randomness of weights.}
                         \item{xmin = "numeric"}{numeric(0)}
                         \item{xmax = "numeric"}{numeric(0)}
-                        \item{wghts = "numeric"}{numeric(0)}
+                        \item{wghts = "numeric"}{numeric(0), ratio of distances \code{wghts[-1]/wghts[1]}}
                         \item{degree = "integer"}{0}
                         \item{hmax  = "numeric"}{effective hmax}
                         \item{sigma2  = "numeric"}{provided or estimated error variance}
@@ -79,14 +82,14 @@ returns anobject of class \code{aws} with slots
                         \item{call = "function"}{the arguments of the call to \code{aws.gaussian}}
 }
 \note{ This function is still experimental and may be changes considerably in future.}
-\references{ 
+\references{
   Duembgen, L. and Spokoiny, V. (2001). Multiscale testing of qualitative hypoteses. Ann. Stat. 29, 124--152.
 
   Polzehl, J. and Spokoiny, V. (2006). Propagation-Separation Approach for Local
   Likelihood Estimation. Probability Theory and Related Fields. 3 (135)
   335 - 362.
 }
-\author{ Joerg Polzehl, \email{polzehl@wias-berlin.de}, 
+\author{ Joerg Polzehl, \email{polzehl@wias-berlin.de},
 \url{http://www.wias-berlin.de/people/polzehl/}  }
 \seealso{\code{\link{aws}}, \code{\link{aws.gaussian}} }
 \examples{

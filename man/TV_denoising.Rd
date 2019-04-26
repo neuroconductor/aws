@@ -24,7 +24,7 @@ TGV_denoising_colour(datanoisy, alpha, beta, iter = 1000, tolmean = 1e-06,
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{datanoisy}{
-    noisy 2D image data matrix. In case of \code{TV_denoising_colour}
+    matrix of noisy 2D image data. In case of \code{TV_denoising_colour}
     and \code{TGV_denoising_colour} and array with third dimension refering to
     RGB channels.
 }

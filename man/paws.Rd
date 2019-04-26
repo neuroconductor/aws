@@ -23,11 +23,13 @@ pawsm(y, mask, hmax = NULL, onestep = FALSE, aws = TRUE, family = "Gaussian",
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{y}{\code{y} contains the observed response data. \code{dim(y)} determines the dimensionality and extend of the grid design.
+  \item{y}{array \code{y} containing the observe response (image intensity) data.
+  \code{dim(y)} determines the dimensionality and extend of the grid design.
 }
 \item{mask}{logical array defining a mask. All computations are restricted to the mask.
 }
-  \item{hmax}{ \code{hmax} specifies the maximal bandwidth. Defaults to \code{hmax=250, 12, 5} for \code{dd=1, 2, 3}, respectively.
+  \item{hmax}{ \code{hmax} specifies the maximal bandwidth. Defaults to \code{hmax=250, 12, 5}
+  for 1D, 2D, 3D images, respectively.
   In case of \code{lkern="Gaussian"} the bandwidth is assumed to be given in full width half maximum (FWHM) units, i.e., \code{0.42466} times gridsize.
 }
   \item{onestep}{
@@ -42,7 +44,10 @@ logical: if TRUE structural adaptation (AWS) is used.
    degrees of freedom. \code{family="NCchi"} uses a noncentral Chi distribution with \code{p=shape} degrees of freedom and noncentrality parameter \code{theta}
 }
   \item{lkern}{
-character: location kernel, either "Triangle", "Plateau", "Quadratic", "Cubic" or "Gaussian"
+character: location kernel, either "Triangle", "Plateau", "Quadratic", "Cubic" or "Gaussian".
+The default "Triangle" is equivalent to using an Epanechnikov kernel, "Quadratic" and  "Cubic" refer to a Bi-weight and Tri-weight
+ kernel, see Fan and Gijbels (1996). "Gaussian" is a truncated (compact support) Gaussian kernel.
+ This is included for comparisons only and should be avoided due to its large computational costs.
 }
 
   \item{aggkern}{
@@ -107,7 +112,7 @@ returns anobject of class \code{aws} with slots
                         \item{var = "numeric"}{approx. variance of the estimates of the regression function. Please note that this does not reflect variability due to randomness of weights.}
                         \item{xmin = "numeric"}{numeric(0)}
                         \item{xmax = "numeric"}{numeric(0)}
-                        \item{wghts = "numeric"}{numeric(0)}
+                        \item{wghts = "numeric"}{numeric(0), ratio of distances \code{wghts[-1]/wghts[1]}}
                         \item{degree = "integer"}{0}
                         \item{hmax  = "numeric"}{effective hmax}
                         \item{sigma2  = "numeric"}{provided or estimated error variance}

@@ -5,7 +5,7 @@
 
 \title{Class \code{"aws"}}
 \description{
-The \code{"aws"} class is 
+The \code{"aws"} class is
 used for objects obtained by functions \code{aws}, \code{lpaws}, \code{aws.irreg} and \code{aws.gaussian}.}
 \section{Objects from the Class}{
 Objects are created by calls to functions \code{aws}, \code{lpaws}, \code{aws.irreg} and \code{aws.gaussian}.
@@ -19,20 +19,21 @@ Objects are created by calls to functions \code{aws}, \code{lpaws}, \code{aws.ir
     \item{\code{ni}:}{Object of class \code{"numeric"} sum of weights used in final estimate }
     \item{\code{mask}:}{Object of class \code{"logical"} mask of design points where computations are performed }
     \item{\code{theta}:}{Object of class \code{"array"} containes the smoothed object and in case
-              of function \code{lpaws} its derivatives up to the specified degree. 
+              of function \code{lpaws} its derivatives up to the specified degree.
               Dimension is \code{dim(theta)=c(dy,p)}}
     \item{\code{hseq}:}{Sequence of bandwidths employed.}
-    \item{\code{mae}:}{Object of class \code{"numeric"} Mean absolute error with respect to 
+    \item{\code{mae}:}{Object of class \code{"numeric"} Mean absolute error with respect to
         array in argument \code{u} if provided. }
-    \item{\code{psnr}:}{Object of class \code{"numeric"} Peak Signal to Noise Ratio (PSNR) with respect to 
+    \item{\code{psnr}:}{Object of class \code{"numeric"} Peak Signal to Noise Ratio (PSNR) with respect to
         array in argument \code{u} if provided. }
-    \item{\code{var}:}{Object of class \code{"numeric"} pointwise variance of 
+    \item{\code{var}:}{Object of class \code{"numeric"} pointwise variance of
             \code{theta[...,1]}}
     \item{\code{xmin}:}{Object of class \code{"numeric"} min of \code{x} in case of irregular design }
     \item{\code{xmax}:}{Object of class \code{"numeric"} max of \code{x} in case of irregular design}
-    \item{\code{wghts}:}{Object of class \code{"numeric"} weights used in location penalty for 
-            different coordinate directions }
-    \item{\code{degree}:}{Object of class \code{"integer"} degree of local polynomials used in 
+    \item{\code{wghts}:}{Object of class \code{"numeric"} weights used in location penalty for
+            different coordinate directions, corresponds to ratios of distances in coordinate directions 2 and 3 to
+            and distance in coordinate direction 1.}
+    \item{\code{degree}:}{Object of class \code{"integer"} degree of local polynomials used in
          function \code{lpaws} }
     \item{\code{hmax}:}{Object of class \code{"numeric"} maximal bandwidth }
     \item{\code{sigma2}:}{Object of class \code{"numeric"} estimated error variance }
@@ -41,8 +42,8 @@ Objects are created by calls to functions \code{aws}, \code{lpaws}, \code{aws.ir
           can be any of \code{c("Gaussian","Bernoulli","Poisson","Exponential",
            "Volatility","Variance")} }
     \item{\code{shape}:}{Object of class \code{"numeric"} possible shape parameter of distribution of \code{y}}
-    \item{\code{lkern}:}{Object of class \code{"integer"} location kernel, can be 
-       any of \code{c("Triangle","Quadratic","Cubic","Plateau","Gaussian")}, defauts to 
+    \item{\code{lkern}:}{Object of class \code{"integer"} location kernel, can be
+       any of \code{c("Triangle","Quadratic","Cubic","Plateau","Gaussian")}, defauts to
        \code{"Triangle"}}
     \item{\code{lambda}:}{Object of class \code{"numeric"} scale parameter used in adaptation}
     \item{\code{ladjust}:}{Object of class \code{"numeric"} factor to adjust scale parameter with respect to its
@@ -53,9 +54,9 @@ Objects are created by calls to functions \code{aws}, \code{lpaws}, \code{aws.ir
               the calculations) }
     \item{\code{earlystop}:}{Object of class \code{"logical"} further speedup in function \code{lpaws}
           estimates are fixed if sum of weigths does not increase with iterations. }
-    \item{\code{varmodel}:}{Object of class \code{"character"} variance model used in 
+    \item{\code{varmodel}:}{Object of class \code{"character"} variance model used in
         function \code{aws.gaussian} }
-    \item{\code{vcoef}:}{Object of class \code{"numeric"} estimates variance parameters 
+    \item{\code{vcoef}:}{Object of class \code{"numeric"} estimates variance parameters
         in function \code{aws.gaussian} }
     \item{\code{call}:}{Object of class  \code{"call"} that created the object. }
   }
