@@ -1,5 +1,5 @@
 C
-C    Copyright (C) 2004 Weierstrass-Institut fuer
+C    Copyright (C) 2019 Weierstrass-Institut fuer
 C                       Angewandte Analysis und Stochastik (WIAS)
 C
 C    Author:  Joerg Polzehl
@@ -54,7 +54,7 @@ C
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12,ip1,ip2,ip3,nph1,nph2,nph3,
-     3        ipind,jp1,jp2,jp3,jpind,np1,np2,np3
+     3        ipind,jp1,jp2,jp3,jpind,np1,np2,np3,ipi0,jpi0
       double precision sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,
      1       hakt2,hmax2,w1,w2
       hakt2=hakt*hakt
@@ -114,6 +114,10 @@ C  first stochastic term
             END DO
          END DO
       END DO
+C   rescale bi with 1/lambda
+      DO iind=1,n1*n2*n3
+         bi(iind) = bi(iind)/lambda
+      END DO
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,bin,n1,n2,n3,hakt2,hmax2,theta,
@@ -122,8 +126,8 @@ C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
 C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
 C$OMP& PRIVATE(i1,i2,i3,iind,swj,swj2,
 C$OMP& swj0,swjy,sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
-C$OMP& j1,jw1,jind,z1,ip1,ip2,ip3,ipind,
-C$OMP& jp1,jp2,jp3,jpind)
+C$OMP& j1,jw1,jind,z1,ip1,ip2,ip3,ipind,ipi0,
+C$OMP& jp1,jp2,jp3,jpind,jpi0)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n1*n2*n3
          i1=mod(iind,n1)
@@ -159,27 +163,27 @@ C  first stochastic term
                   jind=j1+jind2
                   wj=lwght(jw1+clw1+1+jwind2)
                   swj0=swj0+wj
-                  z1=jw1
-                  z1=z2+z1*z1
                   IF (aws) THEN
                      sij=0.d0
                       DO ip1=i1-nph1,i1+nph1
                          if(ip1.le.0.or.ip1.gt.n1) CYCLE
                          jp1=ip1+jw1
+                         if(jp1.le.0.or.jp1.gt.n1) CYCLE
                          DO ip2=i2-nph2,i2+nph2
                             if(ip2.le.0.or.ip2.gt.n2) CYCLE
+                            ipi0=ip1+(ip2-1)*n1
                             jp2=ip2+jw2
+                            if(jp2.le.0.or.jp2.gt.n2) CYCLE
+                            jpi0=jp1+(jp2-1)*n1
                             DO ip3=i3-nph3,i3+nph3
                                if(sij.gt.1.d0) CYCLE
                                if(ip3.le.0.or.ip3.gt.n3) CYCLE
                                jp3=ip3+jw3
-                               if(jp1.le.0.or.jp1.gt.n1) CYCLE
-                               if(jp2.le.0.or.jp2.gt.n2) CYCLE
                                if(jp3.le.0.or.jp3.gt.n3) CYCLE
-                               jpind=jp1+(jp2-1)*n1+(jp3-1)*n1*n2
-                               ipind=ip1+(ip2-1)*n1+(ip3-1)*n1*n2
-                               sij=max(sij,bi(ipind)/lambda*
-     1                kldist(model,theta(ipind),theta(jpind)))
+                               jpind=jpi0+(jp3-1)*n12
+                               ipind=ipi0+(ip3-1)*n12
+                               sij=max(sij,bi(ipind)*
+     1                      kldist(model,theta(ipind),theta(jpind)))
                             END DO
                          END DO
                       END DO
@@ -296,6 +300,10 @@ C  first stochastic term
             END DO
           END DO
       END DO
+C   rescale bi with 1/lambda
+      DO iind=1,n1*n2*n3
+          bi(iind) = bi(iind)/lambda
+      END DO
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(thnew,bi,bi2,bin,n1,n2,n3,hakt2,hmax2,theta,pos,
@@ -344,8 +352,6 @@ C  first stochastic term
                   jindp=pos(jind)
                   if(jindp.eq.0) CYCLE
                   wj=lwght(jw1+clw1+1+jwind2)
-                  z1=jw1
-                  z1=z2+z1*z1
                   IF (aws) THEN
                       sij=0.d0
                       DO ip1=i1-nph1,i1+nph1
@@ -357,15 +363,15 @@ C  first stochastic term
                             DO ip3=i3-nph3,i3+nph3
                                 if(sij.gt.1.d0) CYCLE
                                 if(ip3.le.0.or.ip3.gt.n3) CYCLE
-                              ipindp=pos(ip1+(ip2-1)*n1+(ip3-1)*n1*n2)
+                                ipindp=pos(ip1+(ip2-1)*n1+(ip3-1)*n12)
                                 if(ipindp.eq.0) CYCLE
                                 if(jp1.le.0.or.jp1.gt.n1) CYCLE
                                 if(jp2.le.0.or.jp2.gt.n2) CYCLE
                                 jp3=ip3+jw3
                                 if(jp3.le.0.or.jp3.gt.n3) CYCLE
-                              jpindp=pos(jp1+(jp2-1)*n1+(jp3-1)*n1*n2)
+                                jpindp=pos(jp1+(jp2-1)*n1+(jp3-1)*n12)
                                 if(jpindp.eq.0) CYCLE
-                                sij=max(sij,bi(ipindp)/lambda*
+                                sij=max(sij,bi(ipindp)*
      1                kldist(model,theta(ipindp),theta(jpindp)))
                             END DO
                           END DO
@@ -482,6 +488,10 @@ C  first stochastic term
             END DO
          END DO
       END DO
+C   rescale bi with 1/lambda
+      DO iind=1,n1*n2*n3
+          bi(iind) = bi(iind)/lambda
+      END DO
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(thnew,bi,nv,n1,n2,n3,hakt2,hmax2,theta,bin,
@@ -535,25 +545,25 @@ C  first stochastic term
                      DO ip1=i1-nph1,i1+nph1
                         if(ip1.le.0.or.ip1.gt.n1) CYCLE
                         jp1=ip1+jw1
+                        if(jp1.le.0.or.jp1.gt.n1) CYCLE
                         DO ip2=i2-nph2,i2+nph2
                            if(ip2.le.0.or.ip2.gt.n2) CYCLE
                            jp2=ip2+jw2
+                           if(jp2.le.0.or.jp2.gt.n2) CYCLE
                            DO ip3=i3-nph3,i3+nph3
                               if(sij.gt.1.d0) CYCLE
                               if(ip3.le.0.or.ip3.gt.n3) CYCLE
                               jp3=ip3+jw3
-                              if(jp1.le.0.or.jp1.gt.n1) CYCLE
-                              if(jp2.le.0.or.jp2.gt.n2) CYCLE
                               if(jp3.le.0.or.jp3.gt.n3) CYCLE
-                              jpind=jp1+(jp2-1)*n1+(jp3-1)*n1*n2
-                              ipind=jp1+(jp2-1)*n1+(jp3-1)*n1*n2
+                              jpind=jp1+(jp2-1)*n1+(jp3-1)*n12
+                              ipind=jp1+(jp2-1)*n1+(jp3-1)*n12
                               if(.not.mask(jpind)) CYCLE
                               sijp=0.d0
                               DO k=1,nv
                                  z=theta(k,ipind)-theta(k,jpind)
                                  sijp=sijp+z*z
                               END DO
-                              sij=max(sij,bi(ipind)/lambda*sijp)
+                              sij=max(sij,bi(ipind)*sijp)
                            END DO
                         END DO
                      END DO
@@ -665,6 +675,10 @@ C  first stochastic term
             END DO
          END DO
       END DO
+C   rescale bi with 1/lambda
+      DO iind=1,n1*n2*n3
+        bi(iind) = bi(iind)/lambda
+      END DO
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(thnew,bi,nv,nvd,n1,n2,n3,hakt2,hmax2,theta,invcov,
@@ -718,17 +732,17 @@ C  first stochastic term
                      DO ip1=i1-nph1,i1+nph1
                         if(ip1.le.0.or.ip1.gt.n1) CYCLE
                         jp1=ip1+jw1
+                        if(jp1.le.0.or.jp1.gt.n1) CYCLE
                         DO ip2=i2-nph2,i2+nph2
                            if(ip2.le.0.or.ip2.gt.n2) CYCLE
                            jp2=ip2+jw2
+                           if(jp2.le.0.or.jp2.gt.n2) CYCLE
                            DO ip3=i3-nph3,i3+nph3
                               if(sij.gt.1.d0) CYCLE
                               if(ip3.le.0.or.ip3.gt.n3) CYCLE
-                              ipind=ip1+(ip2-1)*n1+(ip3-1)*n1*n2
+                              ipind=ip1+(ip2-1)*n1+(ip3-1)*n12
                               if(.not.mask(ipind)) CYCLE
                               jp3=ip3+jw3
-                              if(jp1.le.0.or.jp1.gt.n1) CYCLE
-                              if(jp2.le.0.or.jp2.gt.n2) CYCLE
                               if(jp3.le.0.or.jp3.gt.n3) CYCLE
                               jpind=jp1+(jp2-1)*n1+(jp3-1)*n12
                               if(.not.mask(jpind)) CYCLE
@@ -736,7 +750,7 @@ C   need both ipind and jpind in mask,
                               sijp=KLdistsi(theta(1,jpind),
      1                                theta(1,ipind),
      2                                invcov(1,ipind),nv)
-                              sij=max(sij,bi(ipind)/lambda*sijp)
+                              sij=max(sij,bi(ipind)*sijp)
                            END DO
                         END DO
                      END DO
@@ -871,7 +885,7 @@ C
           END DO
       END DO
       call rchkusr()
-      iind=i1+(i2-1)*n1+(i3-1)*n2*n3
+      iind=i1+(i2-1)*n1+(i3-1)*n12
       DO jw3=-clw3,clw3
         j3=jw3+i3
         if(j3.lt.1.or.j3.gt.n3) CYCLE
@@ -894,24 +908,22 @@ C  first stochastic term
                 if(j1.lt.1.or.j1.gt.n1) CYCLE
                 jind=j1+jind2
                 wj=lwght(jw1+clw1+1+jwind2)
-                z1=jw1
-                z1=z2+z1*z1
                 sij=0.d0
                 DO ip1=i1-nph1,i1+nph1
                     if(ip1.le.0.or.ip1.gt.n1) CYCLE
                     jp1=ip1+jw1
+                    if(jp1.le.0.or.jp1.gt.n1) CYCLE
                     DO ip2=i2-nph2,i2+nph2
                       if(ip2.le.0.or.ip2.gt.n2) CYCLE
                       jp2=ip2+jw2
+                      if(jp2.le.0.or.jp2.gt.n2) CYCLE
                       DO ip3=i3-nph3,i3+nph3
                           if(sij.gt.1.d0) CYCLE
                           if(ip3.le.0.or.ip3.gt.n3) CYCLE
                           jp3=ip3+jw3
-                          if(jp1.le.0.or.jp1.gt.n1) CYCLE
-                          if(jp2.le.0.or.jp2.gt.n2) CYCLE
                           if(jp3.le.0.or.jp3.gt.n3) CYCLE
-                          jpind=jp1+(jp2-1)*n1+(jp3-1)*n1*n2
-                          ipind=ip1+(ip2-1)*n1+(ip3-1)*n1*n2
+                          jpind=jp1+(jp2-1)*n1+(jp3-1)*n12
+                          ipind=ip1+(ip2-1)*n1+(ip3-1)*n12
                           sij=max(sij,bi(ipind)/lambda*
      1                kldist(model,theta(ipind),theta(jpind)))
                       END DO

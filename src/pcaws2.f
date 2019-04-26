@@ -1,5 +1,5 @@
 C
-C    Copyright (C) 2004 Weierstrass-Institut fuer
+C    Copyright (C) 2019 Weierstrass-Institut fuer
 C                       Angewandte Analysis und Stochastik (WIAS)
 C
 C    Author:  Joerg Polzehl
@@ -139,7 +139,7 @@ C$OMP DO SCHEDULE(GUIDED)
                   if(ip2.le.0.or.ip2.gt.n2) CYCLE
                   DO ip3=i3-nph3,i3+nph3
                      if(ip3.le.0.or.ip3.gt.n3) CYCLE
-                     ipind=ip1+(ip2-1)*n1+(ip3-1)*n1*n2
+                     ipind=ip1+(ip2-1)*n1+(ip3-1)*n12
                      swp=swp+bip(ipind)
                   END DO
                END DO
@@ -173,25 +173,25 @@ C  first stochastic term
                   jind=j1+jind2
                   wj=lwght(jw1+clw1+1+jwind2)
                   swj0=swj0+wj
-                  z1=jw1
-                  z1=z2+z1*z1
                   IF (aws) THEN
                      sij=0.d0
                       DO ip1=i1-nph1,i1+nph1
+                         if(sij.gt.swp) CYCLE
                          if(ip1.le.0.or.ip1.gt.n1) CYCLE
                          jp1=ip1+jw1
+                         if(jp1.le.0.or.jp1.gt.n1) CYCLE
                          DO ip2=i2-nph2,i2+nph2
+                            if(sij.gt.swp) CYCLE
                             if(ip2.le.0.or.ip2.gt.n2) CYCLE
                             jp2=ip2+jw2
+                            if(jp2.le.0.or.jp2.gt.n2) CYCLE
                             DO ip3=i3-nph3,i3+nph3
                                if(sij.gt.swp) CYCLE
                                if(ip3.le.0.or.ip3.gt.n3) CYCLE
                                jp3=ip3+jw3
-                               if(jp1.le.0.or.jp1.gt.n1) CYCLE
-                               if(jp2.le.0.or.jp2.gt.n2) CYCLE
                                if(jp3.le.0.or.jp3.gt.n3) CYCLE
-                               jpind=jp1+(jp2-1)*n1+(jp3-1)*n1*n2
-                               ipind=ip1+(ip2-1)*n1+(ip3-1)*n1*n2
+                               jpind=jp1+(jp2-1)*n1+(jp3-1)*n12
+                               ipind=ip1+(ip2-1)*n1+(ip3-1)*n12
                                sij=sij+bip(ipind)*bi(ipind)*
      1                kldist(model,theta(ipind),theta(jpind))
                             END DO
@@ -358,25 +358,23 @@ C  first stochastic term
               jind=j1+jind2
               wj=lwght(jw1+clw1+1+jwind2)
               swj0=swj0+wj
-              z1=jw1
-              z1=z2+z1*z1
               IF (aws) THEN
                   pcj=0
                   sij=0.d0
                   DO ip1=i1-nph1,i1+nph1
                       if(ip1.le.0.or.ip1.gt.n1) CYCLE
                       jp1=ip1+jw1
+                      if(jp1.le.0.or.jp1.gt.n1) CYCLE
                       DO ip2=i2-nph2,i2+nph2
                         if(ip2.le.0.or.ip2.gt.n2) CYCLE
                         jp2=ip2+jw2
+                        if(jp2.le.0.or.jp2.gt.n2) CYCLE
                         DO ip3=i3-nph3,i3+nph3
                             if(ip3.le.0.or.ip3.gt.n3) CYCLE
                             jp3=ip3+jw3
-                            if(jp1.le.0.or.jp1.gt.n1) CYCLE
-                            if(jp2.le.0.or.jp2.gt.n2) CYCLE
                             if(jp3.le.0.or.jp3.gt.n3) CYCLE
-                            jpind=jp1+(jp2-1)*n1+(jp3-1)*n1*n2
-                            ipind=ip1+(ip2-1)*n1+(ip3-1)*n1*n2
+                            jpind=jp1+(jp2-1)*n1+(jp3-1)*n12
+                            ipind=ip1+(ip2-1)*n1+(ip3-1)*n12
                             pcj=pcj+1
                             psij(pcj)= bi(ipind)*
      1                kldist(model,theta(ipind),theta(jpind))
@@ -538,7 +536,7 @@ C voxel not in mask
                 if(ip2.le.0.or.ip2.gt.n2) CYCLE
                 DO ip3=i3-nph3,i3+nph3
                     if(ip3.le.0.or.ip3.gt.n3) CYCLE
-                    ipindp=pos(ip1+(ip2-1)*n1+(ip3-1)*n1*n2)
+                    ipindp=pos(ip1+(ip2-1)*n1+(ip3-1)*n12)
                     if(ipindp.eq.0) CYCLE
                     pc=pc+1
                     thpatch(pc,thrednr)=theta(ipindp)
@@ -574,30 +572,28 @@ C  first stochastic term
                   jindp=pos(jind)
                   if(jindp.eq.0) CYCLE
                   wj=lwght(jw1+clw1+1+jwind2)
-                  z1=jw1
-                  z1=z2+z1*z1
                   IF (aws) THEN
                       pc=0
                       sij=0.d0
                       DO ip1=i1-nph1,i1+nph1
                           if(ip1.le.0.or.ip1.gt.n1) CYCLE
                           jp1=ip1+jw1
+                          if(jp1.le.0.or.jp1.gt.n1) CYCLE
                           DO ip2=i2-nph2,i2+nph2
                             if(ip2.le.0.or.ip2.gt.n2) CYCLE
                             jp2=ip2+jw2
+                            if(jp2.le.0.or.jp2.gt.n2) CYCLE
                             DO ip3=i3-nph3,i3+nph3
                                 if(sij.gt.1.d0) CYCLE
                                 if(ip3.le.0.or.ip3.gt.n3) CYCLE
-                              ipindp=pos(ip1+(ip2-1)*n1+(ip3-1)*n1*n2)
+                                ipindp=pos(ip1+(ip2-1)*n1+(ip3-1)*n12)
                                 if(ipindp.eq.0) CYCLE
                                 pc=pc+1
 C If we got here we have an valid entry in biipatch and thpatch
 C check if we can use it, i.e. corresponding entry for j exists
-                                if(jp1.le.0.or.jp1.gt.n1) CYCLE
-                                if(jp2.le.0.or.jp2.gt.n2) CYCLE
                                 jp3=ip3+jw3
                                 if(jp3.le.0.or.jp3.gt.n3) CYCLE
-                              jpindp=pos(jp1+(jp2-1)*n1+(jp3-1)*n1*n2)
+                                jpindp=pos(jp1+(jp2-1)*n1+(jp3-1)*n12)
                                 if(jpindp.eq.0) CYCLE
                                 sij=max(sij,biipatch(pc,thrednr)*
      1                kldist(model,thpatch(pc,thrednr),theta(jpindp)))
@@ -744,7 +740,7 @@ C returns value in 0:(ncores-1)
                if(ip2.le.0.or.ip2.gt.n2) CYCLE
                DO ip3=i3-nph3,i3+nph3
                   if(ip3.le.0.or.ip3.gt.n3) CYCLE
-                  ipind=ip1+(ip2-1)*n1+(ip3-1)*n1*n2
+                  ipind=ip1+(ip2-1)*n1+(ip3-1)*n12
                   if(.not.mask(ipind)) CYCLE
                   pc=pc+1
                   DO k=1,nv
@@ -789,17 +785,17 @@ C  first stochastic term
                      DO ip1=i1-nph1,i1+nph1
                         if(ip1.le.0.or.ip1.gt.n1) CYCLE
                         jp1=ip1+jw1
+                        if(jp1.le.0.or.jp1.gt.n1) CYCLE
                         DO ip2=i2-nph2,i2+nph2
                            if(ip2.le.0.or.ip2.gt.n2) CYCLE
                            jp2=ip2+jw2
+                           if(jp2.le.0.or.jp2.gt.n2) CYCLE
                            DO ip3=i3-nph3,i3+nph3
                               if(sij.gt.1.d0) CYCLE
                               if(ip3.le.0.or.ip3.gt.n3) CYCLE
                               jp3=ip3+jw3
-                              if(jp1.le.0.or.jp1.gt.n1) CYCLE
-                              if(jp2.le.0.or.jp2.gt.n2) CYCLE
                               if(jp3.le.0.or.jp3.gt.n3) CYCLE
-                              jpind=jp1+(jp2-1)*n1+(jp3-1)*n1*n2
+                              jpind=jp1+(jp2-1)*n1+(jp3-1)*n12
                               if(.not.mask(jpind)) CYCLE
                               pcj=pcj+1
                               sijp=0.d0
@@ -949,7 +945,7 @@ C returns value in 0:(ncores-1)
                if(ip2.le.0.or.ip2.gt.n2) CYCLE
                DO ip3=i3-nph3,i3+nph3
                   if(ip3.le.0.or.ip3.gt.n3) CYCLE
-                  ipind=ip1+(ip2-1)*n1+(ip3-1)*n1*n2
+                  ipind=ip1+(ip2-1)*n1+(ip3-1)*n12
                   if(.not.mask(ipind)) CYCLE
                   pc=pc+1
                   DO k=1,nv
@@ -997,17 +993,17 @@ C  first stochastic term
                      DO ip1=i1-nph1,i1+nph1
                         if(ip1.le.0.or.ip1.gt.n1) CYCLE
                         jp1=ip1+jw1
+                        if(jp1.le.0.or.jp1.gt.n1) CYCLE
                         DO ip2=i2-nph2,i2+nph2
                            if(ip2.le.0.or.ip2.gt.n2) CYCLE
                            jp2=ip2+jw2
+                           if(jp2.le.0.or.jp2.gt.n2) CYCLE
                            DO ip3=i3-nph3,i3+nph3
                               if(sij.gt.1.d0) CYCLE
                               if(ip3.le.0.or.ip3.gt.n3) CYCLE
-                              ipind=ip1+(ip2-1)*n1+(ip3-1)*n1*n2
+                              ipind=ip1+(ip2-1)*n1+(ip3-1)*n12
                               if(.not.mask(ipind)) CYCLE
                               jp3=ip3+jw3
-                              if(jp1.le.0.or.jp1.gt.n1) CYCLE
-                              if(jp2.le.0.or.jp2.gt.n2) CYCLE
                               if(jp3.le.0.or.jp3.gt.n3) CYCLE
                               jpind=jp1+(jp2-1)*n1+(jp3-1)*n12
                               pcj=pcj+1
