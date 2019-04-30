@@ -137,3 +137,37 @@ C$OMP END PARALLEL
 C$OMP FLUSH(exprob)
       Return
       End
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C   Calculate exceedence probabilities in awstestprop
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      subroutine exceedm(x,n,z,nz,exprob,mask)
+      implicit none
+      integer n,nz
+      double precision x(n),z(nz),exprob(nz)
+      logical mask(n)
+      integer i,j,k,ni
+      double precision sk,zj
+C$OMP PARALLEL DEFAULT(NONE)
+C$OMP& SHARED(n,nz,x,z,exprob,mask)
+C$OMP& PRIVATE(i,j,k,sk,zj,ni)
+C$OMP DO SCHEDULE(GUIDED)
+      DO j=1,nz
+        k=0
+        zj=z(j)
+        ni=0
+        DO i=1,n
+          if(mask(i)) THEN
+             if(x(i).gt.zj) k=k+1
+             ni=ni+1
+          END IF
+        END DO
+        sk = k
+        exprob(j)=sk/ni
+      END DO
+C$OMP END DO NOWAIT
+C$OMP END PARALLEL
+C$OMP FLUSH(exprob)
+      Return
+      End

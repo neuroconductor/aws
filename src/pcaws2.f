@@ -362,10 +362,12 @@ C  first stochastic term
                   pcj=0
                   sij=0.d0
                   DO ip1=i1-nph1,i1+nph1
+                      if(sij.gt.1.d0) CYCLE
                       if(ip1.le.0.or.ip1.gt.n1) CYCLE
                       jp1=ip1+jw1
                       if(jp1.le.0.or.jp1.gt.n1) CYCLE
                       DO ip2=i2-nph2,i2+nph2
+                        if(sij.gt.1.d0) CYCLE
                         if(ip2.le.0.or.ip2.gt.n2) CYCLE
                         jp2=ip2+jw2
                         if(jp2.le.0.or.jp2.gt.n2) CYCLE
@@ -576,10 +578,12 @@ C  first stochastic term
                       pc=0
                       sij=0.d0
                       DO ip1=i1-nph1,i1+nph1
+                          if(sij.gt.1.d0) CYCLE
                           if(ip1.le.0.or.ip1.gt.n1) CYCLE
                           jp1=ip1+jw1
                           if(jp1.le.0.or.jp1.gt.n1) CYCLE
                           DO ip2=i2-nph2,i2+nph2
+                            if(sij.gt.1.d0) CYCLE
                             if(ip2.le.0.or.ip2.gt.n2) CYCLE
                             jp2=ip2+jw2
                             if(jp2.le.0.or.jp2.gt.n2) CYCLE

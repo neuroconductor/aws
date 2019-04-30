@@ -162,6 +162,7 @@ C  first stochastic term
                   if(j1.lt.1.or.j1.gt.n1) CYCLE
                   jind=j1+jind2
                   wj=lwght(jw1+clw1+1+jwind2)
+                  if(wj.le.1e-10) CYCLE
                   swj0=swj0+wj
                   IF (aws) THEN
                      sij=0.d0
@@ -910,10 +911,12 @@ C  first stochastic term
                 wj=lwght(jw1+clw1+1+jwind2)
                 sij=0.d0
                 DO ip1=i1-nph1,i1+nph1
+                    if(sij.gt.1.d0) CYCLE
                     if(ip1.le.0.or.ip1.gt.n1) CYCLE
                     jp1=ip1+jw1
                     if(jp1.le.0.or.jp1.gt.n1) CYCLE
                     DO ip2=i2-nph2,i2+nph2
+                      if(sij.gt.1.d0) CYCLE
                       if(ip2.le.0.or.ip2.gt.n2) CYCLE
                       jp2=ip2+jw2
                       if(jp2.le.0.or.jp2.gt.n2) CYCLE

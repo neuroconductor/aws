@@ -13,21 +13,21 @@ nlmeans(x, lambda, sigma, patchhw = 1, searchhw = 7, pd = NULL)
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x}{
-  1, 2 or 3-dimensional array
+  1, 2 or 3-dimensional array of obseved response (image intensity) data.
 }
   \item{lambda}{
-  scale factor for kernel in image space
+  scale factor for kernel in image space.
 }
   \item{sigma}{
-  error standard deviation (for additive Gaussian errors)
+  error standard deviation (for additive Gaussian errors).
 }
   \item{patchhw}{
   Half width of patches in each dimension (patchsize is \code{(2*patchhw+1)^d}
-  for d-dimensional array)
+  for d-dimensional array).
 }
   \item{searchhw}{
   Half width of search area (size of search area is \code{(2searchhw+1)^d}
-  for d-dimensional array))
+  for d-dimensional array)).
 }
   \item{pd}{
   If \code{pd < (2*patchhw+1)^d} use \code{pd} principal components instead
