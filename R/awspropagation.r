@@ -538,11 +538,11 @@ pawstestprop <- function(dy,
   # adjusted using simulations such that for homogeneous structures
   # loss by adaptation < 1% in MAE and <.1 in PSNR
   if(length(dy)==1){
-     ladjust <- switch(patchsize,.75,.75,.7,.65)*ladjust
+     ladjust <- switch(patchsize,.55,.55,.5,.5)*ladjust
   } else if(length(dy)==2){
      ladjust <- switch(patchsize,1.1,1.1,1.2)*ladjust
 } else {
-     ladjust <- switch(patchsize,1.44,1.6)*ladjust
+     ladjust <- switch(patchsize,1.44,1.8)*ladjust
 }
   hmax <- cpar$hmax
   shape <- cpar$shape
@@ -811,6 +811,8 @@ pawstestprop <- function(dy,
       tpar,
       ") ni=",
       ni,
+      " mean(bi/ni)=",
+      mean(bi[mask])/ni,
       " Time: Step",
       format(signif(difftime(t2, t1), 3)),
       "Total",
