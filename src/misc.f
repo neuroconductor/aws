@@ -146,7 +146,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       implicit none
       integer n,nz
       double precision x(n),z(nz),exprob(nz)
-      logical mask(n)
+      integer mask(n)
       integer i,j,k,ni
       double precision sk,zj
 C$OMP PARALLEL DEFAULT(NONE)
@@ -158,7 +158,7 @@ C$OMP DO SCHEDULE(GUIDED)
         zj=z(j)
         ni=0
         DO i=1,n
-          if(mask(i)) THEN
+          if(mask(i).ne.0) THEN
              if(x(i).gt.zj) k=k+1
              ni=ni+1
           END IF

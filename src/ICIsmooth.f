@@ -85,12 +85,12 @@ C  compute second order derivatives
       END
       subroutine sector(x1,n1,x2,n2,nsect,sect,symm,insect)
       implicit none
-      logical symm
+      integer symm
       integer n1,n2,nsect,sect
       double precision x1(n1),x2(n2),insect(n1,n2)
       integer i1,i2,isect
       double precision alpha,xi1,xi2,xnorm,ax
-      if(symm) THEN
+      if(symm.ne.0) THEN
          alpha=3.14159265358978d0/nsect
       ELSE
          alpha=6.28318530717958d0/nsect
@@ -106,7 +106,7 @@ C  compute second order derivatives
                ax=acos(xi1/xnorm)
                if(xi2.lt.0.d0) ax=ax+3.14159265358979d0
                isect=FLOOR(ax/alpha)
-               IF(symm.and.isect.gt.nsect) isect=isect-nsect
+               IF(symm.ne.0.and.isect.gt.nsect) isect=isect-nsect
                if(isect.eq.sect-1) insect(i1,i2)=1.d0
             END IF
          END DO

@@ -28,8 +28,8 @@ C
       implicit none
       external kldistp,lkern
       double precision kldistp,lkern
-      integer n,kern,degr,ind(*),nfix
-      logical aws,fix(*),lfix
+      integer n,kern,degr,ind(*),nfix,fix(*)
+      logical aws,lfix
       double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,spmin,
      1       bi2(*),hakt,lw(*),w(*),hw,sw(*),slw(*),hhom(n,2)
       integer ih,j1,k,iind,jind,dlw,clw,jw1,
@@ -95,7 +95,7 @@ C$OMP DO SCHEDULE(GUIDED)
          trl = thrednr*dlw
          trs = thrednr*dsw
          zz(1)=1.d0
-         IF (fix(iind)) CYCLE
+         IF (fix(iind).ne.0) CYCLE
 C    nothing to do, final estimate is already fixed by control
          hhomimin=hhom(iind,1)
          hhomimax=hhom(iind,2)
@@ -242,7 +242,7 @@ C
          hhom(iind,1)=hhommin
          hhom(iind,2)=hhommax
          if(lfix.and.hakt-hfixmax.ge.hnfix) THEN
-            fix(iind)=.TRUE.
+            fix(iind)=1
          END IF
       END DO
 C$OMP END DO NOWAIT
@@ -280,8 +280,8 @@ C
       implicit none
       external kldistp,lkern
       double precision kldistp,lkern
-      integer n,kern,degr,ind(*),nfix
-      logical aws,fix(*),lfix
+      integer n,kern,degr,ind(*),nfix,fix(*)
+      logical aws,lfix
       double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,hhom(*),
      1       bi2(*),hakt,lw(*),w(*),hw,sw(*),slw(*),si(*),spmin
       integer ih,j1,k,iind,jind,dlw,clw,jw1,
@@ -341,7 +341,7 @@ C$OMP&         wj,thij,thi,zz,lwj,yj,z,cc,hhommax,az1,hfixmax,
 C$OMP&         hhomi,thrednr,trl,trs)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n
-         IF (fix(iind)) CYCLE
+         IF (fix(iind).ne.0) CYCLE
 C    nothing to do, final estimate is already fixed by control
 !$       thrednr = omp_get_thread_num()
          trl = thrednr*dlw
@@ -455,7 +455,7 @@ C
          END DO
          hhom(iind)=hhommax
          if(lfix.and.hakt-hfixmax.ge.hnfix) THEN
-            fix(iind)=.TRUE.
+            fix(iind)=1
          END IF
       END DO
 C$OMP END DO NOWAIT
@@ -493,8 +493,8 @@ C
       implicit none
       external kldistp,lkern
       double precision kldistp,lkern
-      integer n1,n2,kern,degr,ind(*),nfix
-      logical aws,fix(*),lfix
+      integer n1,n2,kern,degr,ind(*),nfix,fix(*)
+      logical aws,lfix
       double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,spmin,
      1       bi2(*),hakt,lw(*),w(*),hw,sw(*),slw(*),hhom(*)
       integer ih,ih1,i1,i2,j1,j2,k,n,
@@ -567,7 +567,7 @@ C$OMP DO SCHEDULE(GUIDED)
          i1=mod(iind,n1)
          if(i1.eq.0) i1=n1
          i2=(iind-i1)/n1+1
-            IF (fix(iind)) CYCLE
+            IF (fix(iind).ne.0) CYCLE
 C    nothing to do, final estimate is already fixed by control
             zz(1)=1.d0
 !$          thrednr = omp_get_thread_num()
@@ -730,7 +730,7 @@ C
             END DO
             hhom(iind)=sqrt(hhommax)
             IF(lfix.and.hakt-sqrt(hfixmax).ge.hnfix) THEN
-               fix(iind)=.TRUE.
+               fix(iind)=1
             END IF
 C         END DO
       END DO
@@ -769,8 +769,8 @@ C
       implicit none
       external kldistp,lkern
       double precision kldistp,lkern
-      integer n1,n2,kern,degr,ind(*),nfix
-      logical aws,fix(*),lfix
+      integer n1,n2,kern,degr,ind(*),nfix,fix(*)
+      logical aws,lfix
       double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,spmin,
      1       bi2(*),hakt,lw(*),w(*),hw,sw(*),slw(*),si(*),hhom(*)
       integer ih,ih1,i1,i2,j1,j2,k,n,
@@ -843,7 +843,7 @@ C$OMP DO SCHEDULE(GUIDED)
          i1=mod(iind,n1)
          if(i1.eq.0) i1=n1
          i2=(iind-i1)/n1+1
-            IF (fix(iind)) CYCLE
+            IF (fix(iind).ne.0) CYCLE
 C    nothing to do, final estimate is already fixed by control
             zz(1)=1.d0
 !$            thrednr = omp_get_thread_num()
@@ -1005,7 +1005,7 @@ C
             END DO
             hhom(iind)=sqrt(hhommax)
             IF(lfix.and.hakt-sqrt(hfixmax).ge.hnfix) THEN
-               fix(iind)=.TRUE.
+               fix(iind)=1
             END IF
 C         END DO
       END DO

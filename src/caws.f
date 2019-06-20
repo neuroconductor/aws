@@ -147,8 +147,8 @@ C
 
       external kldist,lkern
       double precision kldist,lkern
-      integer n1,n2,n3,model,kern
-      logical aws,fix(*)
+      integer n1,n2,n3,model,kern,fix(*)
+      logical aws
       double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght(2),
      1       bi2(*),hakt,lwght(*),spmin,spf,hhom(*)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
@@ -226,7 +226,7 @@ C$OMP DO SCHEDULE(GUIDED)
          hhomi=hhom(iind)
          hhomi=hhomi*hhomi
          hhommax=hmax2
-         IF (fix(iind)) CYCLE
+         IF (fix(iind).ne.0) CYCLE
 C    nothing to do, final estimate is already fixed by control
          thetai=theta(iind)
          bii=bi(iind)/lambda
@@ -310,8 +310,8 @@ C
 
       external kldist,lkern
       double precision kldist,lkern
-      integer n1,n2,n3,kern
-      logical aws,fix(*)
+      integer n1,n2,n3,kern,fix(*)
+      logical aws
       double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght(2),
      1       bi2(*),hakt,lwght(*),spmin,spf,hhom(*),fnc(*)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
@@ -390,7 +390,7 @@ C$OMP DO SCHEDULE(GUIDED)
          hhomi=hhom(iind)
          hhomi=hhomi*hhomi
          hhommax=hmax2
-         IF (fix(iind)) CYCLE
+         IF (fix(iind).ne.0) CYCLE
 C    nothing to do, final estimate is already fixed by control
          thetai=theta(iind)
          bii=bi(iind)/lambda
@@ -871,8 +871,8 @@ C
       implicit none
       external kldist,lkern
       double precision kldist,lkern
-      integer n1,n2,n3,model,kern
-      logical aws,fix(*)
+      integer n1,n2,n3,model,kern,fix(*)
+      logical aws
       double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght(2),
      1       bi2(*),hakt,lwght(*),si2(*),vred(*),spmin
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
@@ -947,7 +947,7 @@ C$OMP DO SCHEDULE(GUIDED)
          i2=mod((iind-i1)/n1+1,n2)
          if(i2.eq.0) i2=n2
          i3=(iind-i1-(i2-1)*n1)/n1/n2+1
-         IF (fix(iind)) CYCLE
+         IF (fix(iind).ne.0) CYCLE
 C    nothing to do, final estimate is already fixed by control
          thetai=theta(iind)
          bii=bi(iind)/lambda
@@ -1166,8 +1166,8 @@ C
       implicit none
       external lkern
       double precision lkern
-      integer n1,n2,n3,kern
-      logical aws,fix(*),mask(*)
+      integer n1,n2,n3,kern,fix(*),mask(*)
+      logical aws
       double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght(2),
      1       bi2(*),hakt,lwght(*),si2(*),vred(*),spmin,hhom(*),gi(*)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
@@ -1247,7 +1247,7 @@ C$OMP DO SCHEDULE(GUIDED)
          hhomi=hhom(iind)
          hhomi=hhomi*hhomi
          hhommax=hmax2
-         IF (fix(iind).or..not.mask(iind)) CYCLE
+         IF (fix(iind).ne.0.or.mask(iind).eq.0) CYCLE
 C    nothing to do, final estimate is already fixed by control
          thetai=theta(iind)
          bii=bi(iind)/lambda
@@ -1279,7 +1279,7 @@ C  first stochastic term
                   j1=jw1+i1
                   if(j1.lt.1.or.j1.gt.n1) CYCLE
                   jind=j1+jind2
-                  if(.not.mask(jind)) CYCLE
+                  if(mask(jind).eq.0) CYCLE
                   wj=lwght(jw1+clw1+1+jwind2)
                   swj0=swj0+wj*si2(jind)
                   z1=-jw1
@@ -1339,8 +1339,8 @@ C   wght     scaling factor for second and third dimension (larger values shrink
 C
       implicit none
 
-      integer nv,n1,n2,n3,ncores
-      logical aws,mask(*)
+      integer nv,n1,n2,n3,ncores,mask(*)
+      logical aws
       double precision y(nv,*),theta(nv,*),bi(*),thnew(nv,*),lambda,
      1  wght(2),hakt,lwght(*),spmin,spf,swjy(nv,ncores),vred(*)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
@@ -1417,7 +1417,7 @@ C$OMP& sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
 C$OMP& j1,jw1,jind,z1,z,thrednr)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n1*n2*n3
-         if(.not.mask(iind)) CYCLE
+         if(mask(iind).eq.0) CYCLE
 !$         thrednr = omp_get_thread_num()+1
 C returns value in 0:(ncores-1)
          i1=mod(iind,n1)
@@ -1456,7 +1456,7 @@ C  first stochastic term
                   j1=jw1+i1
                   if(j1.lt.1.or.j1.gt.n1) CYCLE
                   jind=j1+jind2
-                  if(.not.mask(jind)) CYCLE
+                  if(mask(jind).eq.0) CYCLE
                   wj=lwght(jw1+clw1+1+jwind2)
                   IF (aws) THEN
                      sij=0.d0
@@ -1502,8 +1502,8 @@ C   wght     scaling factor for second and third dimension (larger values shrink
 C
       implicit none
 
-      integer nv,n1,n2,n3,ncores,nvd
-      logical aws,mask(*)
+      integer nv,n1,n2,n3,ncores,nvd,mask(*)
+      logical aws
       double precision y(nv,*),theta(nv,*),bi(*),thnew(nv,*),lambda,
      1  wght(2),hakt,lwght(*),spmin,spf,swjy(nv,ncores),invcov(nvd,*),
      2  vred(*)
@@ -1584,7 +1584,7 @@ C$OMP& sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
 C$OMP& j1,jw1,jind,z1,z,thrednr,l,m)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n1*n2*n3
-         if(.not.mask(iind)) CYCLE
+         if(mask(iind).eq.0) CYCLE
 !$         thrednr = omp_get_thread_num()+1
 C returns value in 0:(ncores-1)
          i1=mod(iind,n1)
@@ -1626,7 +1626,7 @@ C  first stochastic term
                   j1=jw1+i1
                   if(j1.lt.1.or.j1.gt.n1) CYCLE
                   jind=j1+jind2
-                  if(.not.mask(jind)) CYCLE
+                  if(mask(jind).eq.0) CYCLE
                   wj=lwght(jw1+clw1+1+jwind2)
                   IF (aws) THEN
                      sij=bii*KLdistsi(thi(1,thrednr),theta(1,jind),

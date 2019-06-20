@@ -21,8 +21,8 @@ C
       implicit none
       external lkern,fpchisq
       double precision lkern,fpchisq
-      integer n1,n2,n3,kern,segm(*),segmn(*)
-      logical aws,fix(*)
+      integer n1,n2,n3,kern,segm(*),segmn(*),fix(*)
+      logical aws
       double precision y(*),theta(*),bi(*),bi0(*),thetan(*),lambda,
      1       wght(2),bi2(*),hakt,lwght(*),si2(*),vred(*),spmin,gi(*),
      2       level,delta,beta,thresh,ext,varest(*),fov
@@ -92,16 +92,16 @@ C  first stochastic term
          DO i2=1,n2
             DO i3=1,n3
                iind=i1+(i2-1)*n1+(i3-1)*n12
-               if(fix(iind)) CYCLE
+               if(fix(iind).ne.0) CYCLE
                thi = theta(iind)
                s2i = si2(iind)
             cofh = sqrt(beta*log(varest(iind)*s2i*fov))
            if(max(a-thi,thi-b)/sqrt(varest(iind))-cofh.gt.extthr) THEN
-                  fix(iind)=.TRUE.
+                  fix(iind)=1
       if(segm(iind).eq.0) segm(iind)=FLOOR(sign(1.d0,thi-level))
 C we need to assign a value to segment before we can fix the decision
                ELSE
-                  fix(iind)=.FALSE.
+                  fix(iind)=0
                   ti=max(0.d0,max(a-thi,thi-b))
                END IF
             END DO
@@ -185,7 +185,7 @@ C
          cofh = sqrt(beta*log(si*si2(iind)*fov))
 C    both are equivalent for  homogeneous si2
          si=sqrt(si)
-         If(.not.fix(iind)) THEN
+         If(fix(iind).eq.0) THEN
          IF((thi-a)/si+cofh.lt.-thresh) THEN
             segmn(iind)=-1
          ELSE IF ((thi-b)/si-cofh.gt.thresh) THEN

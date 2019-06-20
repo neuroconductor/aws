@@ -20,8 +20,8 @@ C
       implicit none
       external kldist,lkern
       double precision kldist,lkern
-      integer n1,n2,model,kern,ni(*)
-      logical aws,fix(*),mask(*)
+      integer n1,n2,model,kern,ni(*),fix(*),mask(*)
+      logical aws
       double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght,
      1       bi2(*),hakt,lwght(*),spmin,spf
       integer ih1,ih2,i1,i2,j1,j2,jw1,jw2,jwind2,
@@ -71,8 +71,8 @@ C$OMP& ,j1,jw1,jind)
 C$OMP DO SCHEDULE(GUIDED)
          DO i1=1,n1
             iind=i1+(i2-1)*n1
-            if(.not.mask(iind)) CYCLE
-            IF (fix(iind)) CYCLE
+            if(mask(iind).eq.0) CYCLE
+            IF (fix(iind).ne.0) CYCLE
 C    nothing to do, final estimate is already fixed by control
             thetai=theta(iind)
             bii=bi(iind)/lambda
@@ -144,8 +144,8 @@ C
       implicit none
       external kldist,lkern
       double precision kldist,lkern
-      integer n1,n2,model,kern,ni(*)
-      logical aws,fix(*),mask(*)
+      integer n1,n2,model,kern,ni(*),fix(*),mask(*)
+      logical aws
       double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght,
      1       bi2(*),hakt,lwght(*),si2(*),vred(*),spmin
       integer ih1,ih2,i1,i2,j1,j2,jw1,jw2,jwind2,
@@ -196,8 +196,8 @@ C$OMP& ,j1,jw1,jind)
 C$OMP DO SCHEDULE(GUIDED)
              DO i1=1,n1
                iind=i1+(i2-1)*n1
-               if(.not.mask(iind)) CYCLE
-               IF (fix(iind)) CYCLE
+               if(mask(iind).eq.0) CYCLE
+               IF (fix(iind).ne.0) CYCLE
 C    nothing to do, final estimate is already fixed by control
                thetai=theta(iind)
                bii=bi(iind)/lambda
@@ -254,18 +254,18 @@ C$OMP FLUSH(ai,bi,bi0,bi2,vred)
       END
       subroutine mask(maskin,maskout,n1,n2,h)
       integer n1,n2,h
-      logical maskin(n1,n2),maskout(n1,n2)
+      integer maskin(n1,n2),maskout(n1,n2)
       integer i1,i2
       DO i1=1,n1
          j1a=max0(1,i1-h)
          j1e=min0(n1,i1+h)
          DO i2=1,n2
-            if(.not.maskin(i1,i2)) CYCLE
+            if(maskin(i1,i2).eq.0) CYCLE
             j2a=max0(1,i2-h)
             j2e=min0(n2,i2+h)
             DO j1=j1a,j1e
                DO j2=j2a,j2e
-                  maskout(j1,j2)=.TRUE.
+                  maskout(j1,j2)=1
                END DO
             END DO
          END DO

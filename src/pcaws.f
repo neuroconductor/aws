@@ -417,8 +417,8 @@ C   wght     scaling factor for second and third dimension (larger values shrink
 C
       implicit none
 
-      integer nv,n1,n2,n3,ncores
-      logical aws,mask(*)
+      integer nv,n1,n2,n3,ncores,mask(*)
+      logical aws
       double precision y(nv,*),theta(nv,*),bi(*),thnew(nv,*),lambda,
      1  wght(2),hakt,lwght(*),spmin,spf,swjy(nv,ncores),bin(*)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
@@ -505,7 +505,7 @@ C$OMP& j1,jw1,jind,z1,z,thrednr,ip1,ip2,ip3,ipind,
 C$OMP& jp1,jp2,jp3,jpind,sijp)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n1*n2*n3
-         if(.not.mask(iind)) CYCLE
+         if(mask(iind).eq.0) CYCLE
 !$         thrednr = omp_get_thread_num()+1
 C returns value in 0:(ncores-1)
          i1=mod(iind,n1)
@@ -539,7 +539,7 @@ C  first stochastic term
                   j1=jw1+i1
                   if(j1.lt.1.or.j1.gt.n1) CYCLE
                   jind=j1+jind2
-                  if(.not.mask(jind)) CYCLE
+                  if(mask(jind).eq.0) CYCLE
                   wj=lwght(jw1+clw1+1+jwind2)
                   IF (aws) THEN
                      sij=0.d0
@@ -558,7 +558,7 @@ C  first stochastic term
                               if(jp3.le.0.or.jp3.gt.n3) CYCLE
                               jpind=jp1+(jp2-1)*n1+(jp3-1)*n12
                               ipind=jp1+(jp2-1)*n1+(jp3-1)*n12
-                              if(.not.mask(jpind)) CYCLE
+                              if(mask(jpind).eq.0) CYCLE
                               sijp=0.d0
                               DO k=1,nv
                                  z=theta(k,ipind)-theta(k,jpind)
@@ -603,8 +603,8 @@ C   wght     scaling factor for second and third dimension (larger values shrink
 C
       implicit none
 
-      integer nv,n1,n2,n3,ncores,nvd
-      logical aws,mask(*)
+      integer nv,n1,n2,n3,ncores,nvd,mask(*)
+      logical aws
       double precision y(nv,*),theta(nv,*),bi(*),thnew(nv,*),lambda,
      1  wght(2),hakt,lwght(*),spmin,spf,swjy(nv,ncores),invcov(nvd,*),
      2  bin(*)
@@ -692,7 +692,7 @@ C$OMP& j1,jw1,jind,z1,z,thrednr,ip1,ip2,ip3,ipind,
 C$OMP& jp1,jp2,jp3,jpind,sijp,l,m)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n1*n2*n3
-         if(.not.mask(iind)) CYCLE
+         if(mask(iind).eq.0) CYCLE
 !$         thrednr = omp_get_thread_num()+1
 C returns value in 0:(ncores-1)
          i1=mod(iind,n1)
@@ -726,7 +726,7 @@ C  first stochastic term
                   j1=jw1+i1
                   if(j1.lt.1.or.j1.gt.n1) CYCLE
                   jind=j1+jind2
-                  if(.not.mask(jind)) CYCLE
+                  if(mask(jind).eq.0) CYCLE
                   wj=lwght(jw1+clw1+1+jwind2)
                   IF (aws) THEN
                      sij=0.d0
@@ -742,11 +742,11 @@ C  first stochastic term
                               if(sij.gt.1.d0) CYCLE
                               if(ip3.le.0.or.ip3.gt.n3) CYCLE
                               ipind=ip1+(ip2-1)*n1+(ip3-1)*n12
-                              if(.not.mask(ipind)) CYCLE
+                              if(mask(ipind).eq.0) CYCLE
                               jp3=ip3+jw3
                               if(jp3.le.0.or.jp3.gt.n3) CYCLE
                               jpind=jp1+(jp2-1)*n1+(jp3-1)*n12
-                              if(.not.mask(jpind)) CYCLE
+                              if(mask(jpind).eq.0) CYCLE
 C   need both ipind and jpind in mask,
                               sijp=KLdistsi(theta(1,jpind),
      1                                theta(1,ipind),
