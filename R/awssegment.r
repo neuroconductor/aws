@@ -191,7 +191,7 @@ aws.segment <- function(y,
   dlw <- (2 * trunc(hpre / c(1, wghts)) + 1)[1:d]
   hobj <- .Fortran(C_caws,
     as.double(y),
-    as.logical(fix),
+    as.integer(fix),
     as.integer(n1),
     as.integer(n2),
     as.integer(n3),
@@ -232,7 +232,7 @@ aws.segment <- function(y,
     # heteroskedastic Gaussian case
     zobj <- .Fortran(C_segment,
       as.double(y),
-      fix = as.logical(fix),
+      fix = as.integer(fix),
       as.double(level),
       as.double(delta),
       as.double(sigma2),
@@ -276,7 +276,7 @@ aws.segment <- function(y,
       zobj$bi0 <- rep(max(zobj$bi), n)
     segment <- zobj$segment
     varest <- zobj$varest
-    fix <- zobj$fix
+    fix <- as.logical(zobj$fix)
     dim(zobj$theta) <-
       dim(zobj$gi) <- dim(segment) <- dim(fix) <- dim(zobj$bi) <- dy
     if (graph) {

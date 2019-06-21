@@ -162,7 +162,7 @@ kernsm <- function (y,
               as.integer(xp$dx1[2]),
               as.integer(nsector),
               as.integer(sector),
-              as.logical(symmetric),
+              as.integer(symmetric),
               insector = double(xp$dx1[1] * xp$dx1[2])
             )$insector
             kwghts <- kwghts * array(sector, xp$dx1)

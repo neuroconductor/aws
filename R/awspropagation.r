@@ -262,7 +262,7 @@ awstestprop <- function(dy,
     if (!homogeneous & family == "Gaussian") {
       zobj <- .Fortran(C_chaws,
         as.double(y),
-        as.logical(rep(FALSE, n)),
+        as.integer(rep(FALSE, n)),
         as.double(sigma2),
         as.integer(n1),
         as.integer(n2),
@@ -286,7 +286,7 @@ awstestprop <- function(dy,
       if (cpar$mcode != 6) {
         zobj <- .Fortran(C_caws,
           as.double(y),
-          as.logical(rep(FALSE, n)),
+          as.integer(rep(FALSE, n)),
           as.integer(n1),
           as.integer(n2),
           as.integer(n3),
@@ -307,7 +307,7 @@ awstestprop <- function(dy,
       } else {
         zobj <- .Fortran(C_caws6,
           as.double(y),
-          as.logical(rep(FALSE, n)),
+          as.integer(rep(FALSE, n)),
           as.integer(n1),
           as.integer(n2),
           as.integer(n3),
@@ -707,7 +707,7 @@ pawstestprop <- function(dy,
       as.double(z / ni),
       as.integer(nz),
       exprob = double(nz),
-      as.logical(mask)
+      as.integer(mask)
     )$exprob
     #
     #   get adaptive estimate
@@ -766,7 +766,7 @@ pawstestprop <- function(dy,
       as.double(z / ni),
       as.integer(nz),
       exprob = double(nz),
-      as.logical(mask)
+      as.integer(mask)
     )$exprob
 
     contour(

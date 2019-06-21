@@ -60,14 +60,16 @@ aws.irreg <- function(y,
   else
     apply(zbins$x, 2, max)
   mask <- ni > 0
-  if (!is.null(henv))
+  if (!is.null(henv)){
     mask <- .Fortran(C_mask,
-      as.logical(mask),
-      mask = as.logical(mask),
+      as.integer(mask),
+      mask = as.integer(mask),
       as.integer(nbins[1]),
       as.integer(switch(d, 1, nbins[2])),
       as.integer(max(0, henv))
     )$mask
+    mask <- as.logical(mask)
+  }
   yy <- rep(mean(y), length(mask))
   dim(yy) <- dim(mask) <- dim(ni)
   if (d > 1 & graph) {
@@ -164,11 +166,11 @@ aws.irreg <- function(y,
   dlw <- (2 * trunc(hpre / c(1, wghts)) + 1)[1:d]
   hobj <- .Fortran(C_cawsmask,
     as.double(yy),
-    as.logical(ni > 0),
+    as.integer(ni > 0),
     # bins where we need estimates
     as.integer(ni),
     # contains number of points in bin
-    as.logical(tobj$fix),
+    as.integer(tobj$fix),
     as.integer(n1),
     as.integer(n2),
     hakt = as.double(hpre),
@@ -205,11 +207,11 @@ aws.irreg <- function(y,
     # heteroskedastic Gaussian case
     zobj <- .Fortran(C_cgawsmas,
       as.double(yy),
-      as.logical(mask),
+      as.integer(mask),
       # bins where we need estimates
       as.integer(ni),
       # contains number of points in bin
-      as.logical(tobj$fix),
+      as.integer(tobj$fix),
       as.double(sigma2),
       as.integer(n1),
       as.integer(n2),
