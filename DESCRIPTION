@@ -1,13 +1,14 @@
 Package: aws
 Version: 2.2-2
-Date: 2019-06-18
+Date: 2019-08-30
 Title: Adaptive Weights Smoothing
 Authors@R: c(person("Joerg","Polzehl",role=c("aut","cre"),email="joerg.polzehl@wias-berlin.de"),person("Felix","Anker",role=c("ctb")))
 Author: Joerg Polzehl [aut, cre],
     Felix Anker [ctb]
 Maintainer: Joerg Polzehl <joerg.polzehl@wias-berlin.de>
 Depends:
-    R (>= 3.4.0),
+    R (>= 3.4.0)
+Imports:
     methods,
     awsMethods (>= 1.1-1),
     gsl
