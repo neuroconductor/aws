@@ -87,15 +87,15 @@ void F77_NAME(pawswght)(int* n1, int* n2, int* n3, int* i1, int* i2, int* i3,
   int* npsize, double* wi);
 void F77_NAME(pcaws)(double* y, int* n1, int* n2, int* n3,
   double* hakt, double* lambda, double* theta, double* bi,
-  double* bi2, double* bi0, double(bin), double* ai, int* model, int* kern,
+  double* bi2, double* bi0, double* bin, double* ai, int* model, int* kern,
   double* spmin, double* lwght, double* wght, int* npsize);
 void F77_NAME(pcaws2)(double* y, int* n1, int* n2, int* n3,
   double* hakt, double* lambda, double* theta, double* bi, double* bip,
-  double* bi2, double* bi0, double(bin), double* ai, int* model, int* kern,
+  double* bi2, double* bi0, double* bin, double* ai, int* model, int* kern,
   double* spmin, double* lwght, double* wght, int* npsize);
 void F77_NAME(pcaws3)(double* y, int* n1, int* n2, int* n3,
     double* hakt, double* lambda, double* theta, double* bi,
-    double* bi2, double* bi0, double(bin), double* ai, int* model, int* kern,
+    double* bi2, double* bi0, double* bin, double* ai, int* model, int* kern,
     double* spmin, double* lwght, double* wght, int* npsize, int* qind);
 void F77_NAME(pcawsm)(double* y, int* pos, int* n1, int* n2, int* n3,
   double* hakt, double* lambda, double* theta, double* bi,
