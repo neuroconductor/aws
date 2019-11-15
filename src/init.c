@@ -77,10 +77,13 @@ void F77_NAME(median1d)(double* y, int* n, double* yhat);
 void F77_NAME(median2d)(double* y, int* n1, int* n2, double* yhat);
 void F77_NAME(median3d)(double* y, int* n1, int* n2, int* n3,
   double* yhat);
+void F77_NAME(mediansm)(double* y, int* mask, int* n1, int* n2, int* n3,
+  int* ind, int* nind, double* work, int* ncores, double* yout);
 void F77_NAME(mpaws1)(int* n, int* dp1, int* dp2, double* ai,
   double* bi, double* theta, double* dmat, int* ind);
 void F77_NAME(mpaws2)(int* n, int* dp1, int* dp2, double* ai,
   double* bi, double* theta, double* dmat, int* ind);
+void F77_NAME(paramw3)(double* h, double* vext, int* indn, double* w, int* n);
 void F77_NAME(pawswght)(int* n1, int* n2, int* n3, int* i1, int* i2, int* i3,
   double* hakt, double* lambda, double* theta, double* bi,
   int* model, int* kern, double* spmin, double* lwght, double* wght,
@@ -94,9 +97,9 @@ void F77_NAME(pcaws2)(double* y, int* n1, int* n2, int* n3,
   double* bi2, double* bi0, double* bin, double* ai, int* model, int* kern,
   double* spmin, double* lwght, double* wght, int* npsize);
 void F77_NAME(pcaws3)(double* y, int* n1, int* n2, int* n3,
-    double* hakt, double* lambda, double* theta, double* bi,
-    double* bi2, double* bi0, double* bin, double* ai, int* model, int* kern,
-    double* spmin, double* lwght, double* wght, int* npsize, int* qind);
+  double* hakt, double* lambda, double* theta, double* bi,
+  double* bi2, double* bi0, double* bin, double* ai, int* model, int* kern,
+  double* spmin, double* lwght, double* wght, int* npsize, int* qind);
 void F77_NAME(pcawsm)(double* y, int* pos, int* n1, int* n2, int* n3,
   double* hakt, double* lambda, double* theta, double* bi,
   double* bi2, double* bin, double* thnew, int* model, int* kern, double* spmin,
@@ -110,6 +113,14 @@ void F77_NAME(pvaws2)(double* y, int* mask, int* nv, int* nvd,
   double* theta, double* bi, double*bin, double* thnew, double* invcov,
   int* ncores, double* spmin, double* lwght, double* wght,
   double* swjy, int* np1, int* np2, int* np3);
+void F77_NAME(pvawsme)(double* y, double* yd, int* pos, int* nv, int* nvd, int* nd, int* n1, int* n2,
+  int* n3, double* hakt, double* lambda, double* theta, double* bi, double* bin,
+  double* thnew, double* ydnew, double* invcov, int* ncores, double* spmin, double* lwght,
+  double* wght, double* swjy, double* swjd, int* np1, int* np2, int* np3);
+void F77_NAME(pvawsm2)(double* y, int* pos, int* nv, int* nvd, int* n1, int* n2,
+  int* n3, double* hakt, double* lambda, double* theta, double* bi, double* bin,
+  double* thnew, double* invcov, int* ncores, double* spmin, double* lwght,
+  double* wght, double* swjy, int* np1, int* np2, int* np3);
 void F77_NAME(sector)(double* x1, int* n1, double* x2, int* n2,
   int* nsect, int* sect, int* symm, double* insect);
 void F77_NAME(segment)(double* y, int* fix, double* level,
@@ -122,10 +133,14 @@ void F77_NAME(vaws)(double* y, int* mask, int* nv, int* n1, int* n2,
   int* n3, double* hakt, double* lambda, double* theta, double* bi,
   double* vred, double* thnew, int* ncores, double* spmin, double* lwght,
   double* wght, double* swjy);
-  void F77_NAME(vaws2)(double* y, int* mask, int* nv, int* nvd, int* n1,
-    int* n2, int* n3, double* hakt, double* lambda, double* theta, double* bi,
-    double* vred, double* thnew, double* invcov, int* ncores, double* spmin,
-    double* lwght, double* wght, double* swjy, double* thi, double* invcovi);
+void F77_NAME(vaws2)(double* y, int* mask, int* nv, int* nvd, int* n1,
+  int* n2, int* n3, double* hakt, double* lambda, double* theta, double* bi,
+  double* vred, double* thnew, double* invcov, int* ncores, double* spmin,
+  double* lwght, double* wght, double* swjy, double* thi, double* invcovi);
+void F77_NAME(vaws2cov)(double* y, int* mask, int* nv, int* n1, int* n2, int* n3,
+  double* hakt, double* lambda, double* theta, double* s2, double* bi,
+  double* thnew, double* s2new, int* ncores, double* lwght, double* wght,
+  double* swjy);
 void F77_NAME(vpaws)(int* n, int* dp2, double* bi, double* bi2, double* var);
 void F77_NAME(fillpat1)(double* x, int* n1, int* phw, int* psize, double* pmat);
 void F77_NAME(fillpat2)(double* x, int* n1, int* n2, int* phw, int* psize,
@@ -189,10 +204,14 @@ static R_NativePrimitiveArgType median1d_t[]={REALSXP, INTSXP, REALSXP};
 static R_NativePrimitiveArgType median2d_t[]={REALSXP, INTSXP, INTSXP, REALSXP};
 static R_NativePrimitiveArgType median3d_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
   REALSXP};
+static R_NativePrimitiveArgType mediansm_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
+  INTSXP, INTSXP, INTSXP, REALSXP, INTSXP, REALSXP};
 static R_NativePrimitiveArgType mpaws1_t[]={INTSXP, INTSXP, INTSXP, REALSXP,
   REALSXP, REALSXP, REALSXP, INTSXP};
 static R_NativePrimitiveArgType mpaws2_t[]={INTSXP, INTSXP, INTSXP, REALSXP,
   REALSXP, REALSXP, REALSXP, INTSXP};
+static R_NativePrimitiveArgType paramw3_t[]={REALSXP, REALSXP, INTSXP, REALSXP,
+  INTSXP};
 static R_NativePrimitiveArgType pawswght_t[]={INTSXP, INTSXP, INTSXP, INTSXP,
   INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP,
   REALSXP, REALSXP, REALSXP, INTSXP, REALSXP};
@@ -214,6 +233,13 @@ static R_NativePrimitiveArgType pvaws_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
 static R_NativePrimitiveArgType pvaws2_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
   INTSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
   INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, INTSXP};
+static R_NativePrimitiveArgType pvawsme_t[]={REALSXP, REALSXP, INTSXP, INTSXP,
+  INTSXP, INTSXP, INTSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP,
+  REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, REALSXP, REALSXP, REALSXP,
+  REALSXP, REALSXP, INTSXP, INTSXP, INTSXP};
+static R_NativePrimitiveArgType pvawsm2_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
+  INTSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
+  REALSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, INTSXP};
 static R_NativePrimitiveArgType sector_t[]={REALSXP, INTSXP, REALSXP, INTSXP,
   INTSXP, INTSXP, INTSXP, REALSXP};
 static R_NativePrimitiveArgType segment_t[]={REALSXP, INTSXP, REALSXP, REALSXP,
@@ -227,6 +253,9 @@ static R_NativePrimitiveArgType vaws2_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
   INTSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
   REALSXP, REALSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
   REALSXP};
+static R_NativePrimitiveArgType vaws2cov_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
+  INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
+  REALSXP, INTSXP, REALSXP, REALSXP, REALSXP};
 static R_NativePrimitiveArgType vpaws_t[]={INTSXP, INTSXP, REALSXP, REALSXP,
   REALSXP};
 static R_NativePrimitiveArgType fillpat1_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
@@ -262,8 +291,10 @@ static const R_FortranMethodDef fmethods[] = {
             {"median1d", (DL_FUNC) &median1d_ ,3, median1d_t},
             {"median2d", (DL_FUNC) &median2d_ ,4, median2d_t},
             {"median3d", (DL_FUNC) &median3d_ ,5, median3d_t},
+            {"mediansm", (DL_FUNC) &mediansm_ , 10, mediansm_t},
             {"mpaws1", (DL_FUNC) &mpaws1_ ,8, mpaws1_t},
             {"mpaws2", (DL_FUNC) &mpaws2_ ,8, mpaws2_t},
+            {"paramw3", (DL_FUNC) &paramw3_ , 5, paramw3_t},
             {"pawswght", (DL_FUNC) &pawswght_ ,17, pawswght_t},
             {"pcaws", (DL_FUNC) &pcaws_ ,18, pcaws_t},
             {"pcaws2", (DL_FUNC) &pcaws2_ ,19, pcaws2_t},
@@ -271,10 +302,13 @@ static const R_FortranMethodDef fmethods[] = {
             {"pcawsm", (DL_FUNC) &pcawsm_ ,18, pcawsm_t},
             {"pvaws", (DL_FUNC) &pvaws_ ,20, pvaws_t},
             {"pvaws2", (DL_FUNC) &pvaws2_ ,22, pvaws2_t},
+            {"pvawsme", (DL_FUNC) &pvawsme_ , 26, pvawsme_t},
+            {"pvawsm2", (DL_FUNC) &pvawsm2_ , 22, pvawsm2_t},
             {"sector", (DL_FUNC) &sector_ ,8, sector_t},
             {"segment", (DL_FUNC) &segment_ ,28, segment_t},
             {"vaws", (DL_FUNC) &vaws_ ,17, vaws_t},
             {"vaws2", (DL_FUNC) &vaws2_ ,21, vaws2_t},
+            {"vaws2cov", (DL_FUNC) &vaws2cov_ ,17, vaws2cov_t},
             {"vpaws", (DL_FUNC) &vpaws_ ,5, vpaws_t},
             {"fillpat1", (DL_FUNC) &fillpat1_ ,5, fillpat1_t},
             {"fillpat2", (DL_FUNC) &fillpat2_ ,6, fillpat2_t},

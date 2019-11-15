@@ -777,6 +777,7 @@ C$OMP FLUSH(thnew,bin)
       END
 
       double precision function KLdistsi(thi,thj,si2,nv)
+C  compact version
       implicit logical (a-z)
       integer nv
       double precision thi(nv), thj(nv), si2(*)

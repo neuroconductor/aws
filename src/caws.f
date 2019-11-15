@@ -1487,7 +1487,7 @@ C$OMP END PARALLEL
 C$OMP FLUSH(thnew,bi)
       RETURN
       END
-      subroutine vaws2(y,mask,nv,nvd,n1,n2,n3,hakt,lambda,theta,bi,
+      subroutine vaws2cov(y,mask,nv,nvd,n1,n2,n3,hakt,lambda,theta,bi,
      1                vred,thnew,invcov,ncores,spmin,lwght,wght,swjy,
      2                thi,invcovi)
 C
