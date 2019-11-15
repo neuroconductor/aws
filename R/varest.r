@@ -113,12 +113,10 @@ estimateSigmaCompl <- function(magnitude,phase,mask,kstar=20,kmin=8,hsig=5,lambd
   }
   dim(zobj$theta) <- c(2,sdim)
   # return estimated parameters of rician distribution
-  z <-  list(sigma=array(sqrt(sigma2),sdim),
-             theta=array(sqrt(zobj$theta[1,,,]^2+zobj$theta[2,,,]^2),sdim),
-             sigmal=array(sqrt(zobj$sigma2),sdim),mask=mask,
-             protocol=protocol,args=args)
-  class(z) <- "sigmaEstSENSE"
-  z
+  list(sigma=array(sqrt(sigma2),sdim),
+       theta=array(sqrt(zobj$theta[1,,,]^2+zobj$theta[2,,,]^2),sdim),
+       sigmal=array(sqrt(zobj$sigma2),sdim),mask=mask,
+       protocol=protocol,args=args)
 }
 
 medianFilterSigma <- function(obj,hsig=10,mask=NULL){
