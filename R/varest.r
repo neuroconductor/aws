@@ -119,13 +119,7 @@ estimateSigmaCompl <- function(magnitude,phase,mask,kstar=20,kmin=8,hsig=5,lambd
        protocol=protocol,args=args)
 }
 
-medianFilterSigma <- function(obj,hsig=10,mask=NULL){
-  if(class(obj)=="sigmaEstSENSE"){
-    sigma2 <- obj$sigmal^2
-    mask <- obj$mask
-  } else {
-    sigma2 <- obj^2
-  }
+medianFilter3D <- function(sigma2, hsig=10, mask=NULL){
   sdim <- dim(sigma2)
   n <- prod(sdim)
   if(length(sdim)!=3) stop("obj needs to be of class 'array' (3D) or 'sigmaEstSENSE'")
@@ -142,7 +136,7 @@ medianFilterSigma <- function(obj,hsig=10,mask=NULL){
   parammd$ind <- parammd$ind[1:(3*nwmd)]
   dim(parammd$ind) <- c(3,nwmd)
   mc.cores <- setCores(, reprt = FALSE)
-  sigma2 <- .Fortran(C_mediansm,
+  sigma2hat <- .Fortran(C_mediansm,
                      as.double(sigma2),
                      as.logical(mask),
                      as.integer(sdim[1]),
@@ -153,12 +147,6 @@ medianFilterSigma <- function(obj,hsig=10,mask=NULL){
                      double(nwmd*mc.cores), # work(nw,nthreds)
                      as.integer(mc.cores),
                      sigma2n = double(n))$sigma2n/0.6931
-  dim(sigma2) <- sdim
-  if(class(obj)=="sigmaEstSENSE"){
-    obj$sigma <- sqrt(sigma2)
-    obj$hsig <- hsig
-  } else {
-    obj <- sqrt(sigma2)
-  }
-  obj
+  dim(sigma2hat) <- sdim
+  sigma2hat
 }

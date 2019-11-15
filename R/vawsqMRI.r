@@ -1,4 +1,4 @@
-vpawscov <- function(y,
+vpawscov2 <- function(y,
                      kstar = 16,
                      invcov = NULL,
                      mask = NULL,
