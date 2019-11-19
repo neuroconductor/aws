@@ -792,7 +792,8 @@ C
       implicit none
       integer nv,ns,n1,n2,n3,ngrad,n,n0,ind(5,n),ind0(3,n0),pos(*)
       double precision y(*),y0(nv),th(ns,nv),ni(ns,nv),th0(ns,nv),
-     1  ni0(ns,nv),fsi2(ns,nv),fsi02(ns,nv),thn(*),th0n(nv),nin(*),ni0n(nv)
+     1  ni0(ns,nv),fsi2(ns,nv),fsi02(ns,nv),thn(*),th0n(nv),nin(*),
+     2  ni0n(nv)
 C  * refers to n1*n2*n3*ngrad for y,th,ni,thn,fsi2,nin and to
 C              n1*n2*n3 for y0,th0,ni0,th0n,ni0n,fsi02,mask
       double precision w(n),w0(n0),lambda,thi(*),ws0,fsi2i(*),sw(*),
