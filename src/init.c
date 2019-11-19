@@ -4,15 +4,15 @@
 #include <Rinternals.h> // for SEXP
 #include <R_ext/RS.h>
 void F77_NAME(adsmse3m)( double* y, double* th, double* ni, double* sthi,
-  int* mask, int* ns, int* n1, int* n2, int* n3, int* ngrad, double* lambda,
+  int* pos, int* nv, int* ns, int* n1, int* n2, int* n3, int* ngrad, double* lambda,
   int* ncores, int* ind, double* w, int* n, double* thn, double* sw,
   double* swy, double* si, double* thi);
-void F77_NAME(adsmse3p)( double* y, double* th, double* ni, int* mask,
+void F77_NAME(adsmse3p)( double* y, double* th, double* ni, int* pos, int* nv,
   int* n1, int* n2, int* n3, int* ngrad, double* lambda, int* ncoils,
   int* ncores, int* ind, double* w, int* n, double* thn, double* ldf,
   double* sw, double* swy, int* model);
 void F77_NAME(adsmse3s)( double* y, double* y0, double* th, double* ni,
-  double* th0, double* ni0, double* fsi2, double* fsi02, int* position, int* nv, int* ns,
+  double* th0, double* ni0, double* fsi2, double* fsi02, int* pos, int* nv, int* ns,
   int* n1, int* n2, int* n3, int* ngrad, double* lambda, double* ws0,
   int* ind, double* w, int* n, int* ind0, double* w0, int* n0, double* thn,
   double* nin, double* th0n, double* ni0n, double* sw, double* swy,
@@ -23,7 +23,7 @@ void F77_NAME(afmodem2)( double* y, int* n1, int* n2, int* n3, int* mask,
   double* h, double* vext, double* sm);
 void F77_NAME(afmodevn)(  double* y, int* n1, int* n2, int* n3, int* mask,
   double* h, double* vext, double* sigma);
-void F77_NAME(asmse30p)( double* y, double* th, double* ni, int* mask,
+void F77_NAME(asmse30p)( double* y, double* th, double* ni, int* pos, int* nv,
   int* n1, int* n2, int* n3, double* lambda, int* ncoils, int* ind, double* w,
   int* n, int* starts, int* nstarts, double* thn, double* ldf, double* swi,
   int* model);
@@ -212,10 +212,10 @@ void F77_NAME(fillpat3)(double* x, int* n1, int* n2, int* n3, int* phw,
 void F77_NAME(nlmeans)(double* x, int* n1, int* n2, int* n3, double* patch,
   int* pd, int* swd, double* tau, double* xhat);
 static R_NativePrimitiveArgType adsmse3m_t[]={REALSXP, REALSXP, REALSXP,
-  REALSXP, INTSXP, INTSXP, INTSXP, INTSXP, INTSXP, INTSXP, REALSXP, INTSXP,
+  REALSXP, INTSXP, INTSXP, INTSXP, INTSXP, INTSXP, INTSXP, INTSXP, REALSXP, INTSXP,
 	INTSXP, REALSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP};
 static R_NativePrimitiveArgType adsmse3p_t[]={REALSXP, REALSXP,
-  REALSXP, INTSXP, INTSXP, INTSXP, INTSXP, INTSXP, REALSXP, INTSXP,
+  REALSXP, INTSXP, INTSXP, INTSXP, INTSXP, INTSXP, INTSXP, REALSXP, INTSXP,
   INTSXP, INTSXP, REALSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP};
 static R_NativePrimitiveArgType adsmse3s_t[]={REALSXP, REALSXP, REALSXP,
   REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, INTSXP, INTSXP, INTSXP,
@@ -229,7 +229,7 @@ static R_NativePrimitiveArgType afmodem2_t[]={REALSXP, INTSXP, INTSXP,
 static R_NativePrimitiveArgType afmodevn_t[]={REALSXP, INTSXP, INTSXP,
   INTSXP, INTSXP, REALSXP, REALSXP, REALSXP};
 static R_NativePrimitiveArgType asmse30p_t[]={REALSXP, REALSXP,
-  REALSXP, INTSXP, INTSXP, INTSXP, INTSXP, REALSXP, INTSXP, INTSXP,
+  REALSXP, INTSXP, INTSXP, INTSXP, INTSXP, INTSXP, REALSXP, INTSXP, INTSXP,
   REALSXP, INTSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, INTSXP};
 static R_NativePrimitiveArgType awsadchi_t[]={REALSXP, REALSXP,
   REALSXP, REALSXP, INTSXP, INTSXP, INTSXP, INTSXP, INTSXP, REALSXP,
@@ -389,13 +389,13 @@ static R_NativePrimitiveArgType nlmeans_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
   REALSXP, INTSXP, INTSXP, REALSXP, REALSXP};
 
 static const R_FortranMethodDef fmethods[] = {
-						{"adsmse3m", (DL_FUNC) &adsmse3m_ , 20, adsmse3m_t},
-						{"adsmse3p", (DL_FUNC) &adsmse3p_ , 19, adsmse3p_t},
+						{"adsmse3m", (DL_FUNC) &adsmse3m_ , 21, adsmse3m_t},
+						{"adsmse3p", (DL_FUNC) &adsmse3p_ , 20, adsmse3p_t},
 						{"adsmse3s", (DL_FUNC) &adsmse3s_ , 32, adsmse3s_t},
 						{"afmodem1", (DL_FUNC) &afmodem1_ , 8, afmodem1_t},
 						{"afmodem2", (DL_FUNC) &afmodem2_ , 8, afmodem2_t},
 						{"afmodevn", (DL_FUNC) &afmodevn_ , 8, afmodevn_t},
-						{"asmse30p", (DL_FUNC) &asmse30p_ , 18, asmse30p_t},
+						{"asmse30p", (DL_FUNC) &asmse30p_ , 19, asmse30p_t},
 						{"awsadchi", (DL_FUNC) &awsadchi_ , 17, awsadchi_t},
 						{"awslchi2", (DL_FUNC) &awslchi2_ , 25, awslchi2_t},
 						{"awslgaus", (DL_FUNC) &awslgaus_ , 15, awslgaus_t},

@@ -1,26 +1,187 @@
-smse3ms <- function(sb, s0, bv, grad, sigma, kstar, lambda, kappa0,
+smse3 <- function(sb, s0, bv, grad, ns0, kstar, lambda, kappa0,
+                  mask,
+                  vext = NULL,
+                  ncoils = 1,
+                  ws0 = 1,
+                  model = 3,
+                  dist = 1,
+                  verbose = FALSE){
+  # dist determines distance on sphere (can take 1:3), see getkappas
+  #  data need to be scaled by sigma
+  if(model>=2) varstats <- sofmchi(ncoils)
+  #
+  #  model=0  uses approx of noncentral Chi and smoothes Y
+  #  model=1  uses approx of noncentral Chi2 and smoothes Y^2
+  #  model=2  uses Gaussian approx of noncentral Chi2 and smoothes Y^2
+  #  model=3  uses Gaussian approx of noncentral Chi and smoothes Y
+  multishell <- sd(bv) > mean(bv)/50
+  ngrad <- length(bv)
+    if(multishell) {
+    msstructure <- getnext3g(grad,bv)
+    model <- 3
+    nshell <- msstructure$nbv
+  }
+  ddim <- dim(mask)
+  nvoxel <- sum(mask)
+  nbv <- length(bv)
+  if(dim(sb)[1]!=nvoxel || length(s0)!=nvoxel || dim(sb)[2]!=nbv){
+     stop("aws::smse3 - sb and s0 should only contain data within mask")
+  }
+  # define position of voxel in mask within the 3D cube
+      position <- array(0,ddim)
+      position[mask] <- 1:nvoxel
+  # set relation between voxel lengths
+      if(is.null(vext)) vext <- c(1,1)
+  if(model==1){
+    #
+    #   use squared values for Chi^2
+    #
+    sb <- sb^2
+    s0 <- s0^2
+  }
+  th0 <- s0
+  ni0 <- rep(1,nvoxel)
+  if(multishell){
+    gradstats <- getkappasmsh(grad, msstructure, dist=dist)
+    hseq <- gethseqfullse3msh(kstar,gradstats,kappa0,vext=vext)
+  } else {
+    gradstats <- getkappas(grad, dist=dist)
+    hseq <- gethseqfullse3(kstar,gradstats,kappa0,vext=vext)
+    hseq$h <- cbind(rep(1,ngrad),hseq$h)
+  }
+  nind <- as.integer(hseq$n*1.25)#just to avoid n being to small due to rounding
+  hseq <- hseq$h
+  # make it nonrestrictive for the first step
+  ni <- rep(1,nvoxel)
+  minlevel <- if(model==1) 2*ncoils else sqrt(2)*gamma(ncoils+.5)/gamma(ncoils)
+  minlevel0 <- if(model==1) 2*ns0*ncoils else sqrt(2)*gamma(ns0*ncoils+.5)/gamma(ns0*ncoils)
+  z <- list(th=array(minlevel,c(nvoxel,nbv)), ni = ni)
+  th0 <- rep(minlevel0,nvoxel)
+  prt0 <- Sys.time()
+  cat("adaptive smoothing in SE3, kstar=",kstar,if(verbose)"\n" else " ")
+  kinit <- if(lambda<1e10) 0 else kstar
+  mc.cores <- setCores(,reprt=FALSE)
+  for(k in kinit:kstar){
+    gc()
+    hakt <- hseq[,k+1]
+    if(multishell){
+      thmsh <- interpolatesphere(z$th,msstructure)
+      param <- lkfullse3msh(hakt,kappa0/hakt,gradstats,vext,nind)
+        z <- .Fortran(C_adsmse3m,
+                      as.double(sb),#y
+                      as.double(thmsh),#th
+                      ni=as.double(z$ni),#ni
+                      as.double(fncchiv(thmsh,varstats)),#sthi
+                      as.integer(position),#mask
+                      as.integer(nvoxel),
+                      as.integer(nshell),# number of shells
+                      as.integer(ddim[1]),#n1
+                      as.integer(ddim[2]),#n2
+                      as.integer(ddim[3]),#n3
+                      as.integer(ngrad),#ngrad
+                      as.double(lambda),#lambda
+                      as.integer(mc.cores),#ncores
+                      as.integer(param$ind),#ind
+                      as.double(param$w),#w
+                      as.integer(param$nind),#n
+                      th=double(nvoxel*ngrad),#thn
+                      double(ngrad*mc.cores),#sw
+                      double(ngrad*mc.cores),#swy
+                      double(nshell*mc.cores),#si
+                      double(nshell*mc.cores))[c("ni","th")]
+        dim(z$th) <- dim(z$ni) <- c(nvoxel,ngrad)
+        gc()
+    } else {
+      param <- lkfullse3(hakt,kappa0/hakt,gradstats,vext,nind)
+        z <- .Fortran(C_adsmse3p,
+                      as.double(sb),
+                      as.double(z$th),
+                      ni=as.double(z$ni/if(model>=2) fncchiv(z$th,varstats) else 1),
+                      as.integer(position),#mask
+                      as.integer(nvoxel),
+                      as.integer(ddim[1]),
+                      as.integer(ddim[2]),
+                      as.integer(ddim[3]),
+                      as.integer(ngrad),
+                      as.double(lambda),
+                      as.integer(ncoils),
+                      as.integer(mc.cores),
+                      as.integer(param$ind),
+                      as.double(param$w),
+                      as.integer(param$n),
+                      th=double(nvoxel*ngrad),
+                      double(nvoxel*ngrad),#ldf (to precompute lgamma)
+                      double(ngrad*mc.cores),
+                      double(ngrad*mc.cores),
+                      as.integer(model))[c("ni","th")]
+        gc()
+    }
+    if(verbose){
+      dim(z$ni)  <- c(prod(ddim),ngrad)
+      cat("k:",k,"h_k:",signif(max(hakt),3)," quartiles of ni",signif(quantile(z$ni),3),
+          "mean of ni",signif(mean(z$ni),3),
+          " time elapsed:",format(difftime(Sys.time(),prt0),digits=3),"\n")
+    } else {
+      cat(".")
+    }
+    param <- reduceparam(param)
+    z0 <- .Fortran(C_asmse30p,
+                   as.double(s0),
+                   as.double(th0),
+                   ni=as.double(ni0/if(model==2) fncchiv(th0,varstats) else 1),
+                   as.integer(position),#mask
+                   as.integer(nvoxel),
+                   as.integer(ddim[1]),
+                   as.integer(ddim[2]),
+                   as.integer(ddim[3]),
+                   as.double(lambda),
+                   as.integer(ncoils*ns0),
+                   as.integer(param$ind),
+                   as.double(param$w),
+                   as.integer(param$n),
+                   as.integer(param$starts),
+                   as.integer(param$nstarts),
+                   th0=double(nvoxel),
+                   double(nvoxel),#ldf (to precompute lgamma)
+                   double(param$nstarts),#swi
+                   as.integer(model))[c("ni","th0")]
+    th0 <- z0$th0
+    ni0 <- z0$ni
+    rm(z0)
+    gc()
+    if(verbose){
+      cat("End smoothing s0: quartiles of ni",signif(quantile(ni0[mask]),3),
+          "mean of ni",signif(mean(ni0[mask]),3),
+          " time elapsed:",format(difftime(Sys.time(),prt0),digits=3),"\n")
+    }
+  }
+  list(th=z$th, th0=z$th0, ni=z$ni, ni0=z$ni0, hseq=hseq, kappa0=kappa0, lambda=lambda)
+}
+
+smse3ms <- function(sb, s0, bv, grad, ns0, kstar, lambda, kappa0,
                   mask,
                   vext = NULL,
                   ncoils = 1,
                   ws0 = 1,
                   verbose = FALSE,
-                  usemaxni = TRUE){ ### should arguments only be voxel in mask ??
+                  usemaxni = TRUE){
 #
 #   determine structure of the space
 #
-    msstructure <- getnext3g(grad, bvalues)
+    ngrad <- length(bv)
+    ddim <- dim(mask)
+    msstructure <- getnext3g(grad, bv)
     bv <- msstructure$bv
     nshell <- as.integer(msstructure$nbv)
     ubv <- msstructure$ubv
-    ddim0 <- dim(mask)
     nvoxel <- sum(mask)
     nbv <- length(bv)
 # check dimensions
     if(dim(sb)[1]!=nvoxel || length(s0)!=nvoxel || dim(sb)[2]!=nbv){
-       stop("aws::smse3 - sb and s0 should only contain data within mask")
+       stop("aws::smse3ms - sb and s0 should only contain data within mask")
     }
 # define position of voxel in mask within the 3D cube
-    position <- array(0,ddim0)
+    position <- array(0,ddim)
     position[mask] <- 1:nvoxel
 # set relation between voxel lengths
     if(is.null(vext)) vext <- c(1,1)
@@ -69,9 +230,9 @@ smse3ms <- function(sb, s0, bv, grad, sigma, kstar, lambda, kappa0,
                     as.integer(position),
                     as.integer(nvoxel),
                     as.integer(nshell+1),#ns number of shells
-                    as.integer(ddim0[1]),#n1
-                    as.integer(ddim0[2]),#n2
-                    as.integer(ddim0[3]),#n3
+                    as.integer(ddim[1]),#n1
+                    as.integer(ddim[2]),#n2
+                    as.integer(ddim[3]),#n3
                     as.integer(ngrad),#ngrad
                     as.double(lambda),#lambda
                     as.double(ws0),# wghts0 rel. weight for s0 image
@@ -92,7 +253,7 @@ smse3ms <- function(sb, s0, bv, grad, sigma, kstar, lambda, kappa0,
                     double((nshell+1)*mc.cores))[c("ni","th","ni0","th0")]
       t3 <- Sys.time()
       gc()
-      if(memrelease) rm(thnimsh,vs2,vs02)
+      rm(thnimsh,vs2,vs02)
       gc()
       if(usemaxni){
         ni <- z$ni <- if(usemaxni) pmax(ni,z$ni)

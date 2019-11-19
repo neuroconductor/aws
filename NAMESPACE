@@ -10,7 +10,7 @@ importFrom("graphics", "axis", "contour", "image", "lines", "mtext",
 importFrom("stats", "IQR", "coefficients", "cor", "dnorm", "fft", "lm",
              "median", "mvfft", "nextn", "pchisq", "qchisq", "qnorm",
              "quantile", "rbinom", "rchisq", "rexp", "rnorm", "rpois",
-             "sd", "cov", "var", "prcomp")
+             "sd", "cov", "var", "prcomp", "optim", "optimize", "runif")
 importFrom("utils", "setTxtProgressBar", "txtProgressBar")
 
 exportClasses("aws","awssegment","kernsm","ICIsmooth")
@@ -26,4 +26,4 @@ export(TV_denoising, TGV_denoising, TV_denoising_colour, TGV_denoising_colour)
 export(qmeasures)
 export(nlmeans)
 export(estimateSigmaCompl, medianFilter3D, vpawscov2)
-export(smse3ms)
+export(smse3,smse3ms)
