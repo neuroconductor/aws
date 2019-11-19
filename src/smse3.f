@@ -751,7 +751,7 @@ C$OMP END PARALLEL
 C$OMP FLUSH(thn,ni)
       RETURN
       END
-      subroutine adsmse3s(y,y0,th,ni,th0,ni0,fsi2,fsi02,pos,ns,n1,
+      subroutine adsmse3s(y,y0,th,ni,th0,ni0,fsi2,fsi02,pos,nv,ns,n1,
      1                n2,n3,ngrad,lambda,ws0,ind,w,n,ind0,w0,
      2                n0,thn,nin,th0n,ni0n,sw,swy,thi,nii,fsi2i)
 C
@@ -790,9 +790,9 @@ C   location weights in w(i) for si images
 C   ind(.,i)[1:5] are j1-i1,j2-i2,j3-i3, i4 and j4 respectively
 C
       implicit none
-      integer ns,n1,n2,n3,ngrad,n,n0,ind(5,n),ind0(3,n0),pos(*)
-      double precision y(*),y0(*),th(ns,*),ni(ns,*),th0(ns,*),
-     1  ni0(ns,*),fsi2(ns,*),fsi02(ns,*),thn(*),th0n(*),nin(*),ni0n(*)
+      integer nv,ns,n1,n2,n3,ngrad,n,n0,ind(5,n),ind0(3,n0),pos(*)
+      double precision y(*),y0(nv),th(ns,nv),ni(ns,nv),th0(ns,nv),
+     1  ni0(ns,nv),fsi2(ns,nv),fsi02(ns,nv),thn(*),th0n(nv),nin(*),ni0n(nv)
 C  * refers to n1*n2*n3*ngrad for y,th,ni,thn,fsi2,nin and to
 C              n1*n2*n3 for y0,th0,ni0,th0n,ni0n,fsi02,mask
       double precision w(n),w0(n0),lambda,thi(*),ws0,fsi2i(*),sw(*),
@@ -800,18 +800,17 @@ C              n1*n2*n3 for y0,th0,ni0,th0n,ni0n,fsi02,mask
 C  * refers to ns*ncores in thi, fsi2i, nii and to
 C              ngrad*ncores in sw and swy
       integer iind,i,i1,i2,i3,i4,j1,j2,j3,j4,thrednr,k,jind,iind4,
-     1        jind4,n123,n12,sthrednr,gthrednr,i4gthnr,iindp,jindp
+     1        jind4,n12,sthrednr,gthrednr,i4gthnr,iindp,jindp
       double precision sz,z,sw0,swy0
 !$      integer omp_get_thread_num
 !$      external omp_get_thread_num
       thrednr = 1
       n12 = n1*n2
-      n123 = n12*n3
 C$OMP PARALLEL DEFAULT(NONE)
-C$OMP& SHARED(ns,n1,n2,n3,ngrad,n,n0,ind,ind0,y,y0,
+C$OMP& SHARED(ns,n1,n2,n3,ngrad,n,n0,ind,ind0,y,y0,nv,
 C$OMP&       th,ni,th0,ni0,w,w0,thn,th0n,nin,ni0n,thi,sw,swy,nii,
 C$OMP&       lambda,pos,ws0,fsi2,fsi02,fsi2i)
-C$OMP& FIRSTPRIVATE(n123,n12)
+C$OMP& FIRSTPRIVATE(n12)
 C$OMP& PRIVATE(iind,iindp,i,i1,i2,i3,i4,j1,j2,j3,j4,thrednr,k,sz,z,
 C$OMP&       sw0,swy0,jind,jindp,iind4,jind4,sthrednr,gthrednr,i4gthnr)
 C$OMP DO SCHEDULE(GUIDED)
@@ -839,7 +838,7 @@ C returns value in 0:(ncores-1)
 C   by construction ind(4,.) should have same values consequtively
                i4 = ind(4,i)
                i4gthnr=i4+gthrednr
-               iind4 = iindp+(i4-1)*n123
+               iind4 = iindp+(i4-1)*nv
                DO k=1,ns
                   fsi2i(k+sthrednr)=fsi2(k,iind4)
                   thi(k+sthrednr) = th(k,iind4)
@@ -857,7 +856,7 @@ C   by construction ind(4,.) should have same values consequtively
             jindp=pos(jind)
             if(jindp.eq.0) CYCLE
             j4=ind(5,i)
-            jind4=jindp+(j4-1)*n123
+            jind4=jindp+(j4-1)*nv
 C adaptation
             if(lambda.lt.1d10) THEN
                sz=0.d0
@@ -883,7 +882,7 @@ C  now opposite directions
 C   by construction ind(4,.) should have same values consequtively
                i4 = ind(4,i)
                i4gthnr=i4+gthrednr
-               iind4 = iindp+(i4-1)*n123
+               iind4 = iindp+(i4-1)*nv
                DO k=1,ns
                   fsi2i(k+sthrednr)=fsi2(k,iind4)
                   thi(k+sthrednr) = th(k,iind4)
@@ -907,7 +906,7 @@ C
             jindp=pos(jind)
             if(jindp.eq.0) CYCLE
             j4=ind(5,i)
-            jind4=jindp+(j4-1)*n123
+            jind4=jindp+(j4-1)*nv
             if(lambda.lt.1d10) THEN
                sz=0.d0
                DO k=1,ns
@@ -926,7 +925,7 @@ C  do not adapt on the sphere !!!
             swy(i4gthnr)=swy(i4gthnr)+z*y(jind4)
          END DO
          DO i4=1,ngrad
-            iind4 = iindp+(i4-1)*n123
+            iind4 = iindp+(i4-1)*nv
             thn(iind4) = swy(i4+gthrednr)/sw(i4+gthrednr)
             nin(iind4) = sw(i4+gthrednr)
          END DO

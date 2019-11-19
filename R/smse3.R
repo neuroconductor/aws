@@ -1,9 +1,8 @@
-smse3 <- function(sb, s0, bv, grad, sigma, kstar, lambda, kappa0,
+smse3ms <- function(sb, s0, bv, grad, sigma, kstar, lambda, kappa0,
                   mask,
                   vext = NULL,
                   ncoils = 1,
                   ws0 = 1,
-                  level = NULL,
                   verbose = FALSE,
                   usemaxni = TRUE){ ### should arguments only be voxel in mask ??
 #
@@ -30,6 +29,10 @@ smse3 <- function(sb, s0, bv, grad, sigma, kstar, lambda, kappa0,
 # only keep information within mask
     z <- list(th = array(1,c(nvoxel,nbv)), th0 = rep(1,nvoxel),
               ni = array(1,c(nvoxel,nbv)), ni0 = rep(1,nvoxel))
+# generate sequence od bandwidths
+    gradstats <- getkappasmsh3(grad, msstructure)
+    hseq <- gethseqfullse3msh(kstar,gradstats,kappa0,vext=vext)
+    nind <- as.integer(hseq$n*1.25)
     if(usemaxni){
       ni <- array(1,c(nvoxel,nbv))
       ni0 <- rep(1,nvoxel)
@@ -64,6 +67,7 @@ smse3 <- function(sb, s0, bv, grad, sigma, kstar, lambda, kappa0,
                     as.double(vs2),#var/2
                     as.double(vs02),#var/2 for s0
                     as.integer(position),
+                    as.integer(nvoxel),
                     as.integer(nshell+1),#ns number of shells
                     as.integer(ddim0[1]),#n1
                     as.integer(ddim0[2]),#n2
@@ -108,37 +112,5 @@ smse3 <- function(sb, s0, bv, grad, sigma, kstar, lambda, kappa0,
         cat(".")
       }
     }
-    ngrad <- ngrad+1
-    #
-    #  one s0 image only
-    #
-    si <- array(object@si,c(ddim,ngrad))
-    #
-    #  back to original scale
-    #
-    if (length(sigma) > 1) {
-      if(length(dim(sigma)) == 3) {
-        si[xind, yind, zind, 1] <-  z$th0/sqrt(ns0)*sigma
-      } else {
-        si[xind, yind, zind, 1] <-  z$th0/sqrt(ns0)*sigma[, , , 1]
-      }
-    } else {
-      si[xind, yind, zind, 1] <-  z$th0/sqrt(ns0)*sigma
-    }
-    #  go back to original s0 scale
-    #  for the DWI we need to scale back differently
-    if (sigmacase == 1) {
-      si[xind, yind, zind, -1] <- z$th*sigma
-    } else if (sigmacase == 2) {
-      si[xind, yind, zind, -1] <- sweep(z$th, 1:3, sigma, "*")
-    } else if (sigmacase == 3) { # now sigma is an array with (identical(dim(sigma), ddim) == TRUE)
-      for (shnr in 1:nshell) {
-        indth <- (1:length(bv))[bv == ubv[shnr]]
-        indsi <- indth+1
-        si[xind, yind, zind, indsi] <- sweep(z$th[, , , indth], 1:3, sigma[, , , shnr+1], "*")
-        }
-    } else {
-        si[xind, yind, zind, -1] <- z$th*sigma[,,,-1]
-    }
-
-                  }
+    list(th=z$th, th0=z$th0, ni=z$ni, ni0=z$ni0, hseq=hseq, kappa0=kappa0, lambda=lambda)
+  }
