@@ -2,8 +2,7 @@ smse3 <- function(sb, s0, bv, grad, ns0, kstar, lambda, kappa0,
                   mask,
                   vext = NULL,
                   ncoils = 1,
-                  ws0 = 1,
-                  model = 3,
+                  model = 0,
                   dist = 1,
                   verbose = FALSE){
   # dist determines distance on sphere (can take 1:3), see getkappas
@@ -162,7 +161,6 @@ smse3ms <- function(sb, s0, bv, grad, ns0, kstar, lambda, kappa0,
                   mask,
                   vext = NULL,
                   ncoils = 1,
-                  ws0 = 1,
                   verbose = FALSE,
                   usemaxni = TRUE){
 #
@@ -235,7 +233,7 @@ smse3ms <- function(sb, s0, bv, grad, ns0, kstar, lambda, kappa0,
                     as.integer(ddim[3]),#n3
                     as.integer(ngrad),#ngrad
                     as.double(lambda),#lambda
-                    as.double(ws0),# wghts0 rel. weight for s0 image
+                    as.double(ns0),# wghts0 rel. weight for s0 image
                     as.integer(param$ind),#ind
                     as.double(param$w),#w
                     as.integer(param$n),#n
