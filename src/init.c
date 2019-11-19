@@ -12,7 +12,7 @@ void F77_NAME(adsmse3p)( double* y, double* th, double* ni, int* mask,
   int* ncores, int* ind, double* w, int* n, double* thn, double* ldf,
   double* sw, double* swy, int* model);
 void F77_NAME(adsmse3s)( double* y, double* y0, double* th, double* ni,
-  double* th0, double* ni0, double* fsi2, double* fsi02, int* mask, int* ns,
+  double* th0, double* ni0, double* fsi2, double* fsi02, int* position, int* ns,
   int* n1, int* n2, int* n3, int* ngrad, double* lambda, double* ws0,
   int* ind, double* w, int* n, int* ind0, double* w0, int* n0, double* thn,
   double* nin, double* th0n, double* ni0n, double* sw, double* swy,
