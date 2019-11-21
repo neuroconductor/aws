@@ -1,12 +1,18 @@
 smse3 <- function(sb, s0, bv, grad, ns0, kstar, lambda, kappa0,
-                  mask,
-                  vext = NULL,
+                  mask, vext = NULL, vred = 4,
                   ncoils = 1,
                   model = 0,
                   dist = 1,
                   verbose = FALSE){
   # dist determines distance on sphere (can take 1:3), see getkappas
   #  data need to be scaled by sigma
+  if(is.null(kappa0)){
+    #  select kappa based on variance reduction on the sphere
+    if(is.null(vred)||!is.numeric(vred)||vred<1) {
+      stop("aws::snse3 You need to specify either kappa0 or vred")
+    }
+    kappa0 <- suggestkappa(grad,vred,dist)$kappa
+  }
   if(model>=2) varstats <- sofmchi(ncoils)
   #
   #  model=0  uses approx of noncentral Chi and smoothes Y
