@@ -213,3 +213,131 @@ C$OMP END PARALLEL
 C$OMP FLUSH(exprob)
       Return
       End
+
+      subroutine imcorr(res,mask,n1,n2,n3,nv,scorr,l1,l2,l3)
+
+      implicit none
+      integer n1,n2,n3,nv,l1,l2,l3,lag(3)
+      double precision scorr(l1,l2,l3),res(nv,n1,n2,n3)
+      integer mask(n1,n2,n3)
+      integer i1,i2,i3
+      Do i1=1,l1
+         lag(1)=i1-1
+         DO i2=1,l2
+            lag(2)=i2-1
+            DO i3=1,l3
+               lag(3)=i3-1
+               call imcorrl(res,mask,n1,n2,n3,nv,scorr(i1,i2,i3),lag)
+               call rchkusr()
+            END DO
+         END DO
+      END DO
+      return
+      end
+
+      subroutine imcorrl(res,mask,n1,n2,n3,nv,scorr,lag)
+
+      implicit none
+      integer n1,n2,n3,nv,lag(3)
+      double precision scorr,res(nv,n1,n2,n3)
+      integer mask(n1,n2,n3)
+      double precision z2,y2,resi,resip1,vrm,vrmp1,zk,zcorr,z
+      integer i1,i2,i3,i4,l1,l2,l3,k
+      zk=nv
+      l1=lag(1)
+      l2=lag(2)
+      l3=lag(3)
+      z=0.d0
+      k=0
+C  correlation in x
+      do i1=1,n1-l1
+         do i2=1,n2-l2
+            do i3=1,n3-l3
+         if ((mask(i1,i2,i3)*mask(i1+l1,i2+l2,i3+l3)).eq.0) CYCLE
+               z2=0.d0
+               y2=0.d0
+               zcorr=0.d0
+               do i4=1,nv
+                  resi=res(i4,i1,i2,i3)
+                  resip1=res(i4,i1+l1,i2+l2,i3+l3)
+                  z2=z2+resi*resi
+                  y2=y2+resip1*resip1
+                  zcorr=zcorr+resi*resip1
+               enddo
+               vrm=z2/zk
+               vrmp1=y2/zk
+               vrm=vrm*vrmp1
+               if(vrm.gt.1e-10) THEN
+                  z=z+zcorr/zk/sqrt(vrm)
+                  k=k+1
+               end if
+            enddo
+         enddo
+      enddo
+      if(k.ne.0) THEN
+         scorr=z/k
+      ELSE
+        scorr=0.d0
+      END IF
+      return
+      end
+
+      subroutine ivar(res,resscale,nvoxel,nt,var)
+C
+C   compute variance estimates from residuals in spm !!! (not the inverse)
+C
+      implicit none
+      integer nvoxel,nt
+      double precision resscale,var(nvoxel),res(nt,nvoxel)
+      double precision z2,zk,resi,ressc2,z1
+      integer i,it
+      zk=nt
+      ressc2=resscale*resscale
+C$OMP PARALLEL DEFAULT(NONE)
+C$OMP& SHARED(res,resscale,nvoxel,nt,var,zk,ressc2)
+C$OMP& PRIVATE(i,it,z1,z2,resi)
+C$OMP& DO SCHEDULE(GUIDED)
+      do i=1,nvoxel
+         z2=0.d0
+         z1=0.d0
+         do it=1,nt
+            resi=res(it,i)
+            z1=z1+resi
+            z2=z2+resi*resi
+         end do
+         z1 = z1/zk
+         z2 = z2/zk
+         var(i)=(z2-z1*z1)*ressc2
+      end do
+C$OMP END DO NOWAIT
+C$OMP END PARALLEL
+C$OMP FLUSH(var)
+      return
+      end
+
+      subroutine sweepm(res,nvoxel,nt)
+
+      implicit none
+      integer nvoxel,nv
+      double precision res(nt,nvoxel)
+      integer i,k
+      double precision z
+      C$OMP PARALLEL DEFAULT(NONE)
+      C$OMP& SHARED(res,nvoxel,nt)
+      C$OMP& PRIVATE(i,k,z)
+      C$OMP& DO SCHEDULE(GUIDED)
+      Do i=1,nvoxel
+         z=0.d0
+         DO k=1,nt
+            z=z+res(k,i)
+         END DO
+         z=z/nt
+         DO k=1,nt
+            res(k,i)=res(k,i)-z
+         END DO
+      END DO
+      C$OMP END DO NOWAIT
+      C$OMP END PARALLEL
+      C$OMP FLUSH(res)
+      return
+      end

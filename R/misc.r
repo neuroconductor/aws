@@ -303,3 +303,45 @@ get.corr.gauss <- function(h, interv = 1) {
   sum(penl[-(1:interv)] * penl[-((dx - interv + 1):dx)]) / sum(penl ^
                                                                  2)
 }
+
+residualVariance <- function(residuals, mask, resscale=1, compact=FALSE){
+   nt <- dim(residuals)[1]
+   nvoxel <- sum(mask)
+   if(!compact){
+      ddim <- dim(mask)
+      dim(residuals) <- c(nt,prod(ddim))
+      residuals <- residuals[,mask]
+   }
+   z <- .Fortran(C_ivar,as.double(residuals),
+                        as.double(resscale),
+                        as.integer(nvoxel),
+                        as.integer(nt),
+                        var = double(nvoxel))$var
+   if(compact){
+      resvar <- z
+   } else {
+      resvar <- array(0,ddim)
+      resvar[mask] <- z
+   }
+   resvar
+}
+
+sweepMean <- function()
+
+residualSpatialCorr <- function(residuals, mask, lags=c(5,5,3), compact=FALSE){
+   nt <- dim(residuals)[1]
+   ddim <- dim(mask)
+   if(compact){
+#  for the current code we need to expand
+      res <- array(0,c(nt,prod(ddim)))
+      res[,mask] <- residuals
+      residuals <- res
+      rm(res)
+   }
+   corr <- .Fortran(C_imcorr, as.double(residuals), as.integer(mask),
+                    as.integer(ddim[1]), as.integer(ddim[2]), as.integer(ddim[3]),
+                    as.integer(nt), scorr = double(prod(lags)), as.integer(lags[1]),
+                    as.integer(lags[2]), as.integer(lags[3]))$scorr
+   dim(corr) <- lags
+   corr  
+}

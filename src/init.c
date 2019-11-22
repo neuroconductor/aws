@@ -124,9 +124,12 @@ void F77_NAME(hg1f1)( double* a, double* b, double* z, int* n, double* fz);
 void F77_NAME(ipolsp)( double* theta, double* th0, double* ni, double* ni0,
   int* n, int* ng, int* gind, double* gw, int* nbv, int* nbvp1, double* msth,
   double* msni);
+void F77_NAME(imcorr)(double* res, int* mask, int* n1, int* n2, int* n3, int* nv,
+	double* scorr, int* l1, int* l2, int* l3);
 void F77_NAME(ipolsp1)( double* theta, double* th0, double* ni, double* ni0,
   int* mask, int* n, int* ng, int* gind, double* gw, int* nbv, int* nbvp1,
   double* msth, double* msni);
+void F77_NAME(ivar)(double* res, double* resscale, int* nvoxel, int* nt, double* var);
 void F77_NAME(k456krb)( double* par, double* b, double* matm, double* erg);
 void F77_NAME(lkern1)(double* x, int* n, double* h, int* kern,
   int* m, double* khx);
@@ -307,10 +310,14 @@ static R_NativePrimitiveArgType ghfse3i_t[]={INTSXP, INTSXP, REALSXP,
   INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP};
 static R_NativePrimitiveArgType hg1f1_t[]={REALSXP, REALSXP, REALSXP,
   INTSXP, REALSXP};
+static R_NativePrimitiveArgType imcorr_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
+	INTSXP, INTSXP, REALSXP, INTSXP, INTSXP, INTSXP};
 static R_NativePrimitiveArgType ipolsp_t[]={REALSXP, REALSXP, REALSXP,
   REALSXP, INTSXP, INTSXP, INTSXP, REALSXP, INTSXP, INTSXP, REALSXP, REALSXP};
 static R_NativePrimitiveArgType ipolsp1_t[]={REALSXP, REALSXP, REALSXP,
   REALSXP, INTSXP, INTSXP, INTSXP, INTSXP, REALSXP, INTSXP, INTSXP, REALSXP,
+  REALSXP};
+static R_NativePrimitiveArgType ivar_t[]={REALSXP, REALSXP, INTSXP, INTSXP,
   REALSXP};
 static R_NativePrimitiveArgType k456krb_t[]={REALSXP, REALSXP,
   REALSXP, REALSXP};
@@ -425,8 +432,10 @@ static const R_FortranMethodDef fmethods[] = {
             {"getvofh", (DL_FUNC) &getvofh_ ,4, getvofh_t},
 						{"ghfse3i", (DL_FUNC) &ghfse3i_ , 10, ghfse3i_t},
 						{"hg1f1", (DL_FUNC) &hg1f1_ , 5, hg1f1_t},
+						{"imcorr", (DL_FUNC) &imcorr_ ,10, imcorr_t},
 						{"ipolsp", (DL_FUNC) &ipolsp_ , 12, ipolsp_t},
             {"ipolsp1", (DL_FUNC) &ipolsp1_ , 13, ipolsp1_t},
+						{"ivar", (DL_FUNC) &ivar_ ,5, ivar_t},
             {"k456krb", (DL_FUNC) &k456krb_ , 4, k456krb_t},
             {"lkern1", (DL_FUNC) &lkern1_ ,6, lkern1_t},
 						{"lkfuls0", (DL_FUNC) &lkfuls0_ , 5, lkfuls0_t},
