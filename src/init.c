@@ -108,6 +108,15 @@ void F77_NAME(chaws)(double* y, int* fix, double* si2, int* n1,
 void F77_NAME(chaws1)(double* y, double* si2, int* n1, int* n2,
   int* n3, double* hakt, double* bi, double* bi2, double* bi0,
   double* vred, double* ai, int* kern, double* lwght, double* wght);
+void F77_NAME(chaws2)(double* y, double* si2, int* pos, int* wlse, int* n1,
+	int* n2, int* n3, double* hakt, double* lambda,
+	double* theta, double* bi, double* thn, int* kern, int* skern,
+	double* spmin, double* spmax, double* lwght, double* wght);
+void F77_NAME(chawsv)(double* y, double* res, double* si2, int* pos, int* wlse,
+	int* n1, int* n2, int* n3, int* n4, double* hakt,
+	double* lambda, double* theta, double* bi, double* resnew,
+	double* thn, int* kern, int* skern, double* spmin,
+	double* spmax, double* lwght, double* wght, double* resi);
 void F77_NAME(exceed)(double* x, int* n, double* z, int* nz,
   double* exprob);
 void F77_NAME(exceedm)(double* x, int* n, double* z, int* nz,
@@ -121,6 +130,10 @@ void F77_NAME(getvofh)(double* bw, int* kern, double* wght,
 void F77_NAME(ghfse3i)( int* i4, int* kstar, double* k456, int* ng,
 	double* kappa, double* vext, double* h, double* varred, int* n, int* dist);
 void F77_NAME(hg1f1)( double* a, double* b, double* z, int* n, double* fz);
+void F77_NAME(ihaws2)(double* y, double* si2, int* pos, int* wlse, int* n1,
+  int* n2, int* n3, int* dv, double* hakt, double* lambda, double* theta,
+	int* ncores, double* bi, double* thn, int* kern, int* skern, double* spmin,
+	double* spmax, double* lwght, double* wght, double* swjy);
 void F77_NAME(ipolsp)( double* theta, double* th0, double* ni, double* ni0,
   int* n, int* ng, int* gind, double* gw, int* nbv, int* nbvp1, double* msth,
   double* msni);
@@ -298,6 +311,13 @@ static R_NativePrimitiveArgType chaws_t[]={REALSXP, INTSXP, REALSXP, INTSXP,
 static R_NativePrimitiveArgType chaws1_t[]={REALSXP, REALSXP, INTSXP, INTSXP,
   INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, REALSXP,
   REALSXP};
+static R_NativePrimitiveArgType chaws2_t[]={REALSXP, REALSXP, INTSXP,
+	INTSXP, INTSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP,
+  REALSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP};
+static R_NativePrimitiveArgType chawsv_t[]={REALSXP, REALSXP, REALSXP,
+	INTSXP, INTSXP, INTSXP, INTSXP, INTSXP, INTSXP, REALSXP, REALSXP,
+  REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, REALSXP,
+  REALSXP, REALSXP, REALSXP, REALSXP};
 static R_NativePrimitiveArgType exceed_t[]={REALSXP, INTSXP, REALSXP, INTSXP,
   REALSXP};
 static R_NativePrimitiveArgType exceedm_t[]={REALSXP, INTSXP, REALSXP, INTSXP,
@@ -313,6 +333,9 @@ static R_NativePrimitiveArgType ghfse3i_t[]={INTSXP, INTSXP, REALSXP,
   INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP};
 static R_NativePrimitiveArgType hg1f1_t[]={REALSXP, REALSXP, REALSXP,
   INTSXP, REALSXP};
+static R_NativePrimitiveArgType ihaws2_t[]={REALSXP, REALSXP, INTSXP, INTSXP,
+	INTSXP, INTSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, INTSXP, REALSXP,
+	REALSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP};
 static R_NativePrimitiveArgType imcorr_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
 	INTSXP, INTSXP, REALSXP, INTSXP, INTSXP, INTSXP};
 static R_NativePrimitiveArgType ipolsp_t[]={REALSXP, REALSXP, REALSXP,
@@ -430,7 +453,8 @@ static const R_FortranMethodDef fmethods[] = {
             {"cgawsmas", (DL_FUNC) &cgawsmas_ ,20, cgawsmas_t},
             {"chaws", (DL_FUNC) &chaws_ ,19, chaws_t},
             {"chaws1", (DL_FUNC) &chaws1_ ,14, chaws1_t},
-            {"exceed", (DL_FUNC) &exceed_ ,5, exceed_t},
+						{"chaws2", (DL_FUNC) &chaws2_ ,18, chaws2_t},
+            {"chawsv", (DL_FUNC) &chawsv_ ,22, chawsv_t},
             {"exceedm", (DL_FUNC) &exceedm_ ,6, exceedm_t},
             {"gethani", (DL_FUNC) &gethani_ ,7, gethani_t},
 						{"getmsni0", (DL_FUNC) &getmsni0_ , 4, getmsni0_t},
@@ -438,6 +462,7 @@ static const R_FortranMethodDef fmethods[] = {
             {"getvofh", (DL_FUNC) &getvofh_ ,4, getvofh_t},
 						{"ghfse3i", (DL_FUNC) &ghfse3i_ , 10, ghfse3i_t},
 						{"hg1f1", (DL_FUNC) &hg1f1_ , 5, hg1f1_t},
+						{"ihaws2", (DL_FUNC) &ihaws2_ ,21, ihaws2_t},
 						{"imcorr", (DL_FUNC) &imcorr_ ,10, imcorr_t},
 						{"ipolsp", (DL_FUNC) &ipolsp_ , 12, ipolsp_t},
             {"ipolsp1", (DL_FUNC) &ipolsp1_ , 13, ipolsp1_t},
