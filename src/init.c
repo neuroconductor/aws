@@ -194,6 +194,9 @@ void F77_NAME(segment)(double* y, int* fix, double* level,
   double* bi0, double* gi, double* vred, double* thetan, int* kern,
   double* spmin, double* lwght, double* wght, int* segm, int* segmn,
   double* beta, double* thresh, double* ext, double* fov, double* varest);
+void F77_NAME(smooth3d)(double* y, double* si2, int* mask, int* wlse, int* nvox,
+	int* n1, int* n2, int* n3, int* dv, double* hakt, double* thn,
+	int* kern, double* lwght, double* wght, double* swjy);
 void F77_NAME(vaws)(double* y, int* mask, int* nv, int* n1, int* n2,
   int* n3, double* hakt, double* lambda, double* theta, double* bi,
   double* vred, double* thnew, int* ncores, double* spmin, double* lwght,
@@ -374,6 +377,9 @@ static R_NativePrimitiveArgType segment_t[]={REALSXP, INTSXP, REALSXP, REALSXP,
   REALSXP, INTSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
   REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, REALSXP, REALSXP, REALSXP, INTSXP,
   INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP};
+static R_NativePrimitiveArgType smooth3d_t[]={REALSXP, REALSXP, INTSXP, INTSXP,
+	INTSXP, INTSXP, INTSXP, INTSXP, INTSXP, REALSXP, REALSXP, INTSXP, REALSXP, REALSXP,
+	REALSXP};
 static R_NativePrimitiveArgType vaws_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
   INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP,
   REALSXP, REALSXP, REALSXP, REALSXP};
@@ -459,6 +465,7 @@ static const R_FortranMethodDef fmethods[] = {
             {"pvawsm2", (DL_FUNC) &pvawsm2_ , 22, pvawsm2_t},
             {"sector", (DL_FUNC) &sector_ ,8, sector_t},
             {"segment", (DL_FUNC) &segment_ ,28, segment_t},
+						{"smooth3d", (DL_FUNC) &smooth3d_ ,15, smooth3d_t},
             {"vaws", (DL_FUNC) &vaws_ ,17, vaws_t},
             {"vaws2", (DL_FUNC) &vaws2_ ,21, vaws2_t},
             {"vaws2cov", (DL_FUNC) &vaws2cov_ ,17, vaws2cov_t},

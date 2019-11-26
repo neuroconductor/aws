@@ -166,13 +166,16 @@ binning <- function (x, y, nbins, xrange = NULL) {
   }
   result
 }
+
+fwhm2bw <- function(hfwhm) hfwhm/sqrt(8*log(2))
+
 Varcor.gauss <- function(h) {
   #
   #   Calculates a correction for the variance estimate obtained by (IQRdiff(y)/1.908)^2
   #
   #   in case of colored noise that was produced by smoothing with lkern and bandwidth h
   #
-  h <- pmax(h / 2.3548, 1e-5)
+  h <- pmax(fwhm2bw(h), 1e-5)
   ih <- trunc(4 * h) + 1
   dx <- 2 * ih + 1
   d <- length(h)
@@ -180,12 +183,8 @@ Varcor.gauss <- function(h) {
   if (d == 2)
     penl <- outer(penl, dnorm(((-ih[2]):ih[2]) / h[2]), "*")
   if (d == 3)
-    penl <-
-    outer(penl, outer(dnorm(((
-      -ih[2]
-    ):ih[2]) / h[2]), dnorm(((
-      -ih[3]
-    ):ih[3]) / h[3]), "*"), "*")
+    penl <- outer(penl, outer(dnorm(((-ih[2]):ih[2]) / h[2]),
+                              dnorm(((-ih[3]):ih[3]) / h[3]), "*"), "*")
   2 * sum(penl) ^ 2 / sum(diff(penl) ^ 2)
 }
 
@@ -196,11 +195,10 @@ Spatialvar.gauss <- function(h, h0, d) {
   #
   #   case of colored noise that was produced by smoothing with Gaussian kernel and bandwidth h0
   #
-  #   Spatialvariance(lkern,h,h0,d)/Spatialvariance(lkern,h,1e-5,d) gives the
   #   a factor for lambda to be used with bandwidth h
   #
   h0 <- max(1e-5, h0)
-  h <- h / 2.3548
+  h <- fwhm2bw(h)
   if (length(h) == 1)
     h <- rep(h, d)
   ih <- trunc(4 * h)
@@ -212,13 +210,10 @@ Spatialvar.gauss <- function(h, h0, d) {
     outer(dnorm(((-ih[1]):ih[1]) / h[1]), dnorm(((-ih[2]):ih[2]) / h[2]), "*")
   if (d == 3)
     penl <-
-    outer(dnorm(((-ih[1]):ih[1]) / h[1]), outer(dnorm(((
-      -ih[2]
-    ):ih[2]) / h[2]), dnorm(((
-      -ih[3]
-    ):ih[3]) / h[3]), "*"), "*")
+    outer(dnorm(((-ih[1]):ih[1]) / h[1]), outer(dnorm(((-ih[2]):ih[2]) / h[2]),
+                                      dnorm(((-ih[3]):ih[3]) / h[3]), "*"), "*")
   dim(penl) <- dx
-  h0 <- h0 / 2.3548
+  h0 <- fwhm2bw(h0)
   if (length(h0) == 1)
     h0 <- rep(h0, d)
   ih <- trunc(4 * h0)
@@ -231,11 +226,8 @@ Spatialvar.gauss <- function(h, h0, d) {
     outer(dnorm(((-ih[1]):ih[1]) / h0[1]), dnorm(((-ih[2]):ih[2]) / h0[2]), "*")
   if (d == 3)
     penl0 <-
-    outer(dnorm(((-ih[1]):ih[1]) / h0[1]), outer(dnorm(((
-      -ih[2]
-    ):ih[2]) / h0[2]), dnorm(((
-      -ih[3]
-    ):ih[3]) / h0[3]), "*"), "*")
+    outer(dnorm(((-ih[1]):ih[1]) / h0[1]), outer(dnorm(((-ih[2]):ih[2]) / h0[2]),
+                                     dnorm(((-ih[3]):ih[3]) / h0[3]), "*"), "*")
   dim(penl0) <- dx0
   penl0 <- penl0 / sum(penl0)
   dz <- dx + dx0 - 1
@@ -296,7 +288,7 @@ get.corr.gauss <- function(h, interv = 1) {
   #   Calculates the correlation of
   #   colored noise that was produced by smoothing with "gaussian" kernel and bandwidth h
   #   Result does not depend on d for "Gaussian" kernel !!
-  h <- h / 2.3548 * interv
+  h <- fwhm2bw(h) * interv
   ih <- trunc(4 * h + 2 * interv - 1)
   dx <- 2 * ih + 1
   penl <- dnorm(((-ih):ih) / h)
@@ -343,5 +335,5 @@ residualSpatialCorr <- function(residuals, mask, lags=c(5,5,3), compact=FALSE){
                     as.integer(nt), scorr = double(prod(lags)), as.integer(lags[1]),
                     as.integer(lags[2]), as.integer(lags[3]))$scorr
    dim(corr) <- lags
-   corr  
+   corr
 }
