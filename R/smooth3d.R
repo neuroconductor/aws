@@ -282,5 +282,3 @@ aws3Dmask <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
        alpha=propagation, hmax=tobj$hakt*switch(lkern,1,1,bw2fwhm(1/4)),
        scorr=scorr, res=residuals, mask=mask)
 }
-
-                   }
