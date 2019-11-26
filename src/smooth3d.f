@@ -19,7 +19,7 @@ C   spmax    specifies the truncation point of the stochastic kernel
 C   wght     scaling factor for second and third dimension (larger values shrink)
 C
       implicit none
-      integer nvox,n1,n2,n3,kern,dv,wlse,mask(n1,n2,n3)
+      integer nvox,n1,n2,n3,kern,dv,wlse,pos(n1,n2,n3)
       double precision y(nvox,dv),thn(nvox,dv),wght(2),
      1       si2(nvox),hakt,lwght(*)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,
@@ -390,7 +390,7 @@ C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n
 !$         thrednr = omp_get_thread_num()+1
          iindp=pos(iind)
-         if(iindp.e.q.0) CYCLE
+         if(iindp.eq.0) CYCLE
          rthrednr = (thrednr-1)*n4
          i1=mod(iind,n1)
          if(i1.eq.0) i1=n1

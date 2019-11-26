@@ -455,6 +455,7 @@ static const R_FortranMethodDef fmethods[] = {
             {"chaws1", (DL_FUNC) &chaws1_ ,14, chaws1_t},
 						{"chaws2", (DL_FUNC) &chaws2_ ,18, chaws2_t},
             {"chawsv", (DL_FUNC) &chawsv_ ,22, chawsv_t},
+						{"exceed", (DL_FUNC) &exceed_ ,5, exceed_t},
             {"exceedm", (DL_FUNC) &exceedm_ ,6, exceedm_t},
             {"gethani", (DL_FUNC) &gethani_ ,7, gethani_t},
 						{"getmsni0", (DL_FUNC) &getmsni0_ , 4, getmsni0_t},

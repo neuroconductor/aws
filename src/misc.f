@@ -293,10 +293,11 @@ C
       integer i,it
       zk=nt
       ressc2=resscale*resscale
+
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(res,resscale,nvoxel,nt,var,zk,ressc2)
 C$OMP& PRIVATE(i,it,z1,z2,resi)
-C$OMP& DO SCHEDULE(GUIDED)
+C$OMP DO SCHEDULE(GUIDED)
       do i=1,nvoxel
          z2=0.d0
          z1=0.d0
@@ -318,14 +319,15 @@ C$OMP FLUSH(var)
       subroutine sweepm(res,nvoxel,nt)
 
       implicit none
-      integer nvoxel,nv
+      integer nvoxel,nt
       double precision res(nt,nvoxel)
       integer i,k
       double precision z
-      C$OMP PARALLEL DEFAULT(NONE)
-      C$OMP& SHARED(res,nvoxel,nt)
-      C$OMP& PRIVATE(i,k,z)
-      C$OMP& DO SCHEDULE(GUIDED)
+
+C$OMP PARALLEL DEFAULT(NONE)
+C$OMP& SHARED(res,nvoxel,nt)
+C$OMP& PRIVATE(i,k,z)
+C$OMP DO SCHEDULE(GUIDED)
       Do i=1,nvoxel
          z=0.d0
          DO k=1,nt
@@ -336,8 +338,8 @@ C$OMP FLUSH(var)
             res(k,i)=res(k,i)-z
          END DO
       END DO
-      C$OMP END DO NOWAIT
-      C$OMP END PARALLEL
-      C$OMP FLUSH(res)
+C$OMP END DO NOWAIT
+C$OMP END PARALLEL
+C$OMP FLUSH(res)
       return
       end

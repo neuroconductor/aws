@@ -318,7 +318,7 @@ residualVariance <- function(residuals, mask, resscale=1, compact=FALSE){
    resvar
 }
 
-sweepMean <- function()
+#sweepMean <- function()
 
 residualSpatialCorr <- function(residuals, mask, lags=c(5,5,3), compact=FALSE){
    nt <- dim(residuals)[1]
