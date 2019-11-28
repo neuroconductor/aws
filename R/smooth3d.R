@@ -302,7 +302,7 @@ aws3Dmask <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
 ##
 aws3Dmaskfull <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
                       lkern="Gaussian", skern="Plateau", weighted=TRUE,
-                      u=NULL, wghts=NULL, h0=c(0,0,0),
+                      u=NULL, wghts=NULL,
                       testprop=FALSE){
 #
 #  qlambda, corrfactor adjusted for case lkern="Gaussian",skern="Plateau" only
