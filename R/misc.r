@@ -168,6 +168,7 @@ binning <- function (x, y, nbins, xrange = NULL) {
 }
 
 fwhm2bw <- function(hfwhm) hfwhm/sqrt(8*log(2))
+bw2fwhm <- function(h) h*sqrt(8*log(2))
 
 Varcor.gauss <- function(h) {
   #
@@ -336,4 +337,34 @@ residualSpatialCorr <- function(residuals, mask, lags=c(5,5,3), compact=FALSE){
                     as.integer(lags[2]), as.integer(lags[3]))$scorr
    dim(corr) <- lags
    corr
+}
+
+hg1f1 <- function(a,b,z){
+##
+##  Confluent Hypergeometric 1F1 (a,b scalar, z vector)
+##  rel accuracy 1e-13 for z in -1400:700 for a=-.5, .5
+##  rel accuracy 2e-4 for z < -1400 for a=-.5, .5
+##
+   n <- length(z)
+   .Fortran(C_hg1f1,
+            as.double(a),
+            as.double(b),
+            as.double(z),
+            as.integer(n),
+            fz=double(n))$fz
+}
+
+fncchir <- function(mu,varstats){
+  #
+  #  Bias-correction
+  #
+  varstats$ncp[findInterval(mu, varstats$mu, all.inside = TRUE)]
+}
+
+fncchis <- function(mu,varstats){
+  varstats$s[findInterval(mu, varstats$mu, all.inside = TRUE)]
+}
+
+fncchiv <- function(mu,varstats){
+  varstats$s2[findInterval(mu, varstats$mu, all.inside = TRUE)]
 }
