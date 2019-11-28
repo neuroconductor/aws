@@ -10,7 +10,8 @@ importFrom("graphics", "axis", "contour", "image", "lines", "mtext",
 importFrom("stats", "IQR", "coefficients", "cor", "dnorm", "fft", "lm",
              "median", "mvfft", "nextn", "pchisq", "qchisq", "qnorm",
              "quantile", "rbinom", "rchisq", "rexp", "rnorm", "rpois",
-             "sd", "cov", "var", "prcomp", "optim", "optimize", "runif")
+             "sd", "cov", "var", "prcomp", "optim", "optimize", "runif",
+             "coef", "nls", "density")
 importFrom("utils", "setTxtProgressBar", "txtProgressBar")
 
 exportClasses("aws","awssegment","kernsm","ICIsmooth")
