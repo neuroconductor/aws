@@ -9,7 +9,7 @@ smse3 <- function(sb, s0, bv, grad, ns0, kstar, lambda, kappa0,
   if(is.null(kappa0)){
     #  select kappa based on variance reduction on the sphere
     if(is.null(vred)||!is.numeric(vred)||vred<1) {
-      stop("aws::snse3 You need to specify either kappa0 or vred")
+      stop("snse3 You need to specify either kappa0 or vred")
     }
     kappa0 <- suggestkappa(grad,vred,dist)$kappa
   }
@@ -30,7 +30,7 @@ smse3 <- function(sb, s0, bv, grad, ns0, kstar, lambda, kappa0,
   nvoxel <- sum(mask)
   nbv <- length(bv)
   if(dim(sb)[1]!=nvoxel || length(s0)!=nvoxel || dim(sb)[2]!=nbv){
-     stop("aws::smse3 - sb and s0 should only contain data within mask")
+     stop("smse3 - sb and s0 should only contain data within mask")
   }
   # define position of voxel in mask within the 3D cube
       position <- array(0,ddim)
@@ -182,7 +182,7 @@ smse3ms <- function(sb, s0, bv, grad, ns0, kstar, lambda, kappa0,
     nbv <- length(bv)
 # check dimensions
     if(dim(sb)[1]!=nvoxel || length(s0)!=nvoxel || dim(sb)[2]!=nbv){
-       stop("aws::smse3ms - sb and s0 should only contain data within mask")
+       stop("smse3ms - sb and s0 should only contain data within mask")
     }
 # define position of voxel in mask within the 3D cube
     position <- array(0,ddim)

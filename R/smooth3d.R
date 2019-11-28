@@ -10,9 +10,9 @@ smooth3D <- function(y,lkern="Gaussian",weighted=FALSE,sigma2=NULL,mask=NULL,h=N
   position <- array(0,dmask)
   position[mask] <- 1:nvoxel
   dy <- dim(y)
+  nv <- 1
   if(is.null(dy)){
      ly <- length(y)
-     nv <- 1
    } else {
      ly <- dy[1]
      nv <- dy[2]
@@ -49,16 +49,16 @@ smooth3D <- function(y,lkern="Gaussian",weighted=FALSE,sigma2=NULL,mask=NULL,h=N
                      as.integer(position),
                      as.integer(weighted),
                      as.integer(nvoxel),
-                     as.integer(n1),
-                     as.integer(n2),
-                     as.integer(n3),
+                     as.integer(dmask[1]),
+                     as.integer(dmask[2]),
+                     as.integer(dmask[3]),
                      as.integer(nv),
                      hakt=as.double(h),
-                     thnew=double(nvoxel*dv),
+                     thnew=double(nvoxel*nv),
                      as.integer(lkern),
                      double(prod(dlw)),
                      as.double(wghts),
-                     double(dv))$thnew
+                     double(nv))$thnew
 array(ysmooth,dy)
 }
 ##
@@ -73,7 +73,7 @@ aws3Dmask <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
                       u=NULL, wghts=NULL, h0=c(0,0,0),
                       testprop=FALSE){
 #
-#  qlambda, corrfactor adjusted for case lkern="Gaussian",skern="Plateau" only
+#  corrfactor adjusted for case lkern="Gaussian",skern="Plateau" only
 #
 #  uses sum of weights and correction factor C(h,g) in statistical penalty
 #
@@ -84,7 +84,7 @@ aws3Dmask <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
   nvoxel <- sum(mask)
   position <- array(0,dmask)
   position[mask] <- 1:nvoxel
-  if (length(dy)!=nvoxel) {
+  if (length(y)!=nvoxel) {
     stop("aws3Dmask: y needs to have length sum(mask)")
   }
   # set the code for the kernel (used in lkern) and set lambda
@@ -119,7 +119,6 @@ aws3Dmask <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
     hmax <- fwhm2bw(hmax)*4
     hinit <- min(hinit,hmax)
   }
-  if (qlambda == 1) hinit <- hmax
 
   # define hincr
   hincr <- 1.25
@@ -146,7 +145,7 @@ aws3Dmask <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
   wghts <- (wghts[2:3]/wghts[1])
   tobj <- list(bi= rep(1,nvoxel))
   theta <- y
-  maxvol <- aws::getvofh(hmax,lkern,wghts)
+  maxvol <- getvofh(hmax,lkern,wghts)
   kstar <- as.integer(log(maxvol)/log(1.25))
   steps <- kstar+1
 
@@ -172,8 +171,8 @@ aws3Dmask <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
 
   # run single steps to display intermediate results
   while (k<=kstar) {
-      hakt0 <- aws::gethani(1,3,lkern,1.25^(k-1),wghts,1e-4)
-      hakt <- aws::gethani(1,3,lkern,1.25^k,wghts,1e-4)
+      hakt0 <- gethani(1,3,lkern,1.25^(k-1),wghts,1e-4)
+      hakt <- gethani(1,3,lkern,1.25^k,wghts,1e-4)
       hakt.oscale <- if(lkern==3) bw2fwhm(hakt/4) else hakt
       cat("step",k,"bandwidth",signif(hakt.oscale,3)," ")
     dlw <- (2*trunc(hakt/c(1,wghts))+1)[1:3]
@@ -207,7 +206,6 @@ aws3Dmask <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
                      as.double(wghts))[c("bi","thnew","hakt")]
     gc()
     theta <- tobj$thnew
-    dim(tobj$bi) <- dy
     if(testprop) {
       pobj <- .Fortran(C_chaws2,as.double(y),
                        as.double(sigma2),
@@ -305,10 +303,6 @@ aws3Dmaskfull <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
                       u=NULL, wghts=NULL,
                       testprop=FALSE){
 #
-#  qlambda, corrfactor adjusted for case lkern="Gaussian",skern="Plateau" only
-#
-#  uses sum of weights and correction factor C(h,g) in statistical penalty
-#
   dmask <- dim(mask)
   n1 <- dmask[1]
   n2 <- dmask[2]
@@ -317,7 +311,7 @@ aws3Dmaskfull <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
   nres <- dim(res)[1]
   position <- array(0,dmask)
   position[mask] <- 1:nvoxel
-  if (length(dy)!=nvoxel) {
+  if (length(y)!=nvoxel) {
     stop("aws3Dmask: y needs to have length sum(mask)")
   }
   # set the code for the kernel (used in lkern) and set lambda
@@ -352,7 +346,6 @@ aws3Dmaskfull <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
     hmax <- fwhm2bw(hmax)*4
     hinit <- min(hinit,hmax)
   }
-  if (qlambda == 1) hinit <- hmax
 
   # define hincr
   hincr <- 1.25
@@ -367,7 +360,7 @@ aws3Dmaskfull <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
   hmax <- hmax/wghts[1]
   wghts <- (wghts[2:3]/wghts[1])
   theta <- y
-  maxvol <- aws::getvofh(hmax,lkern,wghts)
+  maxvol <- getvofh(hmax,lkern,wghts)
   kstar <- as.integer(log(maxvol)/log(1.25))
   steps <- kstar+1
 
@@ -394,8 +387,8 @@ aws3Dmaskfull <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
   tobj <- list(bi = sigma2)
   # run single steps to display intermediate results
   while (k<=kstar) {
-    hakt0 <- aws::gethani(1,3,lkern,1.25^(k-1),wghts,1e-4)
-    hakt <- aws::gethani(1,3,lkern,1.25^k,wghts,1e-4)
+    hakt0 <- gethani(1,3,lkern,1.25^(k-1),wghts,1e-4)
+    hakt <- gethani(1,3,lkern,1.25^k,wghts,1e-4)
     hakt.oscale <- if(lkern==3) bw2fwhm(hakt/4) else hakt
     cat("step",k,"bandwidth",signif(hakt.oscale,3)," ")
     dlw <- (2*trunc(hakt/c(1,wghts))+1)[1:3]
@@ -465,7 +458,7 @@ aws3Dmaskfull <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
  #  determine Ni/sigma  from variance reduction achieved in residuals
      bi0 <- resvar0/resvar*sigma2
     k <- k+1
-    lambda0 <- if(k<=length(ladjust)) ladjust[k]*lambda else ladjust*lambda#/quot
+    lambda0 <- lambda
     gc()
   }
   residuals <- tobj$resnew

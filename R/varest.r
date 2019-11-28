@@ -31,6 +31,7 @@ estimateSigmaCompl <- function(magnitude,phase,mask,kstar=20,kmin=8,hsig=5,lambd
   hmax <- 1.25^(kstar/3)
   ## preparations for median smoothing
   parammd <- getparam3d(hsig,c(1,1))
+  nwmd <- length(parammd$w)
 
   if (verbose) pb <- txtProgressBar(min = 0, max = kstar-kmin+1, style = 3)
   bi <- array(1,sdim)
@@ -117,7 +118,7 @@ medianFilter3D <- function(sigma2, hsig=10, mask=NULL){
   if(is.null(mask)) mask <- array(TRUE,sdim)
   if(any(dim(mask)!=sdim)) stop("dimensions do not coinside")
   parammd <- getparam3d(hsig,c(1,1))
-
+  nwmd <- length(parammd$w)
   mc.cores <- setCores(, reprt = FALSE)
   sigma2hat <- .Fortran(C_mediansm,
                      as.double(sigma2),
@@ -218,7 +219,7 @@ sigma <- array(sigma, ddim)
 # initialize array for local sigma by global estimate
 mc.cores <- setCores(,reprt=FALSE)
 ## preparations for median smoothing
-parammd <- aws::getparam3d(hsig, vext)
+parammd <- getparam3d(hsig, vext)
   ## iterate PS starting with bandwidth h0
 if(family=="NCchi"){
       #  precompute values of log(besselI) for interpolation
@@ -229,7 +230,8 @@ if(family=="NCchi"){
 for (i in 1:steps) {
 
   h <- 1.25^((i-1)/3)
-  param <- aws::getparam3d(h, vext)
+  param <- getparam3d(h, vext)
+  nw <- length(param$w)
         ## perform one step PS with bandwidth h
   if(family=="NCchi"){
     z <- .Fortran(C_awslchi2,
@@ -295,6 +297,7 @@ for (i in 1:steps) {
   ##
   ##  avoid ties in local neighborhood cubes of z$sigman
   ##
+     nwmd <- length(parammd$w)
      sigma <- .Fortran(C_mediansm,
                     as.double(z$sigman),
                     as.integer(mask),
@@ -503,13 +506,13 @@ estGlobalSigma <- function(y, mask=NULL, ncoils=1, steps=16, vext=c(1,1),
 
     ## initial value for sigma_0
     # sigma <- sqrt( mean( y[mask]^2) / 2 / ncoils)
-    sigma <- IQQdiff( y, mask, q, verbose=verbose)
+    sigma <- IQQdiff( y, mask, q)
     #  cat( "sigmahat1", sigma, "\n")
     sigma <- iniSigmaNCchi( y, mask, q, ncoils, sigma)
     #  cat( "sigmahat2", sigma, "\n")
     sigma <- iniSigmaNCchi( y, mask, q, ncoils, sigma)
     #  cat( "sigmahat3", sigma, "\n")
-    sigma <- iniSigmaNCchi( y, mask, q, ncoils, sigma, verbose=verbose)
+    sigma <- iniSigmaNCchi( y, mask, q, ncoils, sigma)
     #  cat( "sigmahat4", sigma,"\n")
 
     ## define initial arrays for parameter estimates and sum of weights (see PS)
@@ -523,7 +526,8 @@ estGlobalSigma <- function(y, mask=NULL, ncoils=1, steps=16, vext=c(1,1),
     for (i in 1:steps) {
 
       h <- h0 * 1.25^((i-1)/3)
-      param <- aws::getparam3d(h,vext)
+      param <- getparam3d(h,vext)
+      nw <- length(param$w)
       fncchi <- fncchiv(th/sigma,varstats)
       ## correction factor for variance of NC Chi distribution
       ## perform one step PS with bandwidth h
@@ -583,11 +587,6 @@ estGlobalSigma <- function(y, mask=NULL, ncoils=1, steps=16, vext=c(1,1),
         minni[i] <- min(ni[ind])
       }
 
-      if (verbose) {
-        plot(dsigma, main = paste( "estimated sigmas step", i, "h=", signif(h,3)))
-        cat( "step", i, "h=", signif( h, 3), "quantiles of ni", signif( quantile(ni[ind]), 3), "mean", signif( mean(ni[ind]), 3), "\n")
-        cat( "quantiles of sigma", signif( quantile(sy1[sy1>0]), 3), "mode", signif( sigma, 3), "\n")
-      }
     }
     ## END PS iteration
     ## this is the result (th is expectation, not the non-centrality parameter !!!)
@@ -652,10 +651,6 @@ estGlobalSigma <- function(y, mask=NULL, ncoils=1, steps=16, vext=c(1,1),
       ##  use the maximal mode of estimated local variance parameters, exclude largest values for better precision
       dsigma <- density( sigma[sigma>0], n = 4092, adjust = hadj, to = min( max(sigma[sigma>0]), median(sigma[sigma>0])*5) )
       sigmag <- dsigma$x[dsigma$y == max(dsigma$y)][1]
-      if(verbose){
-        plot(dsigma, main = paste( "estimated sigmas h=", signif( h, 3)))
-        cat("quantiles of sigma", signif( quantile(sigma[sigma>0]), 3), "mode", signif( sigmag, 3), "\n")
-      }
     } else {
       if(method=="AFbkm2chi"){
         sigmag <- sqrt(mean(y[mask]^2)/2/ncoils)
