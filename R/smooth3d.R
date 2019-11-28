@@ -61,7 +61,13 @@ smooth3D <- function(y,lkern="Gaussian",weighted=FALSE,sigma2=NULL,mask=NULL,h=N
                      double(dv))$thnew
 array(ysmooth,dy)
 }
-
+##
+##   aws smoothing of y using a mask
+##   assuming a Gaussian distribution of y
+##   residuals (res) are smoothed after the last step using the obtained weighting scheme
+##   in order to access the variance reduction and spatial correlation obtained
+##   arguments only contain data within mask
+##
 aws3Dmask <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
                       lkern="Gaussian", skern="Plateau", weighted=TRUE,
                       u=NULL, wghts=NULL, h0=c(0,0,0),
@@ -246,9 +252,9 @@ aws3Dmask <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
   }
 
   #   Now compute variance of theta and variance reduction factor (with respect to the spatially uncorrelated situation
-  if(!is.null(residuals)){
-    nres <- dim(residuals)[1]
-    vartheta0 <- residualVariance(residuals, mask, resscale=1)
+  if(!is.null(res)){
+    nres <- dim(res)[1]
+    vartheta0 <- residualVariance(res, mask, resscale=1)
     residuals <- .Fortran(C_ihaws2,
                      as.double(residuals),
                      as.double(sigma2),
@@ -272,12 +278,203 @@ aws3Dmask <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
                      as.double(wghts),
                      double(nres*mc.cores))$resnew
     dim(residuals) <- c(nres,nvoxel)
-    vartheta <- residualVariance(residuals, mask, resscale=1)
+    vartheta <- residualVariance(residuals, mask, resscale=1, compact=TRUE)
     vred <- vartheta/vartheta0
     vartheta <- vred/sigma2
     lags <- pmin(c(5,5,3),dmask-1)
-    scorr <- residualSpatialCorr(residuals,mask,lags)
+    scorr <- residualSpatialCorr(residuals,mask,lags, compact=TRUE)
+  } else {
+    scorr <- NULL
+    vred <- NULL
+    vartheta <- NULL
   }
+  list(theta=theta, ni=tobj$bi, var=vartheta, vred=vred, mae=mae,
+       alpha=propagation, hmax=tobj$hakt*switch(lkern,1,1,bw2fwhm(1/4)),
+       scorr=scorr, res=residuals, mask=mask)
+}
+
+##
+##   aws smoothing of y using a mask
+##   assuming a Gaussian distribution of y
+##   residuals (res) are smoothed in each step employing the same weighting scheme
+##   in order to correctly access the variance reduction and spatial correlation obtained
+##   arguments only contain data within mask
+##
+aws3Dmaskfull <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
+                      lkern="Gaussian", skern="Plateau", weighted=TRUE,
+                      u=NULL, wghts=NULL, h0=c(0,0,0),
+                      testprop=FALSE){
+#
+#  qlambda, corrfactor adjusted for case lkern="Gaussian",skern="Plateau" only
+#
+#  uses sum of weights and correction factor C(h,g) in statistical penalty
+#
+  dmask <- dim(mask)
+  n1 <- dmask[1]
+  n2 <- dmask[2]
+  n3 <- dmask[3]
+  nvoxel <- sum(mask)
+  nres <- dim(res)[1]
+  position <- array(0,dmask)
+  position[mask] <- 1:nvoxel
+  if (length(dy)!=nvoxel) {
+    stop("aws3Dmask: y needs to have length sum(mask)")
+  }
+  # set the code for the kernel (used in lkern) and set lambda
+  lkern <- switch(lkern,
+                  Triangle=2,
+                  Plateau=1,
+                  Gaussian=3,
+                  1)
+  skern <- switch(skern,
+                  Triangle=2,
+                  Plateau=1,
+                  Exponential=3,
+                  2)
+  if(skern%in%c(1,2)) {
+    # to have similar preformance compared to skern="Exp"
+    lambda <- 4/3*lambda
+    if(skern==1) spmin <- .3
+    spmax <- 1
+  } else {
+      spmin <- 0
+      spmax <- 4
+  }
+  # set hinit and hincr if not provided
+  hinit <- 1
+
+  # define hmax
+  if (is.null(hmax)) hmax <- 5    # uses a maximum of about 520 points
+
+  # re-define bandwidth for Gaussian lkern!!!!
+  if (lkern==3) {
+    # assume  hmax was given in  FWHM  units (Gaussian kernel will be truncated at 4)
+    hmax <- fwhm2bw(hmax)*4
+    hinit <- min(hinit,hmax)
+  }
+  if (qlambda == 1) hinit <- hmax
+
+  # define hincr
+  hincr <- 1.25
+  hincr <- hincr^(1/3)
+
+  # estimate variance in the gaussian case if necessary
+  lambda <- lambda*2
+
+  # Initialize  list for bi and theta
+  if (is.null(wghts)) wghts <- c(1,1,1)
+  hinit <- hinit/wghts[1]
+  hmax <- hmax/wghts[1]
+  wghts <- (wghts[2:3]/wghts[1])
+  theta <- y
+  maxvol <- aws::getvofh(hmax,lkern,wghts)
+  kstar <- as.integer(log(maxvol)/log(1.25))
+  steps <- kstar+1
+
+  if(lambda < 1e10) k <- 1 else k <- kstar
+  hakt <- hinit
+  hakt0 <- hinit
+  lambda0 <- lambda
+  if (hinit>1) lambda0 <- 1e50 # that removes the stochstic term for the first step
+  total <- cumsum(1.25^(1:kstar))/sum(1.25^(1:kstar))
+  if(testprop) {
+    if(is.null(u)) u <- 0
+    propagation <- NULL
+  }
+  if(!is.null(u)) mae <- NULL
+##
+##  determine number of cores to use
+##
+  mc.cores <- setCores(,reprt=FALSE)
+## initialize bi to reflect variances
+
+  resvar0 <- residualVariance(res, mask, resscale=1)
+  sigma2 <- 1/sigma2
+  if(length(sigma2)==1) sigma2<-rep(sigma2,nvoxel)
+  tobj <- list(bi = sigma2)
+  # run single steps to display intermediate results
+  while (k<=kstar) {
+    hakt0 <- aws::gethani(1,3,lkern,1.25^(k-1),wghts,1e-4)
+    hakt <- aws::gethani(1,3,lkern,1.25^k,wghts,1e-4)
+    hakt.oscale <- if(lkern==3) bw2fwhm(hakt/4) else hakt
+    cat("step",k,"bandwidth",signif(hakt.oscale,3)," ")
+    dlw <- (2*trunc(hakt/c(1,wghts))+1)[1:3]
+    hakt0 <- hakt
+    theta0 <- theta
+    #
+    #   need these values to compute variances after the last iteration
+    #
+    tobj <- .Fortran(C_chawsv,
+                     as.double(y),
+                     as.double(residuals),
+                     as.double(sigma2),
+                     as.integer(position),
+                     as.integer(weighted),
+                     as.integer(n1),
+                     as.integer(n2),
+                     as.integer(n3),
+                     as.integer(nres),
+                     hakt=as.double(hakt),
+                     as.double(lambda0),
+                     as.double(theta0),
+                     bi=as.double(bi0),
+                     resnew=double(nres*nvoxel),
+                     thnew=double(nvoxel),
+                     as.integer(lkern),
+                     as.integer(skern),
+                     as.double(spmin),
+                     as.double(spmax),
+                     double(prod(dlw)),
+                     as.double(wghts),
+                     double(nres*mc.cores))[c("bi","thnew","hakt","resnew")]
+    if(testprop) {
+      pobj <- .Fortran(C_chaws2,as.double(y),
+                       as.double(sigma2),
+                       as.integer(position),
+                       as.integer(weighted),
+                       as.integer(n1),
+                       as.integer(n2),
+                       as.integer(n3),
+                       hakt=as.double(hakt),
+                       as.double(1e50),
+                       as.double(theta0),
+                       bi=as.double(bi0),
+                       thnew=double(nvoxel),
+                       as.integer(lkern),
+		                   as.integer(skern),
+	                     as.double(spmin),
+		                   as.double(spmax),
+		                   double(prod(dlw)),
+		                   as.double(wghts))[c("bi","thnew")]
+      gc()
+      propagation <- c(propagation,sum(abs(theta-pobj$thnew))/sum(abs(pobj$thnew-u)))
+      cat("Propagation with alpha=",max(propagation),"\n")
+      cat("alpha values:","\n")
+      print(rbind(hakt.oscale,signif(propagation[-1],3)))
+    }
+    if (!is.null(u)) {
+      cat("bandwidth: ",signif(hakt.oscale,3),"eta==1",sum(tobj$eta==1),"   MSE: ",
+          signif(mean((theta-u)^2),3),"   MAE: ",signif(mean(abs(theta-u)),3),
+          " mean(bi)=",signif(mean(tobj$bi),3),"\n")
+      mae <- c(mae,signif(mean(abs(theta-u)),3))
+    } else if (max(total) >0) {
+      cat(signif(total[k],2)*100,"%                 \r",sep="")
+     }
+     theta <- tobj$thnew
+     resvar <- residualVariance(tobj$resnew, mask, resscale=1, compact=TRUE)
+ #  determine Ni/sigma  from variance reduction achieved in residuals
+     bi0 <- resvar0/resvar*sigma2
+    k <- k+1
+    lambda0 <- if(k<=length(ladjust)) ladjust[k]*lambda else ladjust*lambda#/quot
+    gc()
+  }
+  residuals <- tobj$resnew
+  dim(residuals) <- c(nres,nvoxel)
+  vred <- resvar/resvar0
+  vartheta <- vred/sigma2
+  lags <- pmin(c(5,5,3),dmask-1)
+  scorr <- residualSpatialCorr(residuals,mask,lags, compact=TRUE)
+
   list(theta=theta, ni=tobj$bi, var=vartheta, vred=vred, mae=mae,
        alpha=propagation, hmax=tobj$hakt*switch(lkern,1,1,bw2fwhm(1/4)),
        scorr=scorr, res=residuals, mask=mask)
