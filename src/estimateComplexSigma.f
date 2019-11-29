@@ -1,34 +1,9 @@
-C
-C    Copyright (C) 2015 Weierstrass-Institut fuer
-C                       Angewandte Analysis und Stochastik (WIAS)
-C
-C    Author:  Joerg Polzehl
-C
-C  This program is free software; you can redistribute it and/or modify
-C  it under the terms of the GNU General Public License as published by
-C  the Free Software Foundation; either version 2 of the License, or
-C  (at your option) any later version.
-C
-C  This program is distributed in the hope that it will be useful,
-C  but WITHOUT ANY WARRANTY; without even the implied warranty of
-C  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-C  GNU General Public License for more details.
-C
-C  You should have received a copy of the GNU General Public License
-C  along with this program; if not, write to the Free Software
-C  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
-C  USA.
-C
-C  The following routines are part of the aws package and contain
-C  FORTRAN 77 code needed in R functions aws, vaws,
-C
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
 C   Perform one iteration in local constant three-variate aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine vaws2(y,mask,nv,n1,n2,n3,hakt,lambda,theta,s2,bi,
+      subroutine cplxawss(y,mask,nv,n1,n2,n3,hakt,lambda,theta,s2,bi,
      1                thnew,s2new,ncores,lwght,wght,swjy)
 C
 C   y        observed values of regression function
@@ -55,7 +30,7 @@ C
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12,k,thrednr
       double precision bii,biinv,sij,swj,swj2,z,z1,z2,z3,wj,hakt2,
-     1       hmax2,w1,w2,spmb,spf
+     1       w1,w2,spmb,spf
       external lkern,KLdist2
       double precision lkern,KLdist2
 !$      integer omp_get_thread_num
@@ -86,7 +61,6 @@ C
       n12=n1*n2
       z2=0.d0
       z3=0.d0
-      hmax2=0.d0
       DO j3=-clw3,clw3
          if(n3.gt.1) THEN
             z3=j3*w2
@@ -110,13 +84,12 @@ C  first stochastic term
                jind=j1+clw1+1+jind2
                z1=j1
                lwght(jind)=lkern(2,(z1*z1+z2)/hakt2)
-               if(lwght(jind).gt.0.d0) hmax2=max(hmax2,z2+z1*z1)
             END DO
          END DO
       END DO
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
-C$OMP& SHARED(thnew,bi,nv,n1,n2,n3,hakt2,hmax2,theta,
+C$OMP& SHARED(thnew,bi,nv,n1,n2,n3,hakt2,theta,
 C$OMP& ih3,lwght,wght,y,swjy,mask,s2new,s2)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
 C$OMP& spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)

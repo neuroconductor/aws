@@ -1,6 +1,7 @@
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
-C   Perform 3D smoothing on a grid (gridded)
+C   Perform 3D nonadaptive smoothing on a grid (gridded)
+C   mask is coded via position
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine smooth3d(y,si2,pos,wlse,nvox,n1,n2,n3,dv,hakt,
@@ -124,17 +125,12 @@ C
       END DO
       RETURN
       END
-C
-C
-C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
-C
-C          Compute aws-weights  w_{ij}
+C          Compute aws-weights  w_{ij} Gaussian case
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine awswght3(thi,theta,skern,
-     1                    spf,spmin,spmax,bii,wj)
+      subroutine awswght3(thi,theta,skern,spf,spmin,spmax,bii,wj)
       implicit none
       integer skern
       double precision thi,theta,spf,spmin,spmax,bii,wj,wjin
@@ -159,7 +155,9 @@ C  skern == "Exp"
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
-C   Perform one iteration in local constant three-variate aws (gridded)
+C   local constant 3D heteroskedastic aws for y
+C   si2   inverse of variance
+C   mask is coded via position
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine chaws2(y,si2,pos,wlse,n1,n2,n3,hakt,lambda,
@@ -318,7 +316,10 @@ C$OMP FLUSH(thn,bi)
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
-C   Perform one iteration in local constant three-variate aws (gridded)
+C   local constant 3D heteroskedastic aws for y
+C   si2   inverse of variance
+C   mask is coded via position
+C   vectorial data in res is smoothed using same weights
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine chawsv(y,res,si2,pos,wlse,n1,n2,n3,n4,hakt,
@@ -452,7 +453,9 @@ C$OMP FLUSH(thn,bi,resnew)
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
-C   Perform one iteration in local constant three-variate aws (gridded)
+C   local constant 3D heteroskedastic aws for vector valued y
+C   si2   inverse of variance (constant along vector y)
+C   mask is coded via position
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine ihaws2(y,si2,pos,wlse,n1,n2,n3,dv,hakt,lambda,

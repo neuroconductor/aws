@@ -21,7 +21,7 @@ C
      1       wght(2),hakt,lwght(*)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jind3,jind2,jind,
      1        clw1,clw2,clw3,dlw1,dlw2,dlw3,jw1,jw2,jw3,jwind2,jwind3
-      double precision swj,swjy,z1,z2,z3,wj,hakt2,hmax2
+      double precision swj,swjy,z1,z2,z3,wj,hakt2
       hakt2=hakt*hakt
       ih1=int(hakt)
 C
@@ -40,7 +40,6 @@ C
       dlw3=ih3+clw3
       z2=0.d0
       z3=0.d0
-      hmax2=0.d0
       DO j3=1,dlw3
          if(n3.gt.1) THEN
             z3=(clw3-j3)*wght(2)
@@ -64,7 +63,6 @@ C  first stochastic term
                jind=j1+jind2
                z1=clw1-j1
                lwght(jind)=max(0.d0,1.d0-(z1*z1+z2)/hakt2)
-               if(lwght(jind).gt.0.d0) hmax2=max(hmax2,z2+z1*z1)
             END DO
          END DO
       END DO
@@ -117,7 +115,7 @@ C
 C   Perform one iteration in local constant three-variate aws (gridded) with variance - mean model
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine cgawsdti(y,mask,si2,n1,n2,n3,hakt,hhom,lambda,theta,
+      subroutine cgawsdti(y,mask,si2,n1,n2,n3,hakt,lambda,theta,
      1        bi,gi,gi2,thetan,lwght,wght)
 C
 C   y        observed values of regression function
@@ -136,12 +134,11 @@ C
       integer mask(n1,n2,n3)
       double precision y(n1,n2,n3),theta(n1,n2,n3),bi(n1,n2,n3),
      1       thetan(n1,n2,n3),lambda,wght(2),hakt,lwght(*),
-     2       si2(n1,n2,n3),spmin,hhom(n1,n2,n3),
-     3       gi(n1,n2,n3),gi2(n1,n2,n3)
+     2       si2(n1,n2,n3),spmin,gi(n1,n2,n3),gi2(n1,n2,n3)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3
       double precision thetai,bii,sij,swj,swjy,z1,z2,z3,wj,hakt2,
-     1        sv1,sv2,spf,z,hhomi,hhommax,hmax2
+     1        sv1,sv2,spf,z
       hakt2=hakt*hakt
       spmin=0.25d0
       spf=1.d0/(1.d0-spmin)
@@ -162,7 +159,6 @@ C
       dlw3=ih3+clw3
       z2=0.d0
       z3=0.d0
-      hmax2=0.d0
       DO j3=1,dlw3
          if(n3.gt.1) THEN
             z3=(clw3-j3)*wght(2)
@@ -193,9 +189,6 @@ C  first stochastic term
       DO i3=1,n3
          DO i2=1,n2
              DO i1=1,n1
-               hhomi=hhom(i1,i2,i3)
-               hhomi=hhomi*hhomi
-               hhommax=hmax2
                IF (mask(i1,i2,i3).eq.0) CYCLE
 C    nothing to do, final estimate is already fixed by control
                thetai=theta(i1,i2,i3)
@@ -228,20 +221,11 @@ C  first stochastic term
                         wj=lwght(jw1+jwind2)
                         z1=(clw1-jw1)
                         z1=z2+z1*z1
-                        IF (z1.ge.hhomi) THEN
-C
-C      gaussian case only
-C
-                           z=(thetai-theta(j1,j2,j3))
-                           sij=bii*z*z
-                           IF (sij.gt.1.d0) THEN
-                              hhommax=min(hhommax,z1)
-                              CYCLE
-                           END IF
-                           IF (sij.gt.spmin) THEN
-                              wj=wj*(1.d0-spf*(sij-spmin))
-                              hhommax=min(hhommax,z1)
-                           END IF
+                        z=(thetai-theta(j1,j2,j3))
+                        sij=bii*z*z
+                        IF (sij.gt.1.d0) CYCLE
+                        IF (sij.gt.spmin) THEN
+                           wj=wj*(1.d0-spf*(sij-spmin))
                         END IF
                         sv1=sv1+wj
                         sv2=sv2+wj*wj
@@ -252,7 +236,6 @@ C
                END DO
                thetan(i1,i2,i3)=swjy/swj
                bi(i1,i2,i3)=swj
-               hhom(i1,i2,i3)=sqrt(hhommax)
                gi(i1,i2,i3)=sv1
                gi2(i1,i2,i3)=sv2
                call rchkusr()

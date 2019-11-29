@@ -57,7 +57,7 @@ C
      2        dlw12,n12,ip1,ip2,ip3,nph1,nph2,nph3,
      3        ipind,jp1,jp2,jp3,jpind,np1,np2,np3
       double precision thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,
-     1       hakt2,hmax2,w1,w2,swp,biip
+     1       hakt2,w1,w2,swp,biip
       hakt2=hakt*hakt
       spf=1.d0/(1.d0-spmin)
       aws=lambda.lt.1d35
@@ -87,7 +87,6 @@ C
       n12=n1*n2
       z2=0.d0
       z3=0.d0
-      hmax2=0.d0
       DO j3=-clw3,clw3
          if(n3.gt.1) THEN
             z3=j3*w2
@@ -111,13 +110,12 @@ C  first stochastic term
                jind=j1+clw1+1+jind2
                z1=j1
                lwght(jind)=lkern(kern,(z1*z1+z2)/hakt2)
-               if(lwght(jind).gt.0.d0) hmax2=max(hmax2,z2+z1*z1)
             END DO
          END DO
       END DO
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
-C$OMP& SHARED(ai,bi,bip,bi0,bi2,bin,n1,n2,n3,hakt2,hmax2,theta,
+C$OMP& SHARED(ai,bi,bip,bi0,bi2,bin,n1,n2,n3,hakt2,theta,
 C$OMP& ih3,lwght,wght,y,nph1,nph2,nph3,npsize)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
 C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
@@ -255,7 +253,7 @@ C
      2        dlw12,n12,ip1,ip2,ip3,nph1,nph2,nph3,pcj,
      3        ipind,jp1,jp2,jp3,jpind,np1,np2,np3
       double precision thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,
-     1       hakt2,hmax2,w1,w2,biip
+     1       hakt2,w1,w2,biip
       hakt2=hakt*hakt
       spf=1.d0/(1.d0-spmin)
       aws=lambda.lt.1d35
@@ -285,7 +283,6 @@ C
       n12=n1*n2
       z2=0.d0
       z3=0.d0
-      hmax2=0.d0
       DO j3=-clw3,clw3
           if(n3.gt.1) THEN
             z3=j3*w2
@@ -309,13 +306,12 @@ C  first stochastic term
                 jind=j1+clw1+1+jind2
                 z1=j1
                 lwght(jind)=lkern(kern,(z1*z1+z2)/hakt2)
-                if(lwght(jind).gt.0.d0) hmax2=max(hmax2,z2+z1*z1)
             END DO
           END DO
       END DO
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
-C$OMP& SHARED(ai,bi,bi0,bi2,bin,n1,n2,n3,hakt2,hmax2,theta,
+C$OMP& SHARED(ai,bi,bi0,bi2,bin,n1,n2,n3,hakt2,theta,
 C$OMP& ih3,lwght,wght,y,nph1,nph2,nph3,npsize,qind)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
 C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
@@ -449,7 +445,7 @@ C
      2        dlw12,n12,thrednr,ip1,ip2,ip3,nph1,nph2,nph3,pc,
      3        jp1,jp2,jp3,np1,np2,np3,iindp,ipindp,jindp,jpindp
       double precision thetai,bii,sij,swj,swj2,swjy,z1,z2,z3,wj,
-     1       hakt2,hmax2,w1,w2
+     1       hakt2,w1,w2
 !$      integer omp_get_thread_num
 !$      external omp_get_thread_num
       thrednr = 1
@@ -482,7 +478,6 @@ C
       n12=n1*n2
       z2=0.d0
       z3=0.d0
-      hmax2=0.d0
       DO j3=-clw3,clw3
          if(n3.gt.1) THEN
             z3=j3*w2
@@ -506,13 +501,12 @@ C  first stochastic term
                 jind=j1+clw1+1+jind2
                 z1=j1
                 lwght(jind)=lkern(kern,(z1*z1+z2)/hakt2)
-                if(lwght(jind).gt.0.d0) hmax2=max(hmax2,z2+z1*z1)
             END DO
           END DO
       END DO
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
-C$OMP& SHARED(thnew,bi,bi2,bin,n1,n2,n3,hakt2,hmax2,theta,pos,
+C$OMP& SHARED(thnew,bi,bi2,bin,n1,n2,n3,hakt2,theta,pos,
 C$OMP& ih3,lwght,wght,y,thpatch,biipatch,nph1,nph2,nph3,np,npsize)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
 C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
@@ -651,7 +645,7 @@ C
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12,k,thrednr
-      double precision bii,biinv,sij,swj,z,z1,z2,z3,wj,hakt2,hmax2,
+      double precision bii,biinv,sij,swj,z,z1,z2,z3,wj,hakt2,
      1        w1,w2,spmb,sijp
       integer np1,np2,np3
       double precision thpatch(nv,np1*np2*np3,*),biipatch(np1*np2*np3,*)
@@ -689,7 +683,6 @@ C
       n12=n1*n2
       z2=0.d0
       z3=0.d0
-      hmax2=0.d0
       DO j3=-clw3,clw3
          if(n3.gt.1) THEN
             z3=j3*w2
@@ -713,13 +706,12 @@ C  first stochastic term
                jind=j1+clw1+1+jind2
                z1=j1
                lwght(jind)=lkern(2,(z1*z1+z2)/hakt2)
-               if(lwght(jind).gt.0.d0) hmax2=max(hmax2,z2+z1*z1)
             END DO
          END DO
       END DO
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
-C$OMP& SHARED(thnew,bi,nv,n1,n2,n3,hakt2,hmax2,theta,bin,
+C$OMP& SHARED(thnew,bi,nv,n1,n2,n3,hakt2,theta,bin,
 C$OMP& ih3,lwght,wght,y,swjy,mask,thpatch,biipatch,nph1,nph2,nph3)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
 C$OMP& spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
@@ -854,7 +846,7 @@ C
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12,k,thrednr
-      double precision bii,biinv,sij,swj,z,z1,z2,z3,wj,hakt2,hmax2,
+      double precision bii,biinv,sij,swj,z,z1,z2,z3,wj,hakt2,
      1        w1,w2,spmb,sijp
       integer np1,np2,np3,l,m
       double precision thpatch(nv,np1*np2*np3,*),
@@ -893,7 +885,6 @@ C
       n12=n1*n2
       z2=0.d0
       z3=0.d0
-      hmax2=0.d0
       DO j3=-clw3,clw3
          if(n3.gt.1) THEN
             z3=j3*w2
@@ -917,13 +908,12 @@ C  first stochastic term
                jind=j1+clw1+1+jind2
                z1=j1
                lwght(jind)=lkern(2,(z1*z1+z2)/hakt2)
-               if(lwght(jind).gt.0.d0) hmax2=max(hmax2,z2+z1*z1)
             END DO
          END DO
       END DO
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
-C$OMP& SHARED(thnew,bi,nv,nvd,n1,n2,n3,hakt2,hmax2,theta,invcov,
+C$OMP& SHARED(thnew,bi,nv,nvd,n1,n2,n3,hakt2,theta,invcov,
 C$OMP& ih3,lwght,wght,y,swjy,mask,thpatch,biipatch,nph1,nph2,nph3,
 C$OMP& invcovp,bin)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,

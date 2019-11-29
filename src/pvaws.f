@@ -21,7 +21,7 @@ C
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12,k,iindp,jindp,ipindp,jpindp,thrednr
-      double precision biinv,sij,swj,z,z1,z2,z3,wj,hakt2,hmax2,
+      double precision biinv,sij,swj,z,z1,z2,z3,wj,hakt2,
      1        w1,w2,spmb,sijp
       integer np1,np2,np3,l,m
       integer ip1,ip2,ip3,nph1,nph2,nph3,ipind,jp1,jp2,jp3,jpind
@@ -58,7 +58,6 @@ C
       n12=n1*n2
       z2=0.d0
       z3=0.d0
-      hmax2=0.d0
       DO j3=-clw3,clw3
         if(n3.gt.1) THEN
           z3=j3*w2
@@ -82,13 +81,12 @@ C  first stochastic term
             jind=j1+clw1+1+jind2
             z1=j1
             lwght(jind)=lkern(2,(z1*z1+z2)/hakt2)
-            if(lwght(jind).gt.0.d0) hmax2=max(hmax2,z2+z1*z1)
           END DO
         END DO
       END DO
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
-C$OMP& SHARED(thnew,bi,nv,nvd,n1,n2,n3,hakt2,hmax2,theta,invcov,
+C$OMP& SHARED(thnew,bi,nv,nvd,n1,n2,n3,hakt2,theta,invcov,
 C$OMP& ih3,lwght,wght,y,swjy,pos,nph1,nph2,nph3,bin)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
 C$OMP& spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
@@ -209,7 +207,7 @@ C
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12,k,iindp,jindp,ipindp,jpindp,thrednr
-      double precision biinv,sij,swj,z,z1,z2,z3,wj,hakt2,hmax2,
+      double precision biinv,sij,swj,z,z1,z2,z3,wj,hakt2,
      1        w1,w2,spmb,sijp
       integer np1,np2,np3,l,m
       integer ip1,ip2,ip3,nph1,nph2,nph3,ipind,jp1,jp2,jp3,jpind
@@ -246,7 +244,6 @@ C
       n12=n1*n2
       z2=0.d0
       z3=0.d0
-      hmax2=0.d0
       DO j3=-clw3,clw3
         if(n3.gt.1) THEN
           z3=j3*w2
@@ -270,13 +267,12 @@ C  first stochastic term
             jind=j1+clw1+1+jind2
             z1=j1
             lwght(jind)=lkern(2,(z1*z1+z2)/hakt2)
-            if(lwght(jind).gt.0.d0) hmax2=max(hmax2,z2+z1*z1)
           END DO
         END DO
       END DO
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
-C$OMP& SHARED(thnew,bi,nv,nvd,nd,n1,n2,n3,hakt2,hmax2,theta,invcov,
+C$OMP& SHARED(thnew,bi,nv,nvd,nd,n1,n2,n3,hakt2,theta,invcov,
 C$OMP& ih3,lwght,wght,y,yd,swjy,swjd,pos,nph1,nph2,nph3,bin,ydnew)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
 C$OMP& spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
