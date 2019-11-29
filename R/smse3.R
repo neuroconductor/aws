@@ -1,5 +1,5 @@
-smse3 <- function(sb, s0, bv, grad, ns0, kstar, lambda, kappa0,
-                  mask, vext = NULL, vred = 4,
+smse3 <- function(sb, s0, bv, grad, mask, sigma, kstar, lambda, kappa0,
+                  ns0=1, vext = NULL, vred = 4,
                   ncoils = 1,
                   model = 0,
                   dist = 1,
@@ -37,12 +37,18 @@ smse3 <- function(sb, s0, bv, grad, ns0, kstar, lambda, kappa0,
       position[mask] <- 1:nvoxel
   # set relation between voxel lengths
       if(is.null(vext)) vext <- c(1,1)
+  ##
+  ##  rescale
+  ##
+  sb <- sb/sigma
+  s0 <- s0/sigma
   if(model==1){
     #
     #   use squared values for Chi^2
     #
     sb <- sb^2
     s0 <- s0^2
+    sigma <- sigma^2
   }
   th0 <- s0
   ni0 <- rep(1,nvoxel)
@@ -160,11 +166,11 @@ smse3 <- function(sb, s0, bv, grad, ns0, kstar, lambda, kappa0,
           " time elapsed:",format(difftime(Sys.time(),prt0),digits=3),"\n")
     }
   }
-  list(th=z$th, th0=z$th0, ni=z$ni, ni0=z$ni0, hseq=hseq, kappa0=kappa0, lambda=lambda)
+  list(th=z$th*sigma, th0=z$th0*sigma, ni=z$ni, ni0=z$ni0, hseq=hseq, kappa0=kappa0, lambda=lambda)
 }
 
-smse3ms <- function(sb, s0, bv, grad, ns0, kstar, lambda, kappa0,
-                  mask,
+smse3ms <- function(sb, s0, bv, grad, kstar, lambda, kappa0,
+                  mask, sigma, ns0=1,
                   vext = NULL,
                   ncoils = 1,
                   verbose = FALSE,
@@ -183,6 +189,27 @@ smse3ms <- function(sb, s0, bv, grad, ns0, kstar, lambda, kappa0,
 # check dimensions
     if(dim(sb)[1]!=nvoxel || length(s0)!=nvoxel || dim(sb)[2]!=nbv){
        stop("smse3ms - sb and s0 should only contain data within mask")
+    }
+#
+#  rescale so that we have Chi-distributed values
+#
+    dsigma <- dim(sigma)
+    if(is.null(dsigma)){
+       s0 <- s0/sigma
+       sb <- sb/sigma
+    } else if(dsigma[2]==nshell+1){
+      s0 <- s0/sigma[,1]
+      for (shnr in 1:nshell) {
+        indbv <- (1:length(bv))[bv == ubv[shnr]]
+        sb[, indbv] <- sb[, indbv]/ sigma[, shnr+1]
+      }
+    } else if(dsigma[2]==nbv+1){
+      s0 <- s0/sigma[,1]
+      for (ibv in 1:nbv) {
+        sb[, ibv] <- sb[, ibv]/ sigma[, ibv+1]
+      }
+    } else {
+      warning("incompatible number of sigma images, needs to be 1, nshell+1 or nbv+1\n")
     }
 # define position of voxel in mask within the 3D cube
     position <- array(0,ddim)
@@ -264,6 +291,26 @@ smse3ms <- function(sb, s0, bv, grad, ns0, kstar, lambda, kappa0,
         ni0 <- z$ni0 <- if(usemaxni) pmax(ni0,z$ni0)
       }
       dim(z$ni) <- dim(z$th) <- c(nvoxel,nbv)
+#
+#   now rescale results with sigma
+#
+#  s0 was scaled differently
+      if(is.null(dsigma)){
+        z$th0 <- z$th0*sigma/sqrt(ns0)
+        z$th <- z$th*sigma
+      } else if(dsigma[2]==nshell+1){
+        for (shnr in 1:nshell) {
+          z$th0 <- z$th0*sigma[,1]/sqrt(ns0)
+          indbv <- (1:length(bv))[bv == ubv[shnr]]
+          z$th[, indbv] <- z$th[, indbv]* sigma[, shnr+1]
+        }
+      }
+      else if(dsigma[2]==nbv+1){
+        for (ibv in 1:nbv) {
+          z$th0 <- z$th0*sigma[,1]/sqrt(ns0)
+          z$th[, ibv] <- z$th[, ibv]* sigma[, ibv+1]
+        }
+      }
       if(verbose){
         cat("k:",k,"h_k:",signif(max(hakt),3)," quartiles of ni",signif(quantile(z$ni),3),
             "mean of ni",signif(mean(z$ni),3),
