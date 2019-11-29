@@ -168,7 +168,6 @@ aws.segment <- function(y,
   #
   #    Initialize  for the iteration
   #
-  fix <- rep(FALSE, n)
   zobj <-
     list(
       ai = y,
@@ -191,7 +190,6 @@ aws.segment <- function(y,
   dlw <- (2 * trunc(hpre / c(1, wghts)) + 1)[1:d]
   hobj <- .Fortran(C_caws,
     as.double(y),
-    as.integer(fix),
     as.integer(n1),
     as.integer(n2),
     as.integer(n3),

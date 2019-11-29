@@ -122,13 +122,11 @@ aws <- function(y,
     list(
       bi = rep(1, n),
       bi2 = rep(1, n),
-      theta = y / shape,
-      fix = rep(FALSE, n)
+      theta = y / shape
     )
   if (maxni)
     bi <- tobj$bi
   zobj <- list(ai = y, bi0 = rep(1, n))
-  hhom <- rep(1, n)
   if (family == "Gaussian" & length(sigma2) == n)
     vred <- rep(1, n)
   mae <- psnr <- NULL
@@ -192,7 +190,6 @@ aws <- function(y,
       # heteroskedastic Gaussian case
       zobj <- .Fortran(C_chaws,
         as.double(y),
-        as.integer(tobj$fix),
         as.double(sigma2),
         as.integer(n1),
         as.integer(n2),
@@ -211,18 +208,16 @@ aws <- function(y,
         double(prod(dlw)),
         as.double(wghts)
       )[c("bi", "bi0", "bi2", "vred", "ai", "hakt")]
-      vred[!tobj$fix] <- zobj$vred[!tobj$fix]
+      vred <- zobj$vred
     } else {
       # all other cases
       if (cpar$mcode != 6) {
         zobj <- .Fortran(C_caws,
           as.double(y),
-          as.integer(tobj$fix),
           as.integer(n1),
           as.integer(n2),
           as.integer(n3),
           hakt = as.double(hakt),
-          hhom = as.double(hhom),
           as.double(lambda0),
           as.double(tobj$theta),
           bi = as.double(tobj$bi),
@@ -234,16 +229,14 @@ aws <- function(y,
           as.double(spmin),
           double(prod(dlw)),
           as.double(wghts)
-        )[c("bi", "bi0", "bi2", "ai", "hakt", "hhom")]
+        )[c("bi", "bi0", "bi2", "ai", "hakt")]
       } else {
         zobj <- .Fortran(C_caws6,
           as.double(y),
-          as.integer(tobj$fix),
           as.integer(n1),
           as.integer(n2),
           as.integer(n3),
           hakt = as.double(hakt),
-          hhom = as.double(hhom),
           as.double(lambda0),
           as.double(tobj$theta),
           as.double(fncchiv(tobj$theta, varstats) / 2),
@@ -255,7 +248,7 @@ aws <- function(y,
           as.double(spmin),
           double(prod(dlw)),
           as.double(wghts)
-        )[c("bi", "bi0", "bi2", "ai", "hakt", "hhom")]
+        )[c("bi", "bi0", "bi2", "ai", "hakt")]
       }
     }
     if (family %in% c("Bernoulli", "Poisson"))
@@ -267,9 +260,6 @@ aws <- function(y,
       bi <- tobj$bi <- pmax(bi, tobj$bi)
     dim(tobj$bi) <- dy
     dim(tobj$eta) <- dy
-    dim(tobj$fix) <- dy
-    if (homogen)
-      hhom <- zobj$hhom
     #
     #  if testprop == TRUE
     #  check alpha in propagation condition (to adjust value of lambda)
@@ -294,8 +284,7 @@ aws <- function(y,
         title(paste("Reconstruction  h=", signif(hakt, 3)))
         plot(tobj$bi, type = "l", ylim = range(0, tobj$bi))
         lines(tobj$eta * max(tobj$bi), col = 2)
-        lines(hhom / max(hhom) * max(tobj$bi), col = 3)
-        title("Sum of weights, eta and hhom")
+        title("Sum of weights, eta")
       }
       if (d == 2) {
         oldpar <- par(
@@ -341,22 +330,11 @@ aws <- function(y,
           " max=",
           signif(max(tobj$bi), 3)
         ))
-        if (is.null(u)) {
-          image(
-            tobj$fix,
-            col = gray((0:255) / 255),
-            xaxt = "n",
-            yaxt = "n",
-            zlim = c(0, 1)
-          )
-          title("Estimates fixed")
-        } else {
           image(u,
                 col = gray((0:255) / 255),
                 xaxt = "n",
                 yaxt = "n")
           title("true original")
-        }
       }
       if (d == 3) {
         oldpar <- par(
@@ -402,22 +380,11 @@ aws <- function(y,
           " max=",
           signif(max(tobj$bi), 3)
         ))
-        if (is.null(u)) {
-          image(
-            tobj$fix[, , n3 %/% 2 + 1],
-            col = gray((0:255) / 255),
-            xaxt = "n",
-            yaxt = "n",
-            zlim = c(0, 1)
-          )
-          title("Estimates fixed")
-        } else {
           image(u[, , n3 %/% 2 + 1],
                 col = gray((0:255) / 255),
                 xaxt = "n",
                 yaxt = "n")
           title("true original")
-        }
       }
       par(oldpar)
     }
@@ -443,8 +410,6 @@ aws <- function(y,
         signif(psnrk, 3),
         " mean(bi)=",
         signif(mean(tobj$bi), 3),
-        "mean hhom",
-        signif(mean(hhom), 3),
         "\n"
       )
       mae <- c(mae, signif(mean(abs(tobj$theta - u)), 3))
@@ -764,7 +729,6 @@ updtheta <- function(zobj, tobj, cpar) {
     kstar <- cpar$ktau
     tau <- 2 * (tau1 + tau2 * max(kstar - log(hakt), 0))
     theta <- tobj$theta
-    thetanew[tobj$fix] <- theta[tobj$fix]
     if (mcode < 6) {
       eta <- switch(
         aggkern,
@@ -788,7 +752,6 @@ updtheta <- function(zobj, tobj, cpar) {
       #  no memory step implemented in this case
       #
     }
-    eta[tobj$fix] <- 1
     bi <- (1 - eta) * bi + eta * tobj$bi
     bi2 <- (1 - eta) * bi2 + eta * tobj$bi2
     thetanew <- (1 - eta) * thetanew + eta * theta
@@ -802,8 +765,7 @@ updtheta <- function(zobj, tobj, cpar) {
     theta = thetanew,
     bi = bi,
     bi2 = bi2,
-    eta = eta,
-    fix = (tobj$fix | eta == 1)
+    eta = eta
   )
 }
 ####################################################################################

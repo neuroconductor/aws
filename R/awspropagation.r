@@ -129,7 +129,6 @@ awstestprop <- function(dy,
   zobj <- zobj0 <- list(ai = y, bi = rep(1, n))
   bi <- rep(1, n)
   yhat <- y / shape
-  hhom <- rep(1, n)
   lambda0 <- 1e50
   total <- cumsum(1.25 ^ (1:kstar)) / sum(1.25 ^ (1:kstar))
   #
@@ -262,7 +261,6 @@ awstestprop <- function(dy,
     if (!homogeneous & family == "Gaussian") {
       zobj <- .Fortran(C_chaws,
         as.double(y),
-        as.integer(rep(FALSE, n)),
         as.double(sigma2),
         as.integer(n1),
         as.integer(n2),
@@ -286,12 +284,10 @@ awstestprop <- function(dy,
       if (cpar$mcode != 6) {
         zobj <- .Fortran(C_caws,
           as.double(y),
-          as.integer(rep(FALSE, n)),
           as.integer(n1),
           as.integer(n2),
           as.integer(n3),
           hakt = as.double(hakt),
-          hhom = as.double(hhom),
           as.double(lambda0),
           as.double(yhat),
           bi = as.double(bi),
@@ -312,7 +308,6 @@ awstestprop <- function(dy,
           as.integer(n2),
           as.integer(n3),
           hakt = as.double(hakt),
-          hhom = as.double(hhom),
           as.double(lambda0),
           as.double(yhat),
           as.double(fncchiv(yhat, varstats) / 2),
@@ -573,7 +568,6 @@ pawstestprop <- function(dy,
   zobj <- zobj0 <- list(ai = y, bi = rep(1, n))
   bi <- rep(1, n)
   yhat <- y / shape
-  hhom <- rep(1, n)
   lambda0 <- 1e50
   total <- cumsum(1.25 ^ (1:kstar)) / sum(1.25 ^ (1:kstar))
   #

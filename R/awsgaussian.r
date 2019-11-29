@@ -124,8 +124,7 @@ aws.gaussian <- function(y,
     tobj <- list(
       bi = rep(1, n),
       bi2 = rep(1, n),
-      theta = y / shape,
-      fix = !mask
+      theta = y / shape
     )
     zobj <- list(ai = y, bi0 = rep(1, n))
     vred <- rep(1, n)
@@ -140,12 +139,10 @@ aws.gaussian <- function(y,
     dlw <- (2 * trunc(hpre / c(1, wghts)) + 1)[1:d]
     hobj <- .Fortran(C_caws,
       as.double(y),
-      as.integer(tobj$fix),
       as.integer(n1),
       as.integer(n2),
       as.integer(n3),
       as.double(hpre),
-      as.double(rep(1, n)),
       as.double(1e40),
       as.double(tobj$theta),
       bi = as.double(tobj$bi),
@@ -183,14 +180,12 @@ aws.gaussian <- function(y,
       # heteroskedastic Gaussian case
       zobj <- .Fortran(C_cgaws,
         as.double(y),
-        as.integer(tobj$fix),
         as.integer(mask),
         as.double(sigma2),
         as.integer(n1),
         as.integer(n2),
         as.integer(n3),
         hakt = as.double(hakt),
-        hhom = as.double(rep(1, n)),
         as.double(lambda0),
         as.double(tobj$theta),
         bi = as.double(tobj$bi),
@@ -203,8 +198,8 @@ aws.gaussian <- function(y,
         as.double(0.25),
         double(prod(dlw)),
         as.double(wghts)
-      )[c("bi", "bi0", "bi2", "hhom", "vred", "ai", "gi", "hakt")]
-      vred[!tobj$fix] <- zobj$vred[!tobj$fix]
+      )[c("bi", "bi0", "bi2", "vred", "ai", "gi", "hakt")]
+      vred <- zobj$vred
       dim(zobj$ai) <- dy
       if (hakt > n1 / 2)
         zobj$bi0 <- rep(max(zobj$bi), n)
@@ -213,9 +208,6 @@ aws.gaussian <- function(y,
       dim(tobj$theta) <- dy
       dim(tobj$bi) <- dy
       dim(tobj$eta) <- dy
-      dim(tobj$fix) <- dy
-      if (homogen)
-        hhom <- zobj$hhom
       if (graph) {
         #
         #     Display intermediate results if graph == TRUE
@@ -279,15 +271,7 @@ aws.gaussian <- function(y,
             " max=",
             signif(max(tobj$bi), 3)
           ))
-          image(
-            tobj$fix,
-            col = gray((0:255) / 255),
-            xaxt = "n",
-            yaxt = "n",
-            zlim = c(0, 1)
-          )
-          title("Estimates fixed")
-        }
+          }
         if (d == 3) {
           oldpar <- par(
             mfrow = c(2, 2),
@@ -332,14 +316,6 @@ aws.gaussian <- function(y,
             " max=",
             signif(max(tobj$bi), 3)
           ))
-          image(
-            tobj$fix[, , n3 %/% 2 + 1],
-            col = gray((0:255) / 255),
-            xaxt = "n",
-            yaxt = "n",
-            zlim = c(0, 1)
-          )
-          title("Estimates fixed")
         }
         par(oldpar)
       }

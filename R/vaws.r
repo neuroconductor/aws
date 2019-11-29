@@ -202,7 +202,7 @@ vawscov <- function(y,
       lambda0 <-
       lambda0 * Spatialvar.gauss(hakt0 / 0.42445 / 4, h0, d) / Spatialvar.gauss(hakt0 /
                                                                                   0.42445 / 4, 1e-5, d)
-    zobj <- .Fortran(C_vaws2,
+    zobj <- .Fortran(C_vaws2cov,
       as.double(y),
       as.integer(mask),
       as.integer(nvec),

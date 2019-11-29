@@ -48,7 +48,7 @@ estimateSigmaCompl <- function(magnitude,phase,mask,kstar=20,kmin=8,hsig=5,lambd
     dlw <- (2*trunc(hakt/c(1, 1, 1))+1)[1:3]
 
     ## perform the actual adaptive smoothing
-    zobj <- .Fortran(C_vaws2cov,
+    zobj <- .Fortran(C_cplxawss,
                      as.double(ComplImg),
                      as.logical(mask),
                      as.integer(2),
@@ -752,7 +752,6 @@ awslinsd <- function(y,hmax=NULL,hpre=NULL,h0=NULL,mask=NULL,
                      as.integer(n2),
                      as.integer(n3),
                      hakt=as.double(hakt),
-                     hhom=as.double(rep(1,n)),
                      as.double(lambda0),
                      as.double(zobj$theta),
                      bi=as.double(zobj$bi),
@@ -760,9 +759,8 @@ awslinsd <- function(y,hmax=NULL,hpre=NULL,h0=NULL,mask=NULL,
                      gi2=double(n),
                      theta=double(n),
                      double(prod(dlw)),
-                     as.double(wghts))[c("bi","hhom","theta","gi","gi2","hakt")]
+                     as.double(wghts))[c("bi","theta","gi","gi2","hakt")]
     dim(zobj$theta)<-dim(zobj$gi)<-dim(zobj$gi2)<-dim(zobj$bi)<-dy
-    hhom <- zobj$hhom
     #
     #    Calculate MAE and MSE if true parameters are given in u
     #    this is for demonstration and testing for propagation (parameter adjustments)
