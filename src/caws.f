@@ -284,6 +284,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine caws6(y,n1,n2,n3,hakt,lambda,theta,fnc,bi,
      1                 bi2,bi0,ai,kern,spmin,lwght,wght)
 C
+C  aws for nc-chi differs from caws through arguments model (missing) and fnc (add)
+C
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
 C   hakt     actual bandwidth
@@ -690,8 +692,9 @@ C   bi0 contains sum of weights (without invers variances) !!!
 C   no lambda, spmin, theta
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine caws1(y,n1,n2,n3,hakt,bi,bi2,
-     1                bi0,ai,kern,lwght,wght)
+      subroutine caws1(y,n1,n2,n3,hakt,bi,bi2,bi0,ai,kern,lwght,wght)
+C
+C  Non-adaptive version of caws
 C
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -825,6 +828,8 @@ C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine chaws(y,si2,n1,n2,n3,hakt,lambda,theta,bi,bi2,
      1           bi0,vred,ai,model,kern,spmin,lwght,wght)
+C
+C differs from caws by arguments si2 (inverse var) and vred
 C
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -983,6 +988,8 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine chaws1(y,si2,n1,n2,n3,hakt,bi,bi2,
      1           bi0,vred,ai,kern,lwght,wght)
 C
+C   nonadaptive version of chaws
+C
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
 C   hakt     actual bandwidth
@@ -1117,7 +1124,7 @@ C   Perform one iteration in local constant three-variate aws (gridded) with var
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine cgaws(y,mask,si2,n1,n2,n3,hakt,lambda,
-     1        theta,bi,bi2,bi0,gi,vred,ai,kern,spmin,lwght,wght)
+     1        theta,bi,bi2,bi0,gi,gi2,ai,kern,spmin,lwght,wght)
 C
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -1136,7 +1143,7 @@ C
       integer n1,n2,n3,kern,mask(*)
       logical aws
       double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght(2),
-     1       bi2(*),hakt,lwght(*),si2(*),vred(*),spmin,gi(*)
+     1       bi2(*),hakt,lwght(*),si2(*),gi2(*),spmin,gi(*)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12
@@ -1194,7 +1201,7 @@ C  first stochastic term
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,si2,n1,n2,n3,hakt2,theta
-C$OMP& ,lwght,wght,y,mask,vred,gi)
+C$OMP& ,lwght,wght,y,mask,gi2,gi)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,dlw12,
 C$OMP& spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,w1,w2)
 C$OMP& PRIVATE(iind,thetai,bii,swj
@@ -1269,11 +1276,11 @@ C
          bi2(iind)=swj2
          bi0(iind)=swj0
          gi(iind)=sv1
-         vred(iind)=sv2/sv1/sv1
+         gi2(iind)=sv2
       END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
-C$OMP FLUSH(ai,bi,bi0,bi2,gi,vred)
+C$OMP FLUSH(ai,bi,bi0,bi2,gi,gi2)
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

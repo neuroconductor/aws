@@ -739,7 +739,7 @@ awslinsd <- function(y,hmax=NULL,hpre=NULL,h0=NULL,mask=NULL,
                      bi=as.double(zobj$bi),
                      as.integer(2L), # lkern
                      double(prod(dlw)),
-                     as.double(wghts)
+                     as.double(wghts),
                      double(1))[c("bi","theta")]
   theta <- bi <- array(0,dy)
   theta[mask] <- hobj$theta
@@ -759,22 +759,30 @@ awslinsd <- function(y,hmax=NULL,hpre=NULL,h0=NULL,mask=NULL,
     # Correction for spatial correlation depends on h^{(k)}
     hakt0<-hakt
     # heteroskedastic Gaussian case
-    zobj <- .Fortran(C_cgawsdti,as.double(y),
-                     as.integer(mask),
-                     as.double(sigma2),
-                     as.integer(n1),
-                     as.integer(n2),
-                     as.integer(n3),
-                     hakt=as.double(hakt),
-                     as.double(lambda0),
-                     as.double(zobj$theta),
-                     bi=as.double(zobj$bi),
-                     gi=double(n),
-                     gi2=double(n),
-                     theta=double(n),
-                     double(prod(dlw)),
-                     as.double(wghts))[c("bi","theta","gi","gi2","hakt")]
-    dim(zobj$theta)<-dim(zobj$gi)<-dim(zobj$gi2)<-dim(zobj$bi)<-dy
+    zobj <- .Fortran(C_cgaws,
+                       as.double(y),
+                       as.integer(mask),
+                       as.double(sigma2),
+                       as.integer(n1),
+                       as.integer(n2),
+                       as.integer(n3),
+                       hakt = as.double(hakt),
+                       as.double(lambda0),
+                       as.double(tobj$theta),
+                       bi = as.double(tobj$bi),
+                       bi2 = double(n),
+                       bi0 = as.double(zobj$bi0),
+                       gi = double(n),
+                       gi2 = double(n),
+                       ai = as.double(zobj$ai),
+                       as.integer(lkern),
+                       as.double(0.25),
+                       double(prod(dlw)),
+                       as.double(wghts)
+                     )[c("bi", "bi0", "bi2", "gi2", "ai", "gi", "hakt")]
+    zobj$theta <- array(0, dy)
+    zobj$theta[mask] <- (zobj$ai/zobj$bi)[mask]
+dim(zobj$theta)<-dim(zobj$gi)<-dim(zobj$gi2)<-dim(zobj$bi)<-dy
     #
     #    Calculate MAE and MSE if true parameters are given in u
     #    this is for demonstration and testing for propagation (parameter adjustments)

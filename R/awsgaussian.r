@@ -34,7 +34,6 @@ aws.gaussian <- function(y,
            memory = FALSE,
            varmodel = "Constant",
            lkern = "Triangle",
-           homogen = TRUE,
            aggkern = "Uniform",
            scorr = 0,
            mask = NULL,
@@ -127,7 +126,6 @@ aws.gaussian <- function(y,
       theta = y / shape
     )
     zobj <- list(ai = y, bi0 = rep(1, n))
-    vred <- rep(1, n)
     mae <- NULL
     lambda0 <-
       1e50 # that removes the stochstic term for the first step, initialization by kernel estimates
@@ -192,14 +190,13 @@ aws.gaussian <- function(y,
         bi2 = double(n),
         bi0 = as.double(zobj$bi0),
         gi = double(n),
-        vred = double(n),
+        gi2 = double(n),
         ai = as.double(zobj$ai),
         as.integer(lkern),
         as.double(0.25),
         double(prod(dlw)),
         as.double(wghts)
-      )[c("bi", "bi0", "bi2", "vred", "ai", "gi", "hakt")]
-      vred <- zobj$vred
+      )[c("bi", "bi0", "bi2", "ai", "gi", "gi2","hakt")]
       dim(zobj$ai) <- dy
       if (hakt > n1 / 2)
         zobj$bi0 <- rep(max(zobj$bi), n)
@@ -383,7 +380,7 @@ aws.gaussian <- function(y,
       aws,
       memory,
       args,
-      homogen,
+      homogen = FALSE,
       earlystop = FALSE,
       family = "Gaussian",
       wghts = wghts,
@@ -425,7 +422,8 @@ awsgfamily <- function(y, scorr, d) {
 }
 ############################################################################
 #
-#  estimate inverse of variances
+#  estimate inverse of variances, uses nonadaptive hobj to stabilize,
+#    based on residual variance, constant/linear/quadratic
 #
 ############################################################################
 awsgsigma2 <- function(y, mask, hobj, tobj, varmodel, varprop, h0) {
@@ -435,15 +433,9 @@ awsgsigma2 <- function(y, mask, hobj, tobj, varmodel, varprop, h0) {
     d <- 1
   else
     d <- length(dy)
-  corfactor <- 1
-  for (i in 1:d)
-    corfactor <-
-    corfactor * sum(dnorm((-5:5), 0, h0[i] * 0.59 + 1e-10)) / dnorm(0, 0, h0[i] *
-                                                                      0.59 + 1e-10)
   ind <- tobj$gi > 1 & mask
   residsq <-
-    ((y - tobj$theta)[ind] * tobj$gi[ind] / (tobj$gi[ind] - pmin(.95 * tobj$gi[ind], corfactor))) ^
-    2
+    (y - tobj$theta)[ind]^2 * tobj$gi[ind]^2 / (tobj$gi[ind]^2 - tobj$gi2[ind])
   theta <- tobj$theta[ind]
   if (varmodel == "Quadratic")
     theta2 <- theta ^ 2
