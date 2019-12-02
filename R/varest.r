@@ -718,20 +718,34 @@ awslinsd <- function(y,hmax=NULL,hpre=NULL,h0=NULL,mask=NULL,
   #
   #   produce a presmoothed estimate to stabilze variance estimates
   #
+  dmask <- dim(mask)
+  nvoxel <- sum(mask)
+  position <- array(0,dmask)
+  position[mask] <- 1:nvoxel
   if(is.null(hpre)) hpre<-20^(1/3)
   dlw<-(2*trunc(hpre/c(1,wghts))+1)[1:3]
-  hobj <- .Fortran(C_caws03d,as.double(y),
-                   as.integer(mask),
-                   as.integer(n1),
-                   as.integer(n2),
-                   as.integer(n3),
-                   as.double(hpre),
-                   theta=as.double(zobj$theta),
-                   bi=as.double(zobj$bi),
-                   double(prod(dlw)),
-                   as.double(wghts))[c("bi","theta")]
-  dim(hobj$theta) <- dim(hobj$bi) <- dy
-  #
+  hobj <- .Fortran(C_smooth3d,
+                     as.double(y[mask]),
+                     as.double(rep(1,nvoxel)),
+                     as.integer(position),
+                     as.integer(OL),
+                     as.integer(nvoxel),
+                     as.integer(n1),
+                     as.integer(n2),
+                     as.integer(n3),
+                     as.integer(1L),
+                     as.double(hpre),
+                     theta=as.double(zobj$theta),
+                     bi=as.double(zobj$bi),
+                     as.integer(2L), # lkern
+                     double(prod(dlw)),
+                     as.double(wghts)
+                     double(1))[c("bi","theta")]
+  theta <- bi <- array(0,dy)
+  theta[mask] <- hobj$theta
+  bi[mask] <- hobj$bi
+  hobj <- list(bi=bi, theta=theta)
+    #
   #   iteratate until maximal bandwidth is reached
   #
   #  cat("Progress:")
@@ -771,7 +785,7 @@ awslinsd <- function(y,hmax=NULL,hpre=NULL,h0=NULL,mask=NULL,
     #
     #   Create new variance estimate
     #
-    vobj <- awsgsigma2dti(y,mask,hobj,zobj,varprop,h0,A0,A1)
+    vobj <- awsgsigmasd(y,mask,hobj,zobj,varprop,h0,A0,A1)
     sigma2 <- vobj$sigma2inv
     coef <- vobj$coef
     rm(vobj)
@@ -793,10 +807,11 @@ awslinsd <- function(y,hmax=NULL,hpre=NULL,h0=NULL,mask=NULL,
 
 ############################################################################
 #
-#  estimate inverse of variances
+#  estimate inverse of variances, uses nonadaptive hobj to stabilize,
+#    based on absolute residuals, linear
 #
 ############################################################################
-awsgsigma2dti <- function(y,mask,hobj,tobj,varprop,h0,thmin,thmax){
+awsgsigmasd <- function(y,mask,hobj,tobj,varprop,h0,thmin,thmax){
   ## specify sd to be linear to mean
   thrange <- range(y[mask])
   #    thmax <- thrange[2]-.2*diff(thrange)

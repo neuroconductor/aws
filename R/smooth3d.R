@@ -55,6 +55,7 @@ smooth3D <- function(y,lkern="Gaussian",weighted=FALSE,sigma2=NULL,mask=NULL,h=N
                      as.integer(nv),
                      hakt=as.double(h),
                      thnew=double(nvoxel*nv),
+                     bi=double(nvoxel),
                      as.integer(lkern),
                      double(prod(dlw)),
                      as.double(wghts),
