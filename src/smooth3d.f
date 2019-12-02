@@ -5,7 +5,7 @@ C   mask is coded via position
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine smooth3d(y,si2,pos,wlse,nvox,n1,n2,n3,dv,hakt,
-     1                    thn,kern,lwght,wght,swjy)
+     1                    thn,bi,kern,lwght,wght,swjy)
 C
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -21,7 +21,7 @@ C   wght     scaling factor for second and third dimension (larger values shrink
 C
       implicit none
       integer nvox,n1,n2,n3,kern,dv,wlse,pos(n1,n2,n3)
-      double precision y(nvox,dv),thn(nvox,dv),wght(2),
+      double precision y(nvox,dv),thn(nvox,dv),bi(nvox),wght(2),
      1       si2(nvox),hakt,lwght(*)
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,
      1        clw1,clw2,clw3,dlw1,dlw2,dlw3,k,n,dlw12,iindp,jindp
@@ -82,6 +82,7 @@ C  first stochastic term
                DO k=1,dv
                   thn(iindp,k)=swjy(k)/swj
                END DO
+               bi(iindp) = swj
                call rchkusr()
             END DO
          END DO
