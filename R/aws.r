@@ -29,6 +29,7 @@
 #
 aws <- function(y,
                 hmax = NULL,
+                mask = NULL,
                 aws = TRUE,
                 memory = FALSE,
                 family = "Gaussian",
@@ -75,6 +76,23 @@ aws <- function(y,
     #   NCchi for noncentral chi with shape=degrees of freedom and theta =NCP
     #
   }
+  if (is.null(mask)) {
+    if (length(dy) == 0)
+      mask <- rep(TRUE, length(y))
+    else
+      mask <- array(TRUE, dy)
+  } else {
+## these things need full data cubes
+    u <- NULL
+    graph <- FALSE
+    demo <- FALSE
+  }
+  dmask <- dim(mask)
+  nvoxel <- sum(mask)
+  position <- array(0,dmask)
+  position[mask] <- 1:nvoxel
+  # reduce to voxel in mask
+  y <- y[mask]
   cpar <-
     setawsdefaults(dy,
                    mean(y),
@@ -119,15 +137,17 @@ aws <- function(y,
   kstar <- cpar$kstar
   tobj <-
     list(
-      bi = rep(1, n),
-      bi2 = rep(1, n),
+      bi = rep(1, nvoxel),
+      bi2 = rep(1, nvoxel),
       theta = y / shape
     )
   if (maxni)
     bi <- tobj$bi
-  zobj <- list(ai = y, bi0 = rep(1, n))
-  if (family == "Gaussian" & length(sigma2) == n)
-    vred <- rep(1, n)
+  zobj <- list(ai = y, bi0 = rep(1, nvoxel))
+  if (family == "Gaussian" & length(sigma2) == n){
+    sigma2 <- sigma2[mask]
+    vred <- rep(1, nvoxel)
+  }
   mae <- psnr <- NULL
   hseq <- 1
   if (!is.null(u)) {
@@ -185,11 +205,12 @@ aws <- function(y,
       lambda0 * Spatialvar.gauss(hakt0 / 0.42445 / 4, h0, d) / Spatialvar.gauss(hakt0 /
                                                                                   0.42445 / 4, 1e-5, d)
     # Correction for spatial correlation depends on h^{(k)}
-    if (family == "Gaussian" & length(sigma2) == n) {
+    if (family == "Gaussian" & length(sigma2) == nvoxel) {
       # heteroskedastic Gaussian case
       zobj <- .Fortran(C_chaws,
         as.double(y),
         as.double(sigma2),
+        as.integer(position),
         as.integer(n1),
         as.integer(n2),
         as.integer(n3),
@@ -213,6 +234,7 @@ aws <- function(y,
       if (cpar$mcode != 6) {
         zobj <- .Fortran(C_caws,
           as.double(y),
+          as.integer(position),
           as.integer(n1),
           as.integer(n2),
           as.integer(n3),
@@ -232,6 +254,7 @@ aws <- function(y,
       } else {
         zobj <- .Fortran(C_caws6,
           as.double(y),
+          as.integer(position),
           as.integer(n1),
           as.integer(n2),
           as.integer(n3),
@@ -434,12 +457,14 @@ aws <- function(y,
   ###
   ###   component var contains an estimate of Var(tobj$theta) if aggkern="Uniform", or if !memory
   ###
+# expand results to full grid
+  vartheta <- bi <- theta <- array(0,dy)
   if (family == "Gaussian" & length(sigma2) == n) {
     # heteroskedastic Gaussian case
-    vartheta <- tobj$bi2 / tobj$bi ^ 2
+    vartheta[mask] <- tobj$bi2 / tobj$bi ^ 2
     #  pointwise variances are reflected in weights
   } else {
-    vartheta <- switch(
+    vartheta[mask] <- switch(
       family,
       Gaussian = sigma2,
       Bernoulli = tobj$theta * (1 - tobj$theta),
@@ -466,9 +491,19 @@ aws <- function(y,
       vartheta / Spatialvar.gauss(hakt / 0.42445 / 4, h0 + 1e-5, d) * Spatialvar.gauss(hakt /
                                                                                          0.42445 / 4, 1e-5, d)
   }
+  if(length(sigma2)==nvoxel){
+     sigma20 <- sigma2
+     sigma2 <- array(0,dy)
+     sigma2[mask] <- sigma20
+     rm(sigma20)
+  }
+  y0 <- array(0,dy)
+  y0[mask] <- y
+  theta[mask] <- tobj$theta
+  bi[mask] <- tobj$bi
   awsobj(
-    y,
-    tobj$theta,
+    y0,
+    theta,
     vartheta,
     hakt,
     sigma2,
@@ -485,7 +520,7 @@ aws <- function(y,
     wghts = wghts,
     mae = mae,
     psnr = psnr,
-    ni = tobj$bi
+    ni = bi
   )
 }
 #######################################################################################

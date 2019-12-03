@@ -80,6 +80,13 @@ aws.gaussian <- function(y,
       else
         mask <- array(TRUE, dy)
     }
+    dmask <- dim(mask)
+    nvoxel <- sum(mask)
+    position <- array(0,dmask)
+    position[mask] <- 1:nvoxel
+    if(!is.null(u)){
+       if(all(dim(u)==dmask)) u <- u[mask] else u <- u[1]
+    }
     lkern <- cpar$lkern
     lambda <-
       2.5 * cpar$lambda # Gaussian case + 25% for estimating variances
@@ -120,12 +127,13 @@ aws.gaussian <- function(y,
     #    Initialize  for the iteration
     #
     #wghts<-(wghts[2:3]/wghts[1])
+    y <- y[mask]
     tobj <- list(
-      bi = rep(1, n),
-      bi2 = rep(1, n),
+      bi = rep(1, nvoxel),
+      bi2 = rep(1, nvoxel),
       theta = y / shape
     )
-    zobj <- list(ai = y, bi0 = rep(1, n))
+    zobj <- list(ai = y, bi0 = rep(1, nvoxel))
     mae <- NULL
     lambda0 <-
       1e50 # that removes the stochstic term for the first step, initialization by kernel estimates
@@ -137,16 +145,17 @@ aws.gaussian <- function(y,
     dlw <- (2 * trunc(hpre / c(1, wghts)) + 1)[1:d]
     hobj <- .Fortran(C_caws,
       as.double(y),
+      as.double(position),
       as.integer(n1),
       as.integer(n2),
       as.integer(n3),
       as.double(hpre),
       as.double(1e40),
-      as.double(tobj$theta),
-      bi = as.double(tobj$bi),
-      double(n),
-      as.double(zobj$bi0),
-      ai = as.double(zobj$ai),
+      double(nvoxel),
+      bi = double(rep(1,nvoxel)),
+      double(nvoxel),
+      as.double(rep(1,nvoxel)),
+      ai = as.double(rep(1,nvoxel)),
       as.integer(cpar$mcode),
       as.integer(lkern),
       as.double(0.25),
@@ -154,7 +163,6 @@ aws.gaussian <- function(y,
       as.double(wghts)
     )[c("bi", "ai")]
     hobj$theta <- hobj$ai / hobj$bi
-    dim(hobj$theta) <- dim(hobj$bi) <- dy
     #
     #   iteratate until maximal bandwidth is reached
     #
@@ -178,7 +186,7 @@ aws.gaussian <- function(y,
       # heteroskedastic Gaussian case
       zobj <- .Fortran(C_cgaws,
         as.double(y),
-        as.integer(mask),
+        as.integer(position),
         as.double(sigma2),
         as.integer(n1),
         as.integer(n2),
@@ -187,10 +195,10 @@ aws.gaussian <- function(y,
         as.double(lambda0),
         as.double(tobj$theta),
         bi = as.double(tobj$bi),
-        bi2 = double(n),
+        bi2 = double(nvoxel),
         bi0 = as.double(zobj$bi0),
-        gi = double(n),
-        gi2 = double(n),
+        gi = double(nvoxel),
+        gi2 = double(nvoxel),
         ai = as.double(zobj$ai),
         as.integer(lkern),
         as.double(0.25),
@@ -199,7 +207,7 @@ aws.gaussian <- function(y,
       )[c("bi", "bi0", "bi2", "ai", "gi", "gi2","hakt")]
       dim(zobj$ai) <- dy
       if (hakt > n1 / 2)
-        zobj$bi0 <- rep(max(zobj$bi), n)
+        zobj$bi0 <- rep(max(zobj$bi), nvoxel)
       tobj <- updtheta(zobj, tobj, cpar)
       tobj$gi <- zobj$gi
       dim(tobj$theta) <- dy
@@ -345,7 +353,7 @@ aws.gaussian <- function(y,
       #
       #   Create new variance estimate
       #
-      vobj <- awsgsigma2(y, mask, hobj, tobj, varmodel, varprop, h0)
+      vobj <- awsgsigma2(y, hobj, tobj, varmodel, varprop, h0)
       sigma2 <- vobj$sigma2inv
       coef <- vobj$coef
       rm(vobj)
@@ -364,13 +372,17 @@ aws.gaussian <- function(y,
     ###
     ###   component var contains an estimate of Var(tobj$theta) if aggkern="Uniform", or if qtau1=1
     ###
-    vartheta <- tobj$bi2 / tobj$bi ^ 2
+    vartheta <- array(0,dmask)
+    vartheta[mask] <- tobj$bi2 / tobj$bi ^ 2
     vartheta <-
       vartheta / Spatialvar.gauss(hakt / 0.42445 / 4, h0 + 1e-5, d) * Spatialvar.gauss(hakt /
-                                                                                         0.42445 / 4, 1e-5, d)
+                                                                     0.42445 / 4, 1e-5, d)
+    theta <- sigma2 <- array(0,dmask)
+    theta[mask] <- tobj$theta
+    sigma2[mask] <- vobj$sigma2inv
     awsobj(
       y,
-      tobj$theta,
+      theta,
       vartheta,
       hakt,
       1 / sigma2,
@@ -416,7 +428,6 @@ awsgfamily <- function(y, scorr, d) {
     sigma2 <- sigma2 * Varcor.gauss(h0)
   cat("Estimated variance: ", signif(sigma2, 4), "\n")
   sigma2 <- rep(sigma2, length(y))
-  dim(sigma2) <- dim(y)
   sigma2 <- 1 / sigma2 #  taking the invers yields simpler formulaes
   list(sigma2 = sigma2, h0 = h0)
 }
@@ -424,16 +435,17 @@ awsgfamily <- function(y, scorr, d) {
 #
 #  estimate inverse of variances, uses nonadaptive hobj to stabilize,
 #    based on residual variance, constant/linear/quadratic
+#  expects only voxel within mask
 #
 ############################################################################
-awsgsigma2 <- function(y, mask, hobj, tobj, varmodel, varprop, h0) {
+awsgsigma2 <- function(y, hobj, tobj, varmodel, varprop, h0) {
   if (is.null(dy <- dim(y)))
     dy <- length(y)
   if (is.null(dy))
     d <- 1
   else
     d <- length(dy)
-  ind <- tobj$gi > 1 & mask
+  ind <- tobj$gi > 1
   residsq <-
     (y - tobj$theta)[ind]^2 * tobj$gi[ind]^2 / (tobj$gi[ind]^2 - tobj$gi2[ind])
   theta <- tobj$theta[ind]

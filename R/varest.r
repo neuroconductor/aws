@@ -693,6 +693,11 @@ awslinsd <- function(y,hmax=NULL,hpre=NULL,h0=NULL,mask=NULL,
     if(length(dy)==0) mask <- rep(TRUE,length(y)) else mask <- array(TRUE,dy)
   }
   n<-length(y)
+  dmask <- dim(mask)
+  nvoxel <- sum(mask)
+  position <- array(0,dmask)
+  position[mask] <- 1:nvoxel
+
   #
   #   family dependent transformations
   #
@@ -718,10 +723,6 @@ awslinsd <- function(y,hmax=NULL,hpre=NULL,h0=NULL,mask=NULL,
   #
   #   produce a presmoothed estimate to stabilze variance estimates
   #
-  dmask <- dim(mask)
-  nvoxel <- sum(mask)
-  position <- array(0,dmask)
-  position[mask] <- 1:nvoxel
   if(is.null(hpre)) hpre<-20^(1/3)
   dlw<-(2*trunc(hpre/c(1,wghts))+1)[1:3]
   hobj <- .Fortran(C_smooth3d,
@@ -761,7 +762,7 @@ awslinsd <- function(y,hmax=NULL,hpre=NULL,h0=NULL,mask=NULL,
     # heteroskedastic Gaussian case
     zobj <- .Fortran(C_cgaws,
                        as.double(y),
-                       as.integer(mask),
+                       as.integer(position),
                        as.double(sigma2),
                        as.integer(n1),
                        as.integer(n2),
@@ -780,9 +781,7 @@ awslinsd <- function(y,hmax=NULL,hpre=NULL,h0=NULL,mask=NULL,
                        double(prod(dlw)),
                        as.double(wghts)
                      )[c("bi", "bi0", "bi2", "gi2", "ai", "gi", "hakt")]
-    zobj$theta <- array(0, dy)
-    zobj$theta[mask] <- (zobj$ai/zobj$bi)[mask]
-dim(zobj$theta)<-dim(zobj$gi)<-dim(zobj$gi2)<-dim(zobj$bi)<-dy
+    zobj$theta <- (zobj$ai/zobj$bi)
     #
     #    Calculate MAE and MSE if true parameters are given in u
     #    this is for demonstration and testing for propagation (parameter adjustments)
@@ -793,7 +792,7 @@ dim(zobj$theta)<-dim(zobj$gi)<-dim(zobj$gi2)<-dim(zobj$bi)<-dy
     #
     #   Create new variance estimate
     #
-    vobj <- awsgsigmasd(y,mask,hobj,zobj,varprop,h0,A0,A1)
+    vobj <- awsgsigmasd(y,hobj,zobj,varprop,h0,A0,A1)
     sigma2 <- vobj$sigma2inv
     coef <- vobj$coef
     rm(vobj)
@@ -807,24 +806,27 @@ dim(zobj$theta)<-dim(zobj$gi)<-dim(zobj$gi2)<-dim(zobj$bi)<-dy
   }
   close(pb)
   # cat("\n")
+  theta <-array(0, dmask)
+  theta[mask] <- zobj$theta
   ###
   ###            end iterations now prepare results
   ###
-  list(theta = zobj$theta, vcoef=coef, mask=mask)
+  list(theta = theta, vcoef=coef, mask=mask)
 }
 
 ############################################################################
 #
 #  estimate inverse of variances, uses nonadaptive hobj to stabilize,
 #    based on absolute residuals, linear
+#  expects only voxel within mask
 #
 ############################################################################
-awsgsigmasd <- function(y,mask,hobj,tobj,varprop,h0,thmin,thmax){
+awsgsigmasd <- function(y,hobj,tobj,varprop,h0,thmin,thmax){
   ## specify sd to be linear to mean
-  thrange <- range(y[mask])
+  thrange <- range(y)
   #    thmax <- thrange[2]-.2*diff(thrange)
   #    thmin <- thrange[1]+.1*diff(thrange)
-  ind <- tobj$gi>1.5&mask&tobj$theta>thmin&tobj$theta<thmax
+  ind <- tobj$gi>1.5&tobj$theta>thmin&tobj$theta<thmax
   absresid <- abs((y-tobj$theta)[ind]*tobj$gi[ind]/sqrt(tobj$gi[ind]^2-tobj$gi2[ind]))/.8
   #     absresid <- abs((y-tobj$theta)[ind])/.8
   theta <- tobj$theta[ind]
@@ -842,7 +844,7 @@ awsgsigmasd <- function(y,mask,hobj,tobj,varprop,h0,thmin,thmax){
   gamma <- pmin(tobj$gi/hobj$bi,1)
   theta <- gamma*tobj$theta+(1-gamma)*hobj$theta
   sigma2 <- (coef[1]+coef[2]*theta)^2
-  varquantile <- varprop*mean(sigma2[mask])
+  varquantile <- varprop*mean(sigma2)
   sigma2 <- pmax(sigma2,varquantile)
   #  cat("Estimated mean variance",signif(mean(sigma2),3)," Variance parameters:",signif(coef,3),"\n")
   list(sigma2inv=1/sigma2,coef=coef)

@@ -187,38 +187,47 @@ awstestprop <- function(dy,
     #   get nonadaptive estimate
     #
     if (!homogeneous & family == "Gaussian") {
-      zobj0 <- .Fortran(C_chaws1,
+      zobj0 <- .Fortran(C_chaws,
         as.double(y),
         as.double(sigma2),
+        as.integer(1:n),#position
         as.integer(n1),
         as.integer(n2),
         as.integer(n3),
         hakt = as.double(hakt),
+        as.double(1e40),
+        double(n),
         bi = double(n),
+        bi2 = double(n),
         double(n),
-        double(n),
-        double(n),
-        #vred
+        double(n),#vred
         ai = double(n),
+        as.integer(cpar$mcode),
         as.integer(lkern),
+        as.double(spmin),
         double(prod(dlw)),
         as.double(wghts)
-      )[c("bi", "ai", "hakt")]
+      )[c("bi", "bi2", "ai", "hakt")]
     } else {
-      zobj0 <- .Fortran(C_caws1,
+      zobj0 <- .Fortran(C_caws,
         as.double(y),
+        as.integer(1:n),# position for full mask
         as.integer(n1),
         as.integer(n2),
         as.integer(n3),
         hakt = as.double(hakt),
-        bi = double(n),
+        as.double(1e40),
         double(n),
+        bi = double(n),
+        bi2 = double(n),
         double(n),
         ai = double(n),
+        as.integer(cpar$mcode),
         as.integer(lkern),
+        as.double(spmin),
         double(prod(dlw)),
         as.double(wghts)
-      )[c("bi", "ai", "hakt")]
+      )[c("bi", "bi2", "ai", "hakt")]
     }
     if (family %in% c("Bernoulli", "Poisson"))
       zobj0 <- regularize(zobj0, family)
@@ -262,6 +271,7 @@ awstestprop <- function(dy,
       zobj <- .Fortran(C_chaws,
         as.double(y),
         as.double(sigma2),
+        as.integer(1:n),# position for full mask
         as.integer(n1),
         as.integer(n2),
         as.integer(n3),
@@ -284,6 +294,7 @@ awstestprop <- function(dy,
       if (cpar$mcode != 6) {
         zobj <- .Fortran(C_caws,
           as.double(y),
+          as.integer(1:n),# position for full mask
           as.integer(n1),
           as.integer(n2),
           as.integer(n3),
@@ -303,7 +314,7 @@ awstestprop <- function(dy,
       } else {
         zobj <- .Fortran(C_caws6,
           as.double(y),
-          as.integer(rep(FALSE, n)),
+          as.integer(1:n),# position for full mask
           as.integer(n1),
           as.integer(n2),
           as.integer(n3),
@@ -653,20 +664,25 @@ pawstestprop <- function(dy,
     #
     #   get nonadaptive estimate
     #
-      zobj0 <- .Fortran(C_caws1,
-        as.double(y),
-        as.integer(n1),
-        as.integer(n2),
-        as.integer(n3),
-        hakt = as.double(hakt),
-        bi = double(n),
-        double(n),
-        double(n),
-        ai = double(n),
-        as.integer(lkern),
-        double(prod(dlw)),
-        as.double(wghts)
-      )[c("bi", "ai", "hakt")]
+    zobj0 <- .Fortran(C_caws,
+      as.double(y),
+      as.integer(1:n),# position for full mask
+      as.integer(n1),
+      as.integer(n2),
+      as.integer(n3),
+      hakt = as.double(hakt),
+      as.double(1e40),
+      double(n),
+      bi = double(n),
+      bi2 = double(n),
+      double(n),
+      ai = double(n),
+      as.integer(cpar$mcode),
+      as.integer(lkern),
+      as.double(spmin),
+      double(prod(dlw)),
+      as.double(wghts)
+    )[c("bi", "bi2", "ai", "hakt")]
     if (family %in% c("Bernoulli", "Poisson"))
       zobj0 <- regularize(zobj0, family)
     yhat0 <- zobj0$ai / zobj0$bi
