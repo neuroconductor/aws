@@ -450,7 +450,7 @@ aws.segment <- function(y,
     #   Create new variance estimate
     #
       vobj <-
-        awsgsigma2(y, mask, hobj, zobj[c("theta", "gi")], varmodel, varprop)
+        awsgsigma2(y, hobj, zobj[c("theta", "gi")], varmodel, varprop)
       sigma2 <- vobj$sigma2inv
       coef <- vobj$coef
       rm(vobj)
