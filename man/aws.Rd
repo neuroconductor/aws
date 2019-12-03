@@ -9,10 +9,10 @@ models, i.e. regression with additive "Gaussian" errors, a homoskedastic
 or heteroskedastic model is used depending on the content of \code{sigma2}
 }
 \usage{
-aws(y,hmax=NULL,aws=TRUE,memory=FALSE,family="Gaussian",
-                lkern="Triangle",homogen=TRUE,aggkern="Uniform",
-                sigma2=NULL,shape=NULL,scorr=0,spmin=0.25,
-		ladjust=1,wghts=NULL,u=NULL,graph=FALSE,demo=FALSE,
+aws(y,hmax=NULL, mask=NULL, aws=TRUE, memory=FALSE, family="Gaussian",
+                lkern="Triangle", aggkern="Uniform",
+                sigma2=NULL, shape=NULL, scorr=0, spmin=0.25,
+		            ladjust=1,wghts=NULL,u=NULL,graph=FALSE,demo=FALSE,
                 testprop=FALSE,maxni=FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -22,6 +22,7 @@ aws(y,hmax=NULL,aws=TRUE,memory=FALSE,family="Gaussian",
   for 1D, 2D, 3D images, respectively.
   In case of \code{lkern="Gaussian"} the bandwidth is assumed to be given in full width half maximum (FWHM) units, i.e., \code{0.42466} times gridsize.   }
   \item{aws}{ logical: if TRUE structural adaptation (AWS) is used. }
+	\item{mask}{ optional logical mask, same dimensionality as \code{y}}
   \item{memory}{ logical: if TRUE stagewise aggregation is used as an additional
    adaptation scheme. }
   \item{family}{\code{family} specifies the probability distribution. Default is \code{family="Gaussian"}, also implemented
@@ -32,8 +33,6 @@ aws(y,hmax=NULL,aws=TRUE,memory=FALSE,family="Gaussian",
    The default "Triangle" is equivalent to using an Epanechnikov kernel, "Quadratic" and  "Cubic" refer to a Bi-weight and Tri-weight
     kernel, see Fan and Gijbels (1996). "Gaussian" is a truncated (compact support) Gaussian kernel.
     This is included for comparisons only and should be avoided due to its large computational costs.}
-  \item{homogen}{ logical: if TRUE the function tries to determine regions
-   where weights can be fixed to 1. This may increase speed.}
   \item{aggkern}{ character: kernel used in stagewise aggregation, either "Triangle" or "Uniform" }
   \item{sigma2}{\code{sigma2} allows to specify the variance in case of \code{family="Gaussian"}. Not used if \code{family!="Gaussian"}.
    Defaults to \code{NULL}. In this case a homoskedastic variance estimate is generated. If \code{length(sigma2)==length(y)} then \code{sigma2}

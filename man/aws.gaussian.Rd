@@ -10,7 +10,7 @@
 }
 \usage{
 aws.gaussian(y, hmax = NULL, hpre = NULL, aws = TRUE, memory = FALSE,
-             varmodel = "Constant", lkern = "Triangle", homogen = TRUE,
+             varmodel = "Constant", lkern = "Triangle",
              aggkern = "Uniform", scorr = 0, mask=NULL, ladjust = 1,
              wghts = NULL, u = NULL, varprop = 0.1, graph = FALSE, demo = FALSE)
 }
@@ -29,8 +29,6 @@ aws.gaussian(y, hmax = NULL, hpre = NULL, aws = TRUE, memory = FALSE,
   The default "Triangle" is equivalent to using an Epanechnikov kernel, "Quadratic" and  "Cubic" refer to a Bi-weight and Tri-weight
    kernel, see Fan and Gijbels (1996). "Gaussian" is a truncated (compact support) Gaussian kernel.
    This is included for comparisons only and should be avoided due to its large computational costs.}
-  \item{homogen}{ logical: if TRUE the function tries to determine regions
-   where weights can be fixed to 1. This may increase speed.}
   \item{aggkern}{ character: kernel used in stagewise aggregation, either "Triangle" or "Uniform" }
   \item{scorr}{The vector \code{scorr} allows to specify a first order correlations of the noise for each coordinate direction,
     defaults to 0 (no correlation). }
