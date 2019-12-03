@@ -353,7 +353,7 @@ aws.gaussian <- function(y,
       #
       #   Create new variance estimate
       #
-      vobj <- awsgsigma2(y, hobj, tobj, varmodel, varprop, h0)
+      vobj <- awsgsigma2(y, hobj, tobj, varmodel, varprop)
       sigma2 <- vobj$sigma2inv
       coef <- vobj$coef
       rm(vobj)
@@ -438,7 +438,7 @@ awsgfamily <- function(y, scorr, d) {
 #  expects only voxel within mask
 #
 ############################################################################
-awsgsigma2 <- function(y, hobj, tobj, varmodel, varprop, h0) {
+awsgsigma2 <- function(y, hobj, tobj, varmodel, varprop) {
   if (is.null(dy <- dim(y)))
     dy <- length(y)
   if (is.null(dy))

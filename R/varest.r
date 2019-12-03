@@ -676,6 +676,9 @@ awslinsd <- function(y,hmax=NULL,hpre=NULL,h0=NULL,mask=NULL,
   args <- match.call()
   dy<-dim(y)
   if(length(dy)!=3) stop("Image should be 3D")
+  n1 <- dy[1]
+  n2 <- dy[2]
+  n3 <- dy[3]
   #
   #   set appropriate defaults
   #
@@ -697,27 +700,22 @@ awslinsd <- function(y,hmax=NULL,hpre=NULL,h0=NULL,mask=NULL,
   nvoxel <- sum(mask)
   position <- array(0,dmask)
   position[mask] <- 1:nvoxel
-
+  y <- y[mask]
   #
   #   family dependent transformations
   #
   sigma2 <- max(1,IQRdiff(as.vector(y))^2)
   if(any(h0)>0) sigma2<-sigma2*Varcor.gauss(h0)
   #  cat("Estimated variance: ", signif(sigma2,4),"\n")
-  sigma2 <- rep(sigma2, length(y))
-  dim(sigma2) <- dim(y)
+  sigma2 <- rep(sigma2, nvoxel)
   sigma2 <- 1/sigma2
   #  taking the invers yields simpler formulaes
   # now check which procedure is appropriate
   ##  this is the version on a grid
-  n <- length(y)
-  n1 <- dy[1]
-  n2 <- dy[2]
-  n3 <- dy[3]
   #
   #    Initialize  for the iteration
   #
-  zobj<-list(ai=y, bi= rep(1,n), theta= y, fix=!mask)
+  zobj<-list(ai=y, bi= rep(1,nvoxel), theta= y)
   mae<-NULL
   lambda0<-1e50 # that removes the stochstic term for the first step, initialization by kernel estimates
   #
@@ -729,7 +727,7 @@ awslinsd <- function(y,hmax=NULL,hpre=NULL,h0=NULL,mask=NULL,
                      as.double(y[mask]),
                      as.double(rep(1,nvoxel)),
                      as.integer(position),
-                     as.integer(OL),
+                     as.integer(0L),
                      as.integer(nvoxel),
                      as.integer(n1),
                      as.integer(n2),
@@ -769,14 +767,14 @@ awslinsd <- function(y,hmax=NULL,hpre=NULL,h0=NULL,mask=NULL,
                        as.integer(n3),
                        hakt = as.double(hakt),
                        as.double(lambda0),
-                       as.double(tobj$theta),
-                       bi = as.double(tobj$bi),
+                       as.double(zobj$theta),
+                       bi = as.double(zobj$bi),
                        bi2 = double(n),
                        bi0 = as.double(zobj$bi0),
                        gi = double(n),
                        gi2 = double(n),
                        ai = as.double(zobj$ai),
-                       as.integer(lkern),
+                       as.integer(2L),
                        as.double(0.25),
                        double(prod(dlw)),
                        as.double(wghts)
