@@ -19,6 +19,7 @@ aws.segment(y, level, delta = 0, hmax = NULL, hpre = NULL, mask =NULL, varmodel 
   \item{hmax}{ \code{hmax} specifies the maximal bandwidth. Defaults to \code{hmax=250, 12, 5} for \code{dd=1, 2, 3}, respectively.}
   \item{hpre}{ Describe \code{hpre} Bandwidth used for an initial nonadaptive estimate. The first estimate
    of variance parameters  is obtained from residuals with respect to this estimate. }
+  \item{mask}{ optional logical mask, same dimensionality as \code{y}}
   \item{varmodel}{Implemented are "Constant", "Linear" and "Quadratic" refering to a polynomial model of degree 0 to 2.}
   \item{lkern}{ character: location kernel, either "Triangle", "Plateau", "Quadratic", "Cubic" or "Gaussian".
   The default "Triangle" is equivalent to using an Epanechnikov kernel, "Quadratic" and  "Cubic" refer to a Bi-weight and Tri-weight
