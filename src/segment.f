@@ -3,7 +3,7 @@ C
 C   Perform one iteration in local constant three-variate aws (gridded) with variance - mean model
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine segment(y,fix,level,delta,si2,n1,n2,n3,hakt,
+      subroutine segment(y,pos,level,delta,si2,n1,n2,n3,hakt,
      1        lambda,theta,bi,bi2,bi0,gi,vred,thetan,kern,spmin,lwght,
      2        wght,segm,segmn,beta,thresh,ext,fov,varest)
 C
@@ -21,14 +21,14 @@ C
       implicit none
       external lkern,fpchisq
       double precision lkern,fpchisq
-      integer n1,n2,n3,kern,segm(*),segmn(*),fix(*)
+      integer n1,n2,n3,kern,segm(*),segmn(*),pos(*)
       logical aws
       double precision y(*),theta(*),bi(*),bi0(*),thetan(*),lambda,
      1       wght(2),bi2(*),hakt,lwght(*),si2(*),vred(*),spmin,gi(*),
      2       level,delta,beta,thresh,ext,varest(*),fov
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,n12,
-     2        segmi
+     2        segmi,iindp,jindp
       double precision bii,sij,swj,swj2,swj0,swjy,z1,z2,z3,wj,hakt2,
      1        bii0,sv1,sv2,spf,z,a,b,thi,s2i,si,ti,cofh,extthr,
      2        wght1,wght2,si2j
@@ -80,7 +80,7 @@ C  first stochastic term
                z1=clw1-j1
                wj=lkern(kern,(z1*z1+z2)/hakt2)
                swj0=swj0+wj
-               lwght(jind)=wj
+               lwght(jindp)=wj
             END DO
          END DO
       END DO
@@ -92,16 +92,14 @@ C  first stochastic term
          DO i2=1,n2
             DO i3=1,n3
                iind=i1+(i2-1)*n1+(i3-1)*n12
-               if(fix(iind).ne.0) CYCLE
-               thi = theta(iind)
-               s2i = si2(iind)
-            cofh = sqrt(beta*log(varest(iind)*s2i*fov))
-           if(max(a-thi,thi-b)/sqrt(varest(iind))-cofh.gt.extthr) THEN
-                  fix(iind)=1
-      if(segm(iind).eq.0) segm(iind)=FLOOR(sign(1.d0,thi-level))
-C we need to assign a value to segment before we can fix the decision
+               iindp=pos(iind)
+               if(iindp.eq.0) CYCLE
+               thi = theta(iindp)
+               s2i = si2(iindp)
+            cofh = sqrt(beta*log(varest(iindp)*s2i*fov))
+           if(max(a-thi,thi-b)/sqrt(varest(iindp))-cofh.gt.extthr) THEN
+      if(segm(iindp).eq.0) segm(iindp)=FLOOR(sign(1.d0,thi-level))
                ELSE
-                  fix(iind)=0
                   ti=max(0.d0,max(a-thi,thi-b))
                END IF
             END DO
@@ -110,25 +108,26 @@ C we need to assign a value to segment before we can fix the decision
       END IF
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(thetan,bi,bi0,bi2,si2,n1,n2,n3,theta,kern,hakt,
-C$OMP& lwght,y,fix,vred,gi,segm,segmn,varest)
+C$OMP& lwght,y,vred,gi,segm,segmn,varest,pos)
 C$OMP& FIRSTPRIVATE(lambda,aws,beta,fov,a,b,hakt2,n12,wght1,wght2,
 C$OMP& spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,thresh,ih1,ih2)
-C$OMP& PRIVATE(iind,bii,bii0,swj,thi,cofh,segmi,
+C$OMP& PRIVATE(iind,bii,bii0,swj,thi,cofh,segmi,iindp,jindp,
 C$OMP& swj2,swj0,swjy,si,sij,sv1,sv2,i1,i2,i3,wj,j3,jw3,jind3,z3,
 C$OMP& jwind3,j2,jw2,jind2,z2,jwind2,j1,jw1,jind,z1,z,si2j)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n1*n2*n3
+         iindp=pos(iind)
+         if(iindp.eq.0) CYCLE
          i1=mod(iind,n1)
          if(i1.eq.0) i1=n1
          i2=mod((iind-i1)/n1+1,n2)
          if(i2.eq.0) i2=n2
          i3=(iind-i1-(i2-1)*n1)/n1/n2+1
-         segmi=segm(iind)
-C    nothing to do, final estimate is already fixed by control
-         thi=theta(iind)
-         bii=bi(iind)/lambda
+         segmi=segm(iindp)
+         thi=theta(iindp)
+         bii=bi(iindp)/lambda
 C   scaling of sij outside the loop
-         bii0=bi0(iind)
+         bii0=bi0(iindp)
          swj=0.d0
          swj2=0.d0
          swj0=0.d0
@@ -156,49 +155,46 @@ C  first stochastic term
                   j1=jw1-clw1+i1
                   if(j1.lt.1.or.j1.gt.n1) CYCLE
                   jind=j1+jind2
+                  jindp=pos(jind)
+                  if(jindp.eq.0) CYCLE
                   wj=lwght(jw1+jwind2)
-                  swj0=swj0+wj*si2(jind)
+                  swj0=swj0+wj*si2(jindp)
                   IF (aws) THEN
 C
 C      gaussian case only
 C
-                     z=(thi-theta(jind))
+                     z=(thi-theta(jindp))
                      sij=bii*z*z
                      IF (sij.gt.1.d0) CYCLE
                      IF (sij.gt.spmin) wj=wj*(1.d0-spf*(sij-spmin))
                   END IF
                   sv1=sv1+wj
                   sv2=sv2+wj*wj
-                  si2j=si2(jind)*wj
+                  si2j=si2(jindp)*wj
                   swj=swj+si2j
                   swj2=swj2+wj*si2j
-                  swjy=swjy+si2j*y(jind)
+                  swjy=swjy+si2j*y(jindp)
                END DO
             END DO
          END DO
-         thetan(iind)=swjy/swj
-         bi(iind)=swj
-         bi2(iind)=swj2
-         bi0(iind)=swj0
+         thetan(iindp)=swjy/swj
+         bi(iindp)=swj
+         bi2(iindp)=swj2
+         bi0(iindp)=swj0
          si=swj2/swj/swj
-         varest(iind)=si
-         cofh = sqrt(beta*log(si*si2(iind)*fov))
+         varest(iindp)=si
+         cofh = sqrt(beta*log(si*si2(iindp)*fov))
 C    both are equivalent for  homogeneous si2
          si=sqrt(si)
-         If(fix(iind).eq.0) THEN
          IF((thi-a)/si+cofh.lt.-thresh) THEN
-            segmn(iind)=-1
+            segmn(iindp)=-1
          ELSE IF ((thi-b)/si-cofh.gt.thresh) THEN
-            segmn(iind)=1
+            segmn(iindp)=1
          ELSE
-            segmn(iind)=0
+            segmn(iindp)=0
          END IF
-         ELSE
-            IF(segmi.lt.0) thetan(iind)=min(thetan(iind),a)
-            IF(segmi.gt.0) thetan(iind)=max(thetan(iind),b)
-         END IF
-         gi(iind)=sv1
-         vred(iind)=sv2/sv1/sv1
+         gi(iindp)=sv1
+         vred(iindp)=sv2/sv1/sv1
       END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL

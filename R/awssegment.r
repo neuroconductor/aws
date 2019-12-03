@@ -32,6 +32,7 @@ aws.segment <- function(y,
                         delta = 0,
                         hmax = NULL,
                         hpre = NULL,
+                        mask = NULL,
                         varmodel = "Constant",
                         lkern = "Triangle",
                         scorr = 0,
@@ -57,10 +58,10 @@ aws.segment <- function(y,
   #    first check arguments and initialize
   #
   args <- match.call()
+  n <- lenght(y)
   dy <- dim(y)
   if (is.null(dy))
     dy <- length(y)
-  mask <- rep(TRUE, length(y))
   if (length(dy) > 3)
     stop("AWS for more than 3 dimensional grids is not implemented")
   if (!(varmodel %in% c("Constant", "Linear", "Quadratic")))
@@ -89,6 +90,23 @@ aws.segment <- function(y,
     switch(length(dy), c(0, 0), c(wghts[1] / wghts[2], 0), wghts[1] / wghts[2:3])
   if (is.null(wghts))
     wghts <- c(0, 0)
+    if (is.null(mask)) {
+      if (length(dy) == 0)
+        mask <- rep(TRUE, length(y))
+      else
+        mask <- array(TRUE, dy)
+    } else {
+  ## these things need full data cubes
+      u <- NULL
+      graph <- FALSE
+      demo <- FALSE
+    }
+    dmask <- dim(mask)
+    nvoxel <- sum(mask)
+    position <- array(0,dmask)
+    position[mask] <- 1:nvoxel
+    # reduce to voxel in mask
+    y <- y[mask]
   cpar <-
     setawsdefaults(dy,
                    mean(y),
@@ -115,7 +133,6 @@ aws.segment <- function(y,
     hmax <- hmax * 0.42445 * 4
   }
   d <- cpar$d
-  n <- length(y)
   #
   #    set threshold
   #
@@ -142,12 +159,11 @@ aws.segment <- function(y,
     graph <- TRUE
   # now check which procedure is appropriate
   ##  this is the version on a grid
-  n <- length(y)
   n1 <- switch(d, n, dy[1], dy[1])
   n2 <- switch(d, 1, dy[2], dy[2])
   n3 <- switch(d, 1, 1, dy[3])
   if (is.null(fov))
-    fov <- n
+    fov <- nvoxel
   interval <-
     if (delta > 0)
       paste("Central interval: (", level - delta, ",", level + delta, ")")
@@ -171,14 +187,13 @@ aws.segment <- function(y,
   zobj <-
     list(
       ai = y,
-      bi0 = rep(1, n),
-      bi2 = rep(1, n),
-      bi = rep(1, n),
-      theta = y / shape,
-      fix = rep(FALSE, n)
+      bi0 = rep(1, nvoxel),
+      bi2 = rep(1, nvoxel),
+      bi = rep(1, nvoxel),
+      theta = y / shape
     )
-  segment <- array(0, c(n1, n2, n3))
-  vred <- rep(1, n)
+  segment <- rep(0,nvoxel)
+  vred <- rep(1, nvoxel)
   mae <- NULL
   lambda0 <-
     1e50 # that removes the stochstic term for the first step, initialization by kernel estimates
@@ -190,17 +205,18 @@ aws.segment <- function(y,
   dlw <- (2 * trunc(hpre / c(1, wghts)) + 1)[1:d]
   hobj <- .Fortran(C_caws,
     as.double(y),
+    as.integer(position),
     as.integer(n1),
     as.integer(n2),
     as.integer(n3),
     as.double(hpre),
-    as.double(rep(1, n)),
+    as.double(rep(1, nvoxel)),
     as.double(1e40),
     as.double(zobj$theta),
-    bi = double(n),
-    double(n),
+    bi = double(nvoxel),
+    double(nvoxel),
     as.double(zobj$bi0),
-    ai = double(n),
+    ai = double(nvoxel),
     as.integer(cpar$mcode),
     as.integer(lkern),
     as.double(0.25),
@@ -208,7 +224,6 @@ aws.segment <- function(y,
     as.double(wghts)
   )[c("bi", "ai")]
   hobj$theta <- hobj$ai / hobj$bi
-  dim(hobj$theta) <- dim(hobj$bi) <- dy
   #
   #   iteratate until maximal bandwidth is reached
   #
@@ -230,7 +245,7 @@ aws.segment <- function(y,
     # heteroskedastic Gaussian case
     zobj <- .Fortran(C_segment,
       as.double(y),
-      fix = as.integer(fix),
+      as.integer(position),
       as.double(level),
       as.double(delta),
       as.double(sigma2),
@@ -241,10 +256,10 @@ aws.segment <- function(y,
       as.double(lambda0),
       as.double(zobj$theta),
       bi = as.double(zobj$bi),
-      bi2 = double(n),
+      bi2 = double(nvoxel),
       bi0 = as.double(zobj$bi0),
-      gi = double(n),
-      vred = double(n),
+      gi = double(nvoxel),
+      vred = double(nvoxel),
       theta = as.double(zobj$theta),
       as.integer(lkern),
       as.double(0.25),
@@ -259,8 +274,7 @@ aws.segment <- function(y,
       as.double(ext),
       as.double(fov),
       varest = as.double(varest)
-    )[c("fix",
-        "bi",
+    )[c("bi",
         "bi0",
         "bi2",
         "vred",
@@ -269,15 +283,14 @@ aws.segment <- function(y,
         "gi",
         "hakt",
         "varest")]
-    vred[!fix] <- zobj$vred[!fix]
+    vred <- zobj$vred
     if (hakt > n1 / 2)
-      zobj$bi0 <- rep(max(zobj$bi), n)
+      zobj$bi0 <- rep(max(zobj$bi), nvoxel)
     segment <- zobj$segment
     varest <- zobj$varest
-    fix <- as.logical(zobj$fix)
-    dim(zobj$theta) <-
-      dim(zobj$gi) <- dim(segment) <- dim(fix) <- dim(zobj$bi) <- dy
     if (graph) {
+        dim(zobj$theta) <-
+        dim(zobj$gi) <- dim(segment) <- dim(zobj$bi) <- dy
       #
       #     Display intermediate results if graph == TRUE
       #
@@ -436,15 +449,11 @@ aws.segment <- function(y,
     #
     #   Create new variance estimate
     #
-    if (sum(zobj$fix) < prod(dy) / 4) {
-      # the estimates of sigma should be stable enough otherwise
-      # avoids estimating variances from small number of design points
       vobj <-
-        awsgsigma2(y, mask, hobj, zobj[c("theta", "gi")], varmodel, varprop, h0)
+        awsgsigma2(y, mask, hobj, zobj[c("theta", "gi")], varmodel, varprop)
       sigma2 <- vobj$sigma2inv
       coef <- vobj$coef
       rm(vobj)
-    }
     x <- 1.25 ^ (k - 1)
     scorrfactor <- x / (3 ^ d * prod(scorr) * prod(h0) + x)
     lambda0 <- lambda * scorrfactor
@@ -456,8 +465,6 @@ aws.segment <- function(y,
         hakt,
         "  progress:",
         signif(total[k], 2) * 100,
-        "% .  fixed=",
-        sum(zobj$fix),
         "\n",
         sep = ""
       )
@@ -471,19 +478,24 @@ aws.segment <- function(y,
   ###
   ###   component var contains an estimate of Var(zobj$theta)
   ###
-  vartheta <- zobj$bi2 / zobj$bi ^ 2
+  vartheta <- y0 <- theta <- segment <- sigma0 <- array(0, dy)
+  vartheta[mask] <- zobj$bi2 / zobj$bi ^ 2
   vartheta <-
     vartheta / Spatialvar.gauss(hakt / 0.42445 / 4, h0 + 1e-5, d) * Spatialvar.gauss(hakt /
-                                                                                       0.42445 / 4, 1e-5, d)
+                                                    0.42445 / 4, 1e-5, d)
+  sigma0[mask] <- 1/sigma2
+  y0[mask] <- y
+  theta[mask] <- zobj$theta
+  segment[mask] <- zobj$segment
   awssegmentobj(
-    y,
+    y0,
     zobj$theta,
     segment,
     vartheta,
     level,
     delta,
     hakt,
-    1 / sigma2,
+    sigma0,
     lkern,
     lambda,
     ladjust,

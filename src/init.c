@@ -189,7 +189,7 @@ void F77_NAME(pvawsm2)(double* y, int* pos, int* nv, int* nvd, int* n1, int* n2,
   double* wght, double* swjy, int* np1, int* np2, int* np3);
 void F77_NAME(sector)(double* x1, int* n1, double* x2, int* n2,
   int* nsect, int* sect, int* symm, double* insect);
-void F77_NAME(segment)(double* y, int* fix, double* level,
+void F77_NAME(segment)(double* y, int* pos, double* level,
   double* delta, double* si2, int* n1, int* n2, int* n3, double* hakt,
   double* lambda, double* theta, double* bi, double* bi2,
   double* bi0, double* gi, double* vred, double* thetan, int* kern,
