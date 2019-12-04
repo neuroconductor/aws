@@ -698,9 +698,9 @@ C   Perform one iteration in local constant three-variate aws (gridded)
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine chaws(y,si2,pos,n1,n2,n3,hakt,lambda,theta,bi,bi2,
-     1           bi0,vred,ai,model,kern,spmin,lwght,wght)
+     1           bi0,ai,model,kern,spmin,lwght,wght)
 C
-C differs from caws by arguments si2 (inverse var) and vred
+C differs from caws by arguments si2 (inverse var)
 C
 C   y        observed values of regression function
 C   n1,n2,n3    design dimensions
@@ -719,7 +719,7 @@ C
       integer n1,n2,n3,model,kern,pos(*)
       logical aws
       double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght(2),
-     1       bi2(*),hakt,lwght(*),si2(*),vred(*),spmin
+     1       bi2(*),hakt,lwght(*),si2(*),spmin
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12,iindp,jindp
@@ -776,7 +776,7 @@ C  first stochastic term
       END DO
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
-C$OMP& SHARED(ai,bi,bi0,bi2,si2,vred,n1,n2,n3,hakt2,hakt,theta,
+C$OMP& SHARED(ai,bi,bi0,bi2,si2,n1,n2,n3,hakt2,hakt,theta,
 C$OMP& lwght,wght,y,pos)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,dlw12,n12,
 C$OMP& model,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,w1,w2)
@@ -846,11 +846,10 @@ C  first stochastic term
          bi(iindp)=swj
          bi2(iindp)=swj2
          bi0(iindp)=swj0
-         vred(iindp)=sv2/sv1/sv1
       END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
-C$OMP FLUSH(ai,bi,bi0,bi2,vred)
+C$OMP FLUSH(ai,bi,bi0,bi2)
       RETURN
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

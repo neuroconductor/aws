@@ -164,7 +164,7 @@ aws3Dmask <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
     if(is.null(u)) u <- 0
     propagation <- NULL
   }
-  if(!is.null(u)) mae <- NULL
+  mae <- NULL
 ##
 ##  determine number of cores to use
 ##
@@ -375,7 +375,7 @@ aws3Dmaskfull <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
     if(is.null(u)) u <- 0
     propagation <- NULL
   }
-  if(!is.null(u)) mae <- NULL
+  mae <- NULL
 ##
 ##  determine number of cores to use
 ##

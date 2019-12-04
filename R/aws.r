@@ -113,7 +113,6 @@ aws <- function(y,
   lambda <- cpar$lambda
   hmax <- cpar$hmax
   shape <- cpar$shape
-  n <- length(y)
   #
   #   family dependent transformations that depend on the value of family
   #
@@ -130,7 +129,7 @@ aws <- function(y,
     graph <- TRUE
   # now check which procedure is appropriate
   ##  this is the version on a grid
-  n1 <- switch(d, n, dy[1], dy[1])
+  n1 <- switch(d, length(mask), dy[1], dy[1])
   n2 <- switch(d, 1, dy[2], dy[2])
   n3 <- switch(d, 1, 1, dy[3])
   #
@@ -148,10 +147,6 @@ aws <- function(y,
   if (maxni)
     bi <- tobj$bi
   zobj <- list(ai = y, bi0 = rep(1, nvoxel))
-  if (family == "Gaussian" & length(sigma2) == n){
-    sigma2 <- sigma2[mask]
-    vred <- rep(1, nvoxel)
-  }
   mae <- psnr <- NULL
   hseq <- 1
   if (!is.null(u)) {
@@ -222,17 +217,15 @@ aws <- function(y,
         as.double(lambda0),
         as.double(tobj$theta),
         bi = as.double(tobj$bi),
-        bi2 = double(n),
-        bi0 = double(n),
-        vred = double(n),
+        bi2 = double(nvoxel),
+        bi0 = double(nvoxel),
         ai = as.double(zobj$ai),
         as.integer(cpar$mcode),
         as.integer(lkern),
         as.double(spmin),
         double(prod(dlw)),
         as.double(wghts)
-      )[c("bi", "bi0", "bi2", "vred", "ai", "hakt")]
-      vred <- zobj$vred
+      )[c("bi", "bi0", "bi2", "ai", "hakt")]
     } else {
       # all other cases
       if (cpar$mcode != 6) {
@@ -246,8 +239,8 @@ aws <- function(y,
           as.double(lambda0),
           as.double(tobj$theta),
           bi = as.double(tobj$bi),
-          bi2 = double(n),
-          bi0 = double(n),
+          bi2 = double(nvoxel),
+          bi0 = double(nvoxel),
           ai = as.double(zobj$ai),
           as.integer(cpar$mcode),
           as.integer(lkern),
@@ -267,8 +260,8 @@ aws <- function(y,
           as.double(tobj$theta),
           as.double(fncchiv(tobj$theta, varstats) / 2),
           bi = as.double(tobj$bi),
-          bi2 = double(n),
-          bi0 = double(n),
+          bi2 = double(nvoxel),
+          bi0 = double(nvoxel),
           ai = as.double(zobj$ai),
           as.integer(lkern),
           as.double(spmin),
@@ -478,7 +471,6 @@ aws <- function(y,
       Variance = 2 * tobj$theta,
       0
     ) * tobj$bi2 / tobj$bi ^ 2
-    vred <- tobj$bi2 / tobj$bi ^ 2
   }
   sigma2 <- switch(
     family,

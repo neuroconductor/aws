@@ -94,7 +94,7 @@ void F77_NAME(cgawsmas)(double* y, int* mask, int* ni, int* fix,
   double* wght);
 void F77_NAME(chaws)(double* y, double* si2, int* pos, int* n1,
   int* n2, int* n3, double* hakt, double* lambda, double* theta,
-  double* bi, double* bi2, double* bi0, double* vred, double* ai,
+  double* bi, double* bi2, double* bi0, double* ai,
   int* model, int* kern, double* spmin, double* lwght, double* wght);
 void F77_NAME(chaws2)(double* y, double* si2, int* pos, int* wlse, int* n1,
 	int* n2, int* n3, double* hakt, double* lambda,
@@ -287,7 +287,7 @@ static R_NativePrimitiveArgType cgawsmas_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
   REALSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
   REALSXP, REALSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP};
 static R_NativePrimitiveArgType chaws_t[]={REALSXP, REALSXP, INTSXP, INTSXP,
-  INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
+  INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
   REALSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP};
 static R_NativePrimitiveArgType chaws2_t[]={REALSXP, REALSXP, INTSXP,
 	INTSXP, INTSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP,
@@ -426,7 +426,7 @@ static const R_FortranMethodDef fmethods[] = {
             {"caws6", (DL_FUNC) &caws6_ ,17, caws6_t},
             {"cgaws", (DL_FUNC) &cgaws_ ,19, cgaws_t},
             {"cgawsmas", (DL_FUNC) &cgawsmas_ ,20, cgawsmas_t},
-            {"chaws", (DL_FUNC) &chaws_ ,19, chaws_t},
+            {"chaws", (DL_FUNC) &chaws_ ,18, chaws_t},
 						{"chaws2", (DL_FUNC) &chaws2_ ,18, chaws2_t},
             {"chawsv", (DL_FUNC) &chawsv_ ,22, chawsv_t},
 						{"exceed", (DL_FUNC) &exceed_ ,5, exceed_t},
