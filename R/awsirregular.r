@@ -152,7 +152,7 @@ aws.irreg <- function(y,
     bi = ni,
     bi2 = ni ^ 2,
     theta = yy / shape,
-    fix = rep(FALSE, nn)
+    fix = rep(0, nn)
   )
   zobj <- list(ai = yy, bi0 = rep(1, nn))
   vred <- ni
@@ -229,7 +229,7 @@ aws.irreg <- function(y,
       double(prod(dlw)),
       as.double(wghts)
     )[c("bi", "bi0", "bi2", "vred", "ai", "hakt")]
-    vred[!tobj$fix] <- zobj$vred[!tobj$fix]
+    vred[tobj$fix==0] <- zobj$vred[tobj$fix==0]
     dim(zobj$ai) <- dy
     if (hakt > n1 / 2)
       zobj$bi0 <- rep(max(zobj$bi), n1 * n2)
@@ -396,6 +396,7 @@ awsisigma2 <- function(y,
   vredinv[is.na(vredinv)] <- 0
   vredinv[vredinv > 1e10] <- 0
   ind <- vredinv > ni & ni > 0
+  if(sum(ind)>0){
   residsq <-
     pmax(1, ni[ind] - 1) * ((y - tobj$theta)[ind] * vredinv[ind] / (vredinv[ind] -
                                                                       ni[ind])) ^ 2
@@ -428,6 +429,10 @@ awsisigma2 <- function(y,
   )
   varquantile <- quantile(residsq, varprop)
   sigma2 <- eta * pmax(sigma2, varquantile) + (1 - eta) * sigma20
+} else {
+   sigma2 <- sigma20
+   coef <- c(sigma20,0,0)
+}
   #cat("Estimated mean variance",signif(mean(sigma2[ni>0]),3)," Variance parameters:",signif(coef,3),"\n")
   list(si2 = 1 / sigma2, vcoef = coef)
 }
