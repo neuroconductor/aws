@@ -7,9 +7,10 @@ The function implements a modification of the adaptive weights smoothing algorit
 segmentation into three classes. The
 }
 \usage{
-aws.segment(y, level, delta = 0, hmax = NULL, hpre = NULL, mask =NULL, varmodel = "Constant",
-            lkern = "Triangle", scorr = 0, ladjust = 1, wghts = NULL, u = NULL,
-            varprop = 0.1, ext = 0, graph = FALSE, demo = FALSE, fov=NULL)
+aws.segment(y, level, delta = 0, hmax = NULL, hpre = NULL, mask =NULL,
+            varmodel = "Constant", lkern = "Triangle", scorr = 0, ladjust = 1,
+            wghts = NULL, u = NULL, varprop = 0.1, ext = 0, graph = FALSE,
+            demo = FALSE, fov=NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

@@ -4,7 +4,7 @@ C   Perform one iteration in local constant three-variate aws (gridded) with var
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine segment(y,pos,level,delta,si2,n1,n2,n3,hakt,
-     1        lambda,theta,bi,bi2,bi0,gi,vred,thetan,kern,spmin,lwght,
+     1        lambda,theta,bi,bi2,bi0,gi,gi2,thetan,kern,spmin,lwght,
      2        wght,segm,segmn,beta,thresh,ext,fov,varest)
 C
 C   y        observed values of regression function
@@ -24,7 +24,7 @@ C
       integer n1,n2,n3,kern,segm(*),segmn(*),pos(*)
       logical aws
       double precision y(*),theta(*),bi(*),bi0(*),thetan(*),lambda,
-     1       wght(2),bi2(*),hakt,lwght(*),si2(*),vred(*),spmin,gi(*),
+     1       wght(2),bi2(*),hakt,lwght(*),si2(*),gi2(*),spmin,gi(*),
      2       level,delta,beta,thresh,ext,varest(*),fov
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,n12,
@@ -38,49 +38,49 @@ C
 C
 C   first calculate location weights
 C
-      ih3=FLOOR(hakt/wght(2))
-      ih2=FLOOR(hakt/wght(1))
+      wght1=wght(1)
+      wght2=wght(2)
+      ih3=FLOOR(hakt/wght2)
+      ih2=FLOOR(hakt/wght1)
       ih1=FLOOR(hakt)
       if(n3.eq.1) ih3=0
       if(n2.eq.1) ih2=0
       n12=n1*n2
-      wght1=wght(1)
-      wght2=wght(2)
-      clw1=ih1+1
-      clw2=ih2+1
-      clw3=ih3+1
-      dlw1=ih1+clw1
-      dlw2=ih2+clw2
-      dlw3=ih3+clw3
+      clw1=ih1
+      clw2=ih2
+      clw3=ih3
+      dlw1=ih1+clw1+1
+      dlw2=ih2+clw2+1
+      dlw3=ih3+clw3+1
       z2=0.d0
       z3=0.d0
       swj0=0.d0
       extthr=thresh+ext
-      DO j3=1,dlw3
+      DO j3=-clw3,clw3
          if(n3.gt.1) THEN
-            z3=(clw3-j3)*wght2
+            z3=j3*wght2
             z3=z3*z3
             ih2=FLOOR(sqrt(hakt2-z3)/wght1)
-            jind3=(j3-1)*dlw1*dlw2
+            jind3=(j3+clw3)*dlw1*dlw2
          ELSE
             jind3=0
          END IF
-         DO j2=clw2-ih2,clw2+ih2
+         DO j2=-ih2,ih2
             if(n2.gt.1) THEN
-               z2=(clw2-j2)*wght1
+               z2=j2*wght1
                z2=z3+z2*z2
                ih1=FLOOR(sqrt(hakt2-z2))
-               jind2=jind3+(j2-1)*dlw1
+               jind2=jind3+(j2+clw2)*dlw1
             ELSE
                jind2=0
             END IF
-            DO j1=clw1-ih1,clw1+ih1
+            DO j1=-ih1,ih1
 C  first stochastic term
-               jind=j1+jind2
-               z1=clw1-j1
+               jind=j1+clw1+1+jind2
+               z1=j1
                wj=lkern(kern,(z1*z1+z2)/hakt2)
                swj0=swj0+wj
-               lwght(jindp)=wj
+               lwght(jind)=wj
             END DO
          END DO
       END DO
@@ -108,7 +108,7 @@ C  first stochastic term
       END IF
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(thetan,bi,bi0,bi2,si2,n1,n2,n3,theta,kern,hakt,
-C$OMP& lwght,y,vred,gi,segm,segmn,varest,pos)
+C$OMP& lwght,y,gi2,gi,segm,segmn,varest,pos)
 C$OMP& FIRSTPRIVATE(lambda,aws,beta,fov,a,b,hakt2,n12,wght1,wght2,
 C$OMP& spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,thresh,ih1,ih2)
 C$OMP& PRIVATE(iind,bii,bii0,swj,thi,cofh,segmi,iindp,jindp,
@@ -134,30 +134,30 @@ C   scaling of sij outside the loop
          swjy=0.d0
          sv1=0.d0
          sv2=0.d0
-         DO jw3=1,dlw3
-            j3=jw3-clw3+i3
+         DO jw3=-clw3,clw3
+            j3=jw3+i3
             if(j3.lt.1.or.j3.gt.n3) CYCLE
             jind3=(j3-1)*n12
-            z3=(clw3-jw3)*wght2
+            z3=jw3*wght2
             z3=z3*z3
             if(n2.gt.1) ih2=FLOOR(sqrt(hakt2-z3)/wght1)
-            jwind3=(jw3-1)*dlw1*dlw2
-            DO jw2=clw2-ih2,clw2+ih2
-               j2=jw2-clw2+i2
+            jwind3=(jw3+clw3)*dlw1*dlw2
+            DO jw2=-ih2,ih2
+               j2=jw2+i2
                if(j2.lt.1.or.j2.gt.n2) CYCLE
                jind2=(j2-1)*n1+jind3
-               z2=(clw2-jw2)*wght1
+               z2=jw2*wght1
                z2=z3+z2*z2
                ih1=FLOOR(sqrt(hakt2-z2))
-               jwind2=jwind3+(jw2-1)*dlw1
-               DO jw1=clw1-ih1,clw1+ih1
+               jwind2=jwind3+(jw2+clw2)*dlw1
+               DO jw1=-ih1,ih1
 C  first stochastic term
-                  j1=jw1-clw1+i1
+                  j1=jw1+i1
                   if(j1.lt.1.or.j1.gt.n1) CYCLE
                   jind=j1+jind2
                   jindp=pos(jind)
                   if(jindp.eq.0) CYCLE
-                  wj=lwght(jw1+jwind2)
+                  wj=lwght(jw1+clw1+1+jwind2)
                   swj0=swj0+wj*si2(jindp)
                   IF (aws) THEN
 C
@@ -194,10 +194,10 @@ C    both are equivalent for  homogeneous si2
             segmn(iindp)=0
          END IF
          gi(iindp)=sv1
-         vred(iindp)=sv2/sv1/sv1
+         gi2(iindp)=sv2
       END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
-C$OMP FLUSH(thetan,bi,bi0,bi2,gi,vred,varest,segmn)
+C$OMP FLUSH(thetan,bi,bi0,bi2,gi,gi2,varest,segmn)
       RETURN
       END

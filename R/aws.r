@@ -58,17 +58,20 @@ aws <- function(y,
   #
   args <- match.call()
   dy <- dim(y)
-  if (is.null(dy))
-    dy <- length(y)
   if (length(dy) > 3)
     stop("AWS for more than 3 dimensional grids is not implemented")
   #
   #   set appropriate defaults
   #
+  if (is.null(dy)) {
+    d <- 1
+  } else {
+    d <- length(dy)
+  }
   if (is.null(wghts))
     wghts <- c(1, 1, 1)
   wghts <-
-    switch(length(dy), c(0, 0), c(wghts[1] / wghts[2], 0), wghts[1] / wghts[2:3])
+    switch(d, c(0, 0), c(wghts[1] / wghts[2], 0), wghts[1] / wghts[2:3])
   if (family == "NCchi") {
     varstats <-
       sofmchi(shape / 2) # precompute table of mean, sd and var for
@@ -77,7 +80,7 @@ aws <- function(y,
     #
   }
   if (is.null(mask)) {
-    if (length(dy) == 0)
+    if (is.null(dy))
       mask <- rep(TRUE, length(y))
     else
       mask <- array(TRUE, dy)
@@ -88,11 +91,13 @@ aws <- function(y,
     demo <- FALSE
   }
   dmask <- dim(mask)
+  if(is.null(dmask)) dmask <- length(mask)
   nvoxel <- sum(mask)
   position <- array(0,dmask)
   position[mask] <- 1:nvoxel
   # reduce to voxel in mask
   y <- y[mask]
+  if(length(sigma2)==length(mask)) sigma2 <- sigma2[mask]
   cpar <-
     setawsdefaults(dy,
                    mean(y),
@@ -108,7 +113,6 @@ aws <- function(y,
   lambda <- cpar$lambda
   hmax <- cpar$hmax
   shape <- cpar$shape
-  d <- cpar$d
   n <- length(y)
   #
   #   family dependent transformations that depend on the value of family
@@ -275,13 +279,9 @@ aws <- function(y,
     }
     if (family %in% c("Bernoulli", "Poisson"))
       zobj <- regularize(zobj, family)
-    dim(zobj$ai) <- dy
     tobj <- updtheta(zobj, tobj, cpar)
-    dim(tobj$theta) <- dy
     if (maxni)
       bi <- tobj$bi <- pmax(bi, tobj$bi)
-    dim(tobj$bi) <- dy
-    dim(tobj$eta) <- dy
     #
     #  if testprop == TRUE
     #  check alpha in propagation condition (to adjust value of lambda)
@@ -310,11 +310,11 @@ aws <- function(y,
       }
       if (d == 2) {
         oldpar <- par(
-          mfrow = c(2, 2),
+          mfrow = if(is.null(u)) c(1,3) else c(2, 2),
           mar = c(1, 1, 3, .25),
           mgp = c(2, 1, 0)
         )
-        image(y,
+        image(array(y,dy),
               col = gray((0:255) / 255),
               xaxt = "n",
               yaxt = "n")
@@ -325,7 +325,7 @@ aws <- function(y,
           signif(max(y), 3)
         ))
         image(
-          tobj$theta,
+          array(tobj$theta,dy),
           col = gray((0:255) / 255),
           xaxt = "n",
           yaxt = "n"
@@ -339,7 +339,7 @@ aws <- function(y,
           signif(max(tobj$theta), 3)
         ))
         image(
-          tobj$bi,
+          array(tobj$bi,dy),
           col = gray((0:255) / 255),
           xaxt = "n",
           yaxt = "n"
@@ -352,19 +352,21 @@ aws <- function(y,
           " max=",
           signif(max(tobj$bi), 3)
         ))
-          image(u,
+          if (!is.null(u)){
+             image(u,
                 col = gray((0:255) / 255),
                 xaxt = "n",
                 yaxt = "n")
           title("true original")
+        }
       }
       if (d == 3) {
         oldpar <- par(
-          mfrow = c(2, 2),
+          mfrow = if(is.null(u)) c(1,3) else c(2, 2),
           mar = c(1, 1, 3, .25),
           mgp = c(2, 1, 0)
         )
-        image(y[, , n3 %/% 2 + 1],
+        image(array(y,dy)[, , n3 %/% 2 + 1],
               col = gray((0:255) / 255),
               xaxt = "n",
               yaxt = "n")
@@ -375,7 +377,7 @@ aws <- function(y,
           signif(max(y), 3)
         ))
         image(
-          tobj$theta[, , n3 %/% 2 + 1],
+          array(tobj$theta,dy)[, , n3 %/% 2 + 1],
           col = gray((0:255) / 255),
           xaxt = "n",
           yaxt = "n"
@@ -389,7 +391,7 @@ aws <- function(y,
           signif(max(tobj$theta), 3)
         ))
         image(
-          tobj$bi[, , n3 %/% 2 + 1],
+          array(tobj$bi,dy)[, , n3 %/% 2 + 1],
           col = gray((0:255) / 255),
           xaxt = "n",
           yaxt = "n"
@@ -402,11 +404,13 @@ aws <- function(y,
           " max=",
           signif(max(tobj$bi), 3)
         ))
-          image(u[, , n3 %/% 2 + 1],
+          if (!is.null(u)){
+            image(u[, , n3 %/% 2 + 1],
                 col = gray((0:255) / 255),
                 xaxt = "n",
                 yaxt = "n")
           title("true original")
+        }
       }
       par(oldpar)
     }
@@ -458,7 +462,7 @@ aws <- function(y,
   ###   component var contains an estimate of Var(tobj$theta) if aggkern="Uniform", or if !memory
   ###
 # expand results to full grid
-  vartheta <- bi <- theta <- array(0,dy)
+  vartheta <- bi <- theta <- array(0,dmask)
   if (family == "Gaussian" & length(sigma2) == n) {
     # heteroskedastic Gaussian case
     vartheta[mask] <- tobj$bi2 / tobj$bi ^ 2
@@ -497,7 +501,7 @@ aws <- function(y,
      sigma2[mask] <- sigma20
      rm(sigma20)
   }
-  y0 <- array(0,dy)
+  y0 <- array(0,dmask)
   y0[mask] <- y
   theta[mask] <- tobj$theta
   bi[mask] <- tobj$bi
