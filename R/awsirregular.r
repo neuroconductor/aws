@@ -372,7 +372,7 @@ aws.irreg <- function(y,
     wghts = wghts,
     varmodel = varmodel,
     vcoef = vcoef,
-    x = x,
+    x = cbind(zbins$midpoints.x1,zbins$midpoints.x2),
     xmin = xmin,
     xmax = xmax
   )

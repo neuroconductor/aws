@@ -40,6 +40,7 @@ fncchiv <- function(mu,varstats){
 #
 #########################################################################
 binning <- function (x, y, nbins, xrange = NULL) {
+  if(any(nbins<2)) stop("aws:::binning - need at least 2 bins")
   dx <- dim(x)
   if (is.null(dx))
     d <- 1

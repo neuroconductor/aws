@@ -456,7 +456,7 @@ aws <- function(y,
   ###
 # expand results to full grid
   vartheta <- bi <- theta <- array(0,dmask)
-  if (family == "Gaussian" & length(sigma2) == n) {
+  if (family == "Gaussian" & length(sigma2) == nvoxel) {
     # heteroskedastic Gaussian case
     vartheta[mask] <- tobj$bi2 / tobj$bi ^ 2
     #  pointwise variances are reflected in weights
@@ -747,6 +747,7 @@ updtheta <- function(zobj, tobj, cpar) {
   bi <- zobj$bi
   bi2 <- zobj$bi2
   thetanew <- zobj$ai / bi
+  thetanew[bi==0] <- 0 # not in mask
   if (hakt > heta) {
     #
     #   memory step
@@ -782,6 +783,7 @@ updtheta <- function(zobj, tobj, cpar) {
       #  no memory step implemented in this case
       #
     }
+    if(!is.null(tobj$fix)) eta[tobj$fix] <- 1
     bi <- (1 - eta) * bi + eta * tobj$bi
     bi2 <- (1 - eta) * bi2 + eta * tobj$bi2
     thetanew <- (1 - eta) * thetanew + eta * theta
@@ -795,7 +797,8 @@ updtheta <- function(zobj, tobj, cpar) {
     theta = thetanew,
     bi = bi,
     bi2 = bi2,
-    eta = eta
+    eta = eta,
+    fix = if(!is.null(tobj$fix)) (tobj$fix | eta == 1) else NULL
   )
 }
 ####################################################################################
