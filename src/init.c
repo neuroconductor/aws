@@ -198,11 +198,11 @@ void F77_NAME(segment)(double* y, int* pos, double* level,
 void F77_NAME(smooth3d)(double* y, double* si2, int* mask, int* wlse, int* nvox,
 	int* n1, int* n2, int* n3, int* dv, double* hakt, double* thn, double* bi,
 	int* kern, double* lwght, double* wght, double* swjy);
-void F77_NAME(vaws)(double* y, int* mask, int* nv, int* n1, int* n2,
+void F77_NAME(vaws)(double* y, int* pos, int* nv, int* n1, int* n2,
   int* n3, double* hakt, double* lambda, double* theta, double* bi,
   double* vred, double* thnew, int* ncores, double* spmin, double* lwght,
   double* wght, double* swjy);
-void F77_NAME(vaws2cov)(double* y, int* mask, int* nv, int* nvd, int* n1,
+void F77_NAME(vaws2cov)(double* y, int* pos, int* nv, int* nvd, int* n1,
   int* n2, int* n3, double* hakt, double* lambda, double* theta, double* bi,
   double* vred, double* thnew, double* invcov, int* ncores, double* spmin,
   double* lwght, double* wght, double* swjy, double* thi, double* invcovi);

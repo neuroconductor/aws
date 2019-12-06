@@ -30,8 +30,21 @@ vaws <- function(y,
   n2 <- switch(d, 1, dy[2], dy[2])
   n3 <- switch(d, 1, 1, dy[3])
   n <- n1 * n2 * n3
-  if (is.null(mask))
-    mask <- rep(TRUE, n)
+  if (is.null(mask)) {
+      mask <- array(TRUE, dy)
+  }
+  dmask <- dim(mask)
+  if(is.null(dmask)) dmask <- length(mask)
+  nvoxel <- sum(mask)
+  position <- array(0,dmask)
+  position[mask] <- 1:nvoxel
+  dim(y) <- c(nvec,n)
+  y <- y[,mask]
+  if(!is.null(u)){
+     dim(u) <- c(nvec,n)
+     u <- u[,mask]
+  }
+  # reduce to voxel in mask
   h0 <- 0
   if (any(scorr > 0)) {
     h0 <- numeric(length(scorr))
@@ -44,7 +57,7 @@ vaws <- function(y,
         "\n")
   }
   hseq <- 1
-  zobj <- list(bi = rep(1, n), theta = y)
+  zobj <- list(bi = rep(1, voxel), theta = y)
   bi <- zobj$bi
   cat("Progress:")
   total <- cumsum(1.25 ^ (1:kstar)) / sum(1.25 ^ (1:kstar))
@@ -65,7 +78,7 @@ vaws <- function(y,
                                                                                   0.42445 / 4, 1e-5, d)
     zobj <- .Fortran(C_vaws,
       as.double(y),
-      as.integer(mask),
+      as.integer(pos),
       as.integer(nvec),
       as.integer(n1),
       as.integer(n2),
@@ -74,18 +87,16 @@ vaws <- function(y,
       as.double(lambda0),
       as.double(zobj$theta),
       bi = as.double(zobj$bi),
-      vred = double(n),
-      theta = double(nvec * n),
+      vred = double(nvoxel),
+      theta = double(nvec * nvoxel),
       as.integer(mc.cores),
       as.double(spmin),
       double(prod(dlw)),
       as.double(wghts),
       double(nvec * mc.cores)
     )[c("bi", "theta", "hakt","vred")]
-    dim(zobj$theta) <- c(nvec, dy)
     if (maxni)
       bi <- zobj$bi <- pmax(bi, zobj$bi)
-    dim(zobj$bi) <- dy
     if (!is.null(u)) {
       cat(
         "bandwidth: ",
@@ -110,12 +121,18 @@ vaws <- function(y,
     gc()
   }
   cat("\n")
-  #   list(y=y,theta=zobj$theta,hakt=hakt,sigma2=sigma2,lambda=lambda,
-  #        ladjust=ladjust,args=args,wghts=wghts,mae=mae,ni=zobj$bi)
+  y0 <- theta <- array(0,c(nvec,n))
+  y0[,mask] <- y
+  theta[,mask] <- zobj$theta
+  dim(y0) <- dim(theta) <- c(nvec,dy)
+  bi <- vred <- array(dy)
+  bi[mask] <- zobj$bi
+  vred[mask] <- zobj$vred
+  rm(zobj)
   awsobj(
-    y,
-    zobj$theta,
-    sigma2 * zobj$vred,
+    y0,
+    theta,
+    sigma2 * vred,
     hakt,
     sigma2,
     lkern = 1L,
@@ -131,7 +148,7 @@ vaws <- function(y,
     wghts = wghts,
     mae = mae,
     psnr = NULL,
-    ni = zobj$bi
+    ni = bi
   )
 }
 vawscov <- function(y,
@@ -169,8 +186,23 @@ vawscov <- function(y,
   n2 <- switch(d, 1, dy[2], dy[2])
   n3 <- switch(d, 1, 1, dy[3])
   n <- n1 * n2 * n3
-  if (is.null(mask))
-    mask <- rep(TRUE, n)
+  if (is.null(mask)) {
+      mask <- array(TRUE, dy)
+  }
+  dmask <- dim(mask)
+  if(is.null(dmask)) dmask <- length(mask)
+  nvoxel <- sum(mask)
+  position <- array(0,dmask)
+  position[mask] <- 1:nvoxel
+  dim(y) <- c(nvec,n)
+  y <- y[,mask]
+  nvd <- nvec * (nvec + 1) / 2
+  dim(invcov) <- c(nvd,n)
+  invcov <- invcov[,mask]
+  if(!is.null(u)){
+     dim(u) <- c(nvec,n)
+     u <- u[,mask]
+  }
   h0 <- 0
   if (any(scorr > 0)) {
     h0 <- numeric(length(scorr))
@@ -183,7 +215,7 @@ vawscov <- function(y,
         "\n")
   }
   hseq <- 1
-  zobj <- list(bi = rep(1, n), theta = y)
+  zobj <- list(bi = rep(1, nvoxel), theta = y)
   bi <- zobj$bi
   cat("Progress:")
   total <- cumsum(1.25 ^ (1:kstar)) / sum(1.25 ^ (1:kstar))
@@ -214,8 +246,8 @@ vawscov <- function(y,
       as.double(lambda0),
       as.double(zobj$theta),
       bi = as.double(zobj$bi),
-      vred = double(n),
-      theta = double(nvec * n),
+      vred = double(nvoxel),
+      theta = double(nvec * nvoxel),
       as.double(invcov),
       as.integer(mc.cores),
       as.double(spmin),
@@ -225,10 +257,8 @@ vawscov <- function(y,
       double(nvec * mc.cores),
       double(nvec * (nvec + 1) / 2 * mc.cores)
     )[c("bi", "theta", "hakt", "vred")]
-    dim(zobj$theta) <- c(nvec, dy)
     if (maxni)
       bi <- zobj$bi <- pmax(bi, zobj$bi)
-    dim(zobj$bi) <- dy
     if (!is.null(u)) {
       cat(
         "bandwidth: ",
@@ -253,14 +283,28 @@ vawscov <- function(y,
     gc()
   }
   cat("\n")
-  #   list(y=y,theta=zobj$theta,hakt=hakt,invcov=invcov,lambda=lambda,
-  #        ladjust=ladjust,args=args,wghts=wghts,mae=mae,ni=zobj$bi)
+  theta0 <- array(0,c(nvec,n))
+  dim(theta) <- c(nvec,n)
+  theta[,mask] <- zobj$theta
+  dim(theta) <- c(nvec,dy)
+  bi <- vred <- array(dy)
+  bi[mask] <- zobj$bi
+  vred[mask] <- zobj$vred
+  rm(zobj)
+  y0  <- array(0,c(nvec,n))
+  y0[,mask] <- y
+  dim(y0) <- c(nvec,dy)
+  rm(y)
+  invcov0 <- array(0,c(nvd,n))
+  invcov0[,mask] <- invcov
+  dim(invcov0) <- c(nvd,dy)
+  rm(invcov)
   awsobj(
-    y,
-    zobj$theta,
-    sweep(invcov, 2:(d + 1), zobj$vred, "*"),
+    y0,
+    theta,
+    sweep(invcov, 2:(d + 1), vred, "*"),
     hakt,
-    invcov,
+    invcov0,
     lkern = 1L,
     lambda,
     ladjust,
@@ -274,6 +318,6 @@ vawscov <- function(y,
     wghts = wghts,
     mae = mae,
     psnr = NULL,
-    ni = zobj$bi
+    ni = bi
   )
 }
