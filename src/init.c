@@ -68,9 +68,9 @@ void F77_NAME(caws)(double* y, int* pos, int* n1, int* n2, int* n3,
   double* bi, double* bi2, double* bi0, double* ai, int* model,
   int* kern, double* spmin, double* lwght, double* wght);
 void F77_NAME(cawsmask)(double* y, int* mask, int* ni, int* fix,
-  int* n1, int* n2, double* hakt, double* lambda, double* theta,
-  double* bi, double* bi2, double* bi0, double* ai, int* model,
-  int* kern, double* spmin, double* lwght, double* wght);
+  int* n1, int* n2, double* hakt,
+  double* bi, double* bi2, double* bi0, double* ai,
+  int* kern, double* lwght, double* wght);
 void F77_NAME(cawsw)(int* n1, int* n2, int* n3, double* hakt,
   double* lambda, double* theta, double* bi, int* model, int* kern,
   double* spmin, double* lwght, double* wght);
@@ -270,8 +270,8 @@ static R_NativePrimitiveArgType caws_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
   INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
   REALSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP};
 static R_NativePrimitiveArgType cawsmask_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
-  INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
-  INTSXP, INTSXP, REALSXP, REALSXP, REALSXP};
+  INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
+  INTSXP, REALSXP, REALSXP};
 static R_NativePrimitiveArgType cawsw_t[]={INTSXP, INTSXP, INTSXP, REALSXP,
   REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP};
 static R_NativePrimitiveArgType cawsw1_t[]={INTSXP, INTSXP, INTSXP, INTSXP,
@@ -420,7 +420,7 @@ static const R_FortranMethodDef fmethods[] = {
 						{"awsvchi", (DL_FUNC) &awsvchi_ , 15, awsvchi_t},
 						{"bgstats", (DL_FUNC) &bgstats_ , 4, bgstats_t},
             {"caws", (DL_FUNC) &caws_ ,17, caws_t},
-            {"cawsmask", (DL_FUNC) &cawsmask_ ,18, cawsmask_t},
+            {"cawsmask", (DL_FUNC) &cawsmask_ ,14, cawsmask_t},
             {"cawsw", (DL_FUNC) &cawsw_ ,12, cawsw_t},
             {"cawsw1", (DL_FUNC) &cawsw1_ ,16, cawsw1_t},
             {"caws6", (DL_FUNC) &caws6_ ,17, caws6_t},

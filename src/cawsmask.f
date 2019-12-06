@@ -1,35 +1,29 @@
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
-C   Perform one iteration in local constant three-variate aws (gridded)
+C   nonadaptive 1D/2D for binned data
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine cawsmask(y,mask,ni,fix,n1,n2,hakt,lambda,theta,
-     1         bi,bi2,bi0,ai,model,kern,spmin,lwght,wght)
+      subroutine cawsmask(y,mask,ni,fix,n1,n2,hakt,
+     1         bi,bi2,bi0,ai,kern,lwght,wght)
 C
 C   y        observed values of regression function
 C   n1,n2    design dimensions
 C   hakt     actual bandwidth
-C   lambda   lambda or lambda*sigma2 for Gaussian models
-C   theta    estimates from last step   (input)
 C   bi       \sum  Wi   (output)
 C   ai       \sum  Wi Y     (output)
-C   model    specifies the probablilistic model for the KL-Distance
 C   kern     specifies the location kernel
 C   wght     scaling factor for second dimension (larger values shrink)
 C
       implicit none
       external kldist,lkern
       double precision kldist,lkern
-      integer n1,n2,model,kern,ni(*),fix(*),mask(*)
-      logical aws
-      double precision y(*),theta(*),bi(*),bi0(*),ai(*),lambda,wght,
-     1       bi2(*),hakt,lwght(*),spmin,spf
+      integer n1,n2,kern,ni(*),fix(*),mask(*)
+      double precision y(*),bi(*),bi0(*),ai(*),wght,
+     1       bi2(*),hakt,lwght(*)
       integer ih1,ih2,i1,i2,j1,j2,jw1,jw2,jwind2,
      1        iind,jind,jind2,clw1,clw2,dlw1,dlw2
-      double precision thetai,bii,sij,swj,swj2,swj0,swjy,z1,z2,wj,hakt2
+      double precision sij,swj,swj2,swjy,z1,z2,wj,hakt2
       hakt2=hakt*hakt
-      spf=1.d0/(1.d0-spmin)
-      aws=lambda.lt.1d40
 C
 C   first calculate location weights
 C
@@ -60,26 +54,19 @@ C  first stochastic term
       call rchkusr()
       DO i2=1,n2
 C$OMP PARALLEL DEFAULT(NONE)
-C$OMP& SHARED(ai,bi,bi0,bi2,n1,n2,hakt2,theta
-C$OMP& ,lwght,wght,y,fix,mask,ni)
-C$OMP& FIRSTPRIVATE(ih1,i2,lambda,aws
-C$OMP& ,model,dlw1,clw1,dlw2,clw2)
-C$OMP& PRIVATE(iind,thetai,bii,swj
-C$OMP& ,swj2,swj0,swjy,sij,i1,wj
-C$OMP& ,j2,jw2,jind2,z2,jwind2
-C$OMP& ,j1,jw1,jind)
+C$OMP& SHARED(ai,bi,bi0,bi2,n1,n2,hakt2,lwght,wght,y,fix,mask,ni)
+C$OMP& FIRSTPRIVATE(ih1,i2,dlw1,clw1,dlw2,clw2)
+C$OMP& PRIVATE(iind,swj,swj2,swjy,sij,i1,wj,j2,jw2,jind2,z2,jwind2,
+C$OMP& j1,jw1,jind)
 C$OMP DO SCHEDULE(GUIDED)
          DO i1=1,n1
             iind=i1+(i2-1)*n1
             if(mask(iind).eq.0) CYCLE
             IF (fix(iind).ne.0) CYCLE
 C    nothing to do, final estimate is already fixed by control
-            thetai=theta(iind)
-            bii=bi(iind)/lambda
 C   scaling of sij outside the loop
             swj=0.d0
             swj2=0.d0
-            swj0=0.d0
             swjy=0.d0
             DO jw2=1,dlw2
                j2=jw2-clw2+i2
@@ -96,15 +83,6 @@ C  first stochastic term
                   jind=j1+jind2
                   if(ni(jind).eq.0) CYCLE
                   wj=lwght(jw1+jwind2)*ni(jind)
-                  swj0=swj0+wj
-                  IF (aws) THEN
-                    sij=bii*kldist(model,thetai,theta(jind))
-                     IF (sij.gt.1.d0) CYCLE
-                     wj=wj*(1.d0-sij)
-C   if sij <= spmin  this just keeps the location penalty
-C    spmin = 0 corresponds to old choice of K_s
-C   new kernel is flat in [0,spmin] and then decays exponentially
-                  END IF
                   swj=swj+wj
                   swj2=swj2+wj*wj
                   swjy=swjy+wj*y(jind)
@@ -113,7 +91,7 @@ C   new kernel is flat in [0,spmin] and then decays exponentially
             ai(iind)=swjy
             bi(iind)=swj
             bi2(iind)=swj2
-            bi0(iind)=swj0
+            bi0(iind)=swj
          END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
@@ -124,7 +102,7 @@ C$OMP FLUSH(ai,bi,bi0,bi2)
       END
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C
-C   Perform one iteration in local constant three-variate aws (gridded)
+C   compute 1D/2D aws step on binned data
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine cgawsmas(y,mask,ni,fix,si2,n1,n2,hakt,lambda,theta,
