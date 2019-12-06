@@ -79,13 +79,17 @@ aws.gaussian <- function(y,
         mask <- rep(TRUE, length(y))
       else
         mask <- array(TRUE, dy)
+    } else {
+# diagnostics only without mask
+      u <- NULL
+      graph <- demo <-  FALSE
     }
     dmask <- dim(mask)
     nvoxel <- sum(mask)
     position <- array(0,dmask)
     position[mask] <- 1:nvoxel
     if(!is.null(u)){
-       if(all(dim(u)==dmask)) u <- u[mask] else u <- u[1]
+       if(!all(dim(u)==dmask))  u <- u[1]
     }
     lkern <- cpar$lkern
     lambda <-
@@ -123,6 +127,7 @@ aws.gaussian <- function(y,
     n1 <- switch(d, n, dy[1], dy[1])
     n2 <- switch(d, 1, dy[2], dy[2])
     n3 <- switch(d, 1, 1, dy[3])
+    if(d==1) dy[1] <- n
     #
     #    Initialize  for the iteration
     #
@@ -145,14 +150,14 @@ aws.gaussian <- function(y,
     dlw <- (2 * trunc(hpre / c(1, wghts)) + 1)[1:d]
     hobj <- .Fortran(C_caws,
       as.double(y),
-      as.double(position),
+      as.integer(position),
       as.integer(n1),
       as.integer(n2),
       as.integer(n3),
       as.double(hpre),
       as.double(1e40),
       double(nvoxel),
-      bi = double(rep(1,nvoxel)),
+      bi = as.double(rep(1,nvoxel)),
       double(nvoxel),
       as.double(rep(1,nvoxel)),
       ai = as.double(rep(1,nvoxel)),
@@ -205,14 +210,11 @@ aws.gaussian <- function(y,
         double(prod(dlw)),
         as.double(wghts)
       )[c("bi", "bi0", "bi2", "ai", "gi", "gi2","hakt")]
-      dim(zobj$ai) <- dy
       if (hakt > n1 / 2)
         zobj$bi0 <- rep(max(zobj$bi), nvoxel)
       tobj <- updtheta(zobj, tobj, cpar)
       tobj$gi <- zobj$gi
-      dim(tobj$theta) <- dy
-      dim(tobj$bi) <- dy
-      dim(tobj$eta) <- dy
+      tobj$gi2 <- zobj$gi2
       if (graph) {
         #
         #     Display intermediate results if graph == TRUE
@@ -238,7 +240,7 @@ aws.gaussian <- function(y,
             mar = c(1, 1, 3, .25),
             mgp = c(2, 1, 0)
           )
-          image(y,
+          image(array(y,dy),
                 col = gray((0:255) / 255),
                 xaxt = "n",
                 yaxt = "n")
@@ -249,7 +251,7 @@ aws.gaussian <- function(y,
             signif(max(y), 3)
           ))
           image(
-            tobj$theta,
+            array(tobj$theta,dy),
             col = gray((0:255) / 255),
             xaxt = "n",
             yaxt = "n"
@@ -263,7 +265,7 @@ aws.gaussian <- function(y,
             signif(max(tobj$theta), 3)
           ))
           image(
-            tobj$bi,
+            array(tobj$bi,dy),
             col = gray((0:255) / 255),
             xaxt = "n",
             yaxt = "n"
@@ -283,7 +285,7 @@ aws.gaussian <- function(y,
             mar = c(1, 1, 3, .25),
             mgp = c(2, 1, 0)
           )
-          image(y[, , n3 %/% 2 + 1],
+          image(array(y,dy)[, , n3 %/% 2 + 1],
                 col = gray((0:255) / 255),
                 xaxt = "n",
                 yaxt = "n")
@@ -294,7 +296,7 @@ aws.gaussian <- function(y,
             signif(max(y), 3)
           ))
           image(
-            tobj$theta[, , n3 %/% 2 + 1],
+            array(tobj$theta,dy)[, , n3 %/% 2 + 1],
             col = gray((0:255) / 255),
             xaxt = "n",
             yaxt = "n"
@@ -308,7 +310,7 @@ aws.gaussian <- function(y,
             signif(max(tobj$theta), 3)
           ))
           image(
-            tobj$bi[, , n3 %/% 2 + 1],
+            array(tobj$bi,dy)[, , n3 %/% 2 + 1],
             col = gray((0:255) / 255),
             xaxt = "n",
             yaxt = "n"
@@ -356,7 +358,6 @@ aws.gaussian <- function(y,
       vobj <- awsgsigma2(y, hobj, tobj, varmodel, varprop)
       sigma2 <- vobj$sigma2inv
       coef <- vobj$coef
-      rm(vobj)
       x <- 1.25 ^ (k - 1)
       scorrfactor <- x / (3 ^ d * prod(scorr) * prod(h0) + x)
       lambda0 <- lambda * scorrfactor
@@ -377,11 +378,13 @@ aws.gaussian <- function(y,
     vartheta <-
       vartheta / Spatialvar.gauss(hakt / 0.42445 / 4, h0 + 1e-5, d) * Spatialvar.gauss(hakt /
                                                                      0.42445 / 4, 1e-5, d)
-    theta <- sigma2 <- array(0,dmask)
+    y0 <- theta <- sigma2 <- bi <- array(0,dmask)
     theta[mask] <- tobj$theta
     sigma2[mask] <- vobj$sigma2inv
+    y0[mask] <- y
+    bi[mask] <- tobj$bi
     awsobj(
-      y,
+      y0,
       theta,
       vartheta,
       hakt,
@@ -400,7 +403,7 @@ aws.gaussian <- function(y,
       vcoef = coef,
       mae = mae,
       mask = mask,
-      ni = tobj$bi
+      ni = bi
     )
   }
 ###########################################################################
