@@ -28,7 +28,7 @@ C
 C   Patch based aws using mask
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine pcawsm(y,pos,n1,n2,n3,hakt,lambda,theta,bi,bi2,
+      subroutine pcaws(y,pos,n1,n2,n3,hakt,lambda,theta,bi,bi2,
      1                bin,thnew,model,kern,spmin,lwght,wght,npsize)
 C
 C   y        observed values of regression function

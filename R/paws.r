@@ -1,5 +1,5 @@
   ##
-  ##  Patchwise AWS 
+  ##  Patchwise AWS
   ##
   paws <- function(y,
              hmax = NULL,
@@ -188,7 +188,7 @@
           1
         # all other cases
         if (cpar$mcode != 6) {
-          tobj <- .Fortran(C_pcawsm,
+          tobj <- .Fortran(C_pcaws,
             as.double(y),
             as.integer(position),
             as.integer(n1),

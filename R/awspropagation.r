@@ -720,7 +720,7 @@ pawstestprop <- function(dy,
     #   get adaptive estimate
     #
 
-        zobj <- .Fortran(C_pcawsm,
+        zobj <- .Fortran(C_pcaws,
           as.double(y),
           as.double(1:n),# full mask
           as.integer(n1),

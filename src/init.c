@@ -154,7 +154,7 @@ void F77_NAME(pawswght)(int* n1, int* n2, int* n3, int* i1, int* i2, int* i3,
   double* hakt, double* lambda, double* theta, double* bi,
   int* model, int* kern, double* spmin, double* lwght, double* wght,
   int* npsize, double* wi);
-void F77_NAME(pcawsm)(double* y, int* pos, int* n1, int* n2, int* n3,
+void F77_NAME(pcaws)(double* y, int* pos, int* n1, int* n2, int* n3,
   double* hakt, double* lambda, double* theta, double* bi,
   double* bi2, double* bin, double* thnew, int* model, int* kern, double* spmin,
   double* lwght, double* wght, int* npsize);
@@ -335,7 +335,7 @@ static R_NativePrimitiveArgType paramw3_t[]={REALSXP, REALSXP, INTSXP, REALSXP,
 static R_NativePrimitiveArgType pawswght_t[]={INTSXP, INTSXP, INTSXP, INTSXP,
   INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP,
   REALSXP, REALSXP, REALSXP, INTSXP, REALSXP};
-static R_NativePrimitiveArgType pcawsm_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
+static R_NativePrimitiveArgType pcaws_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
   INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP,
   REALSXP, REALSXP, REALSXP, INTSXP};
 static R_NativePrimitiveArgType pvaws_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
@@ -434,7 +434,7 @@ static const R_FortranMethodDef fmethods[] = {
             {"mpaws2", (DL_FUNC) &mpaws2_ ,8, mpaws2_t},
             {"paramw3", (DL_FUNC) &paramw3_ , 5, paramw3_t},
             {"pawswght", (DL_FUNC) &pawswght_ ,17, pawswght_t},
-            {"pcawsm", (DL_FUNC) &pcawsm_ ,18, pcawsm_t},
+            {"pcaws", (DL_FUNC) &pcaws_ ,18, pcaws_t},
             {"pvaws", (DL_FUNC) &pvaws_ ,20, pvaws_t},
             {"pvaws2", (DL_FUNC) &pvaws2_ ,22, pvaws2_t},
             {"pvawsme", (DL_FUNC) &pvawsme_ , 26, pvawsme_t},
