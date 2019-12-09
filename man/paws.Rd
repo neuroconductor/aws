@@ -14,7 +14,7 @@ discontinuities at the expense of increased computing time.
 paws(y, hmax = NULL, mask=NULL, onestep = FALSE, aws = TRUE, family = "Gaussian",
      lkern = "Triangle", aggkern = "Uniform", sigma2 = NULL, shape = NULL,
      scorr = 0, spmin = 0.25, ladjust = 1, wghts = NULL, u = NULL,
-     graph = FALSE, demo = FALSE, maxni = FALSE, patchsize = 1)
+     graph = FALSE, demo = FALSE, patchsize = 1)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -77,8 +77,6 @@ a "true" value of the regression function, may be provided to
   \item{graph}{If  \code{graph=TRUE} intermediate results are illustrated after each iteration step. Defaults to \code{graph=FALSE}.
 }
   \item{demo}{ If \code{demo=TRUE} the function pauses after each iteration. Defaults to \code{demo=FALSE}.
-}
-  \item{maxni}{If TRUE use \eqn{max_{l<=k}(N_i^{(l)}} instead of \eqn{(N_i^{(k)}} in the definition of the statistical penalty.
 }
   \item{patchsize}{
   positive integer defining the size of patches. Number of grid points within the patch is \code{(2*patchsize+1)^d} with \code{d} denoting the dimensionality of the design.
