@@ -57,7 +57,7 @@ vaws <- function(y,
         "\n")
   }
   hseq <- 1
-  zobj <- list(bi = rep(1, voxel), theta = y)
+  zobj <- list(bi = rep(1, nvoxel), theta = y)
   bi <- zobj$bi
   cat("Progress:")
   total <- cumsum(1.25 ^ (1:kstar)) / sum(1.25 ^ (1:kstar))
@@ -78,7 +78,7 @@ vaws <- function(y,
                                                                                   0.42445 / 4, 1e-5, d)
     zobj <- .Fortran(C_vaws,
       as.double(y),
-      as.integer(pos),
+      as.integer(position),
       as.integer(nvec),
       as.integer(n1),
       as.integer(n2),
