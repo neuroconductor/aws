@@ -41,9 +41,6 @@
       if(prod(dy)>(2^31-1)){
         stop(paste("number of voxel in image is",prod(dy),"needs to be less than",2^31-1))
       }
-#      if(nvoxel>(2^31-1)){
-#         stop(paste("number of voxel in mask is",nvoxel,"needs to be less than",2^31-1))
-#      }
       #
       #   set appropriate defaults
       #

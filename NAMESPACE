@@ -19,7 +19,7 @@ exportClasses("aws","awssegment","kernsm","ICIsmooth")
 exportMethods("extract","print","summary","show","plot","risk")
 
 export(aws,lpaws, aws.irreg, aws.gaussian, aws.segment, paws)
-export(vaws, vawscov, vpaws, vpawscov)
+export(vaws, vawscov, vpaws)
 export(awsdata, binning)
 export(awstestprop, pawstestprop, awsweights)
 export(kernsm, ICIsmooth, ICIcombined)
