@@ -11,15 +11,10 @@ handling of locally smooth functions and in 2D and 3D for improved smoothness of
 discontinuities at the expense of increased computing time.
 }
 \usage{
-paws(y, hmax = NULL, onestep = FALSE, aws = TRUE, family = "Gaussian",
+paws(y, hmax = NULL, mask=NULL, onestep = FALSE, aws = TRUE, family = "Gaussian",
      lkern = "Triangle", aggkern = "Uniform", sigma2 = NULL, shape = NULL,
      scorr = 0, spmin = 0.25, ladjust = 1, wghts = NULL, u = NULL,
-     graph = FALSE, demo = FALSE, maxni = FALSE, patchsize = 1,
-     patchkrit = "max", pquant = NULL)
-pawsm(y, mask, hmax = NULL, onestep = FALSE, aws = TRUE, family = "Gaussian",
-     lkern = "Triangle", aggkern = "Uniform", sigma2 = NULL, shape = NULL,
-     scorr = 0, spmin = 0.25, ladjust = 1, wghts = NULL, u = NULL,
-     graph = FALSE, demo = FALSE, patchsize = 1)
+     graph = FALSE, demo = FALSE, maxni = FALSE, patchsize = 1)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -88,18 +83,11 @@ a "true" value of the regression function, may be provided to
   \item{patchsize}{
   positive integer defining the size of patches. Number of grid points within the patch is \code{(2*patchsize+1)^d} with \code{d} denoting the dimensionality of the design.
 }
-  \item{patchkrit}{ defaults to our recommended statistical penalty. Alternatives
-   are \code{"quantile"} and numerical values (specifying a norm for patch comparisons). This argument is for
-   internal use (tests) only.
-}
-  \item{pquant}{
-  quantile to use with \code{patchkrit="quantile"}. For internal use only.
-}
 }
 \details{ see \code{\link{aws}. The procedure is supposed to produce superior results if the assumption of a local constant image is violated or if smooothness of discontinuities is desired.}
 }
 \value{
-returns anobject of class \code{aws} with slots
+returns an object of class \code{aws} with slots
                         \item{y = "numeric"}{y}
                         \item{dy = "numeric"}{dim(y)}
                         \item{x = "numeric"}{numeric(0)}

@@ -808,12 +808,22 @@ updtheta <- function(zobj, tobj, cpar) {
 #
 ####################################################################################
 regularize <- function(zobj, family) {
+  if(is.null(zobj$theta)){
   if (family %in% c("Bernoulli")) {
     zobj$ai <- .1 / zobj$bi + zobj$ai
     zobj$bi <- .2 / zobj$bi + zobj$bi
   }
   if (family %in% c("Poisson"))
     zobj$ai <- 0.1 / zobj$bi + zobj$ai
+  } else {
+##  some routines return theta and bi instead of ai and bi
+    ai <- zobj$theta*zobj$bi + 0.1 / zobj$bi
+    if (family %in% c("Bernoulli")) {
+      zobj$bi <- .2 / zobj$bi + zobj$bi
+    }
+    zobj$theta <- zobj$theta/zobj$bi
+    zobj$theta[is.na(zobj$theta)] <- 0
+  }
   zobj
 }
 ############################################################################

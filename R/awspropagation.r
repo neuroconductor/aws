@@ -723,8 +723,9 @@ pawstestprop <- function(dy,
     #   get adaptive estimate
     #
 
-        zobj <- .Fortran(C_pcaws,
+        zobj <- .Fortran(C_pcawsm,
           as.double(y),
+          as.double(1:n),# full mask
           as.integer(n1),
           as.integer(n2),
           as.integer(n3),
@@ -733,19 +734,17 @@ pawstestprop <- function(dy,
           as.double(yhat),
           as.double(zobj$bi),
           bi2 = double(n),
-          bi0 = double(n),
           bi = double(n), #biout
-          ai = as.double(zobj$ai),
+          theta = double(n),
           as.integer(cpar$mcode),
           as.integer(lkern),
           as.double(spmin),
           double(prod(dlw)),
           as.double(wghts),
-          as.integer(patchsize))[c("bi", "bi0", "bi2", "ai", "hakt")]
+          as.integer(patchsize))[c("bi", "bi2", "theta", "hakt")]
     if (family %in% c("Bernoulli", "Poisson"))
       zobj <- regularize(zobj, family)
-    dim(zobj$ai) <- dy
-    yhat <- zobj$ai / zobj$bi
+    yhat <- zobj$theta
     dim(yhat) <- dy
     if (varadapt)
       bi <- bi ^ 2 / zobj$bi2
