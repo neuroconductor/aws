@@ -158,11 +158,11 @@ void F77_NAME(pcaws)(double* y, int* pos, int* n1, int* n2, int* n3,
   double* hakt, double* lambda, double* theta, double* bi,
   double* bi2, double* bin, double* thnew, int* model, int* kern, double* spmin,
   double* lwght, double* wght, int* npsize);
-void F77_NAME(pvaws)(double* y, int* mask, int* nv, int* n1, int* n2,
+void F77_NAME(pvaws)(double* y, int* pos, int* nv, int* n1, int* n2,
   int* n3, double* hakt, double* lambda, double* theta, double* bi,
   double* bin, double* thnew, int* ncores, double* spmin, double* lwght,
   double* wght, double* swjy, int* np1, int* np2, int* np3);
-void F77_NAME(pvaws2)(double* y, int* mask, int* nv, int* nvd,
+void F77_NAME(pvaws2)(double* y, int* pos, int* nv, int* nvd,
   int* n1, int* n2, int* n3, double* hakt, double* lambda,
   double* theta, double* bi, double*bin, double* thnew, double* invcov,
   int* ncores, double* spmin, double* lwght, double* wght,
