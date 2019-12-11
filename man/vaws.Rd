@@ -111,7 +111,7 @@ use \code{setCores='number of threads'} to enable parallel execution.
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
-\seealso{See also \code{\link{aws}}, \code{\link{vpaws}}, \code{\link{vpawscov}},\code{link{awsdata}}
+\seealso{See also \code{\link{aws}}, \code{\link{vpaws}},\code{link{awsdata}}
 }
 \examples{\dontrun{
 setCores(2)
