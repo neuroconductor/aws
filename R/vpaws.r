@@ -12,14 +12,15 @@ vpaws <- function(y,
   args <- match.call()
   dy <- dim(y)
   nvec <- dy[1]
+  n <- prod(dy[-1])
   if(is.null(mask)){
      dy <- dy[-1]
-     n <- prod(dy)
    } else {
      dy <- dim(mask)
      if(is.null(dy)) dy <- length(mask)
    }
    d <- length(dy)
+
    if (d > 3)
     stop("Vector AWS for more than 3 dimensional grids is not implemented")
   #
@@ -29,7 +30,7 @@ vpaws <- function(y,
   nvoxel <- sum(mask)
   position <- array(0,dy)
   position[mask] <- 1:nvoxel
-  condensed <- n==nvoxel
+  condensed <- n==nvoxel & n<prod(dy)
   if(!condensed & prod(dy)!=n) stop("incompatible mask and data")
   if(!condensed & !is.null(u)){
      if(length(dim(u))==d){
@@ -66,7 +67,7 @@ vpaws <- function(y,
      if(nvd!=(nvec+1)*nvec/2) stop(paste("First dimension of invcov should be",
                      nvd,"(dense storage)"))
      if(condensed){
-        if(dinvconv[2]!=nvoxel) stop("invcov should contain information for all voxel in mask")
+        if(dinvcov[2]!=nvoxel) stop("invcov should contain information for all voxel in mask")
      } else {
         if(prod(dinvcov[-1])!=n) stop("invcov should contain information for all voxel")
         dim(invcov) <- c(nvd,n)
@@ -113,7 +114,7 @@ vpaws <- function(y,
       lambda0 <-
       lambda0 * Spatialvar.gauss(hakt0 / 0.42445 / 4, h0, d) /
                 Spatialvar.gauss(hakt0 / 0.42445 / 4, 1e-5, d)
-    if(is.null(invcov)){  
+    if(is.null(invcov)){
     zobj <- .Fortran(C_pvaws,
       as.double(y),
       as.integer(position),
@@ -148,7 +149,7 @@ vpaws <- function(y,
         as.double(lambda0),
         as.double(zobj$theta),
         as.double(zobj$bi),
-        bi = double(n), #binn
+        bi = double(nvoxel), #binn
         theta = double(nvec * nvoxel),
         as.double(invcov),
         as.integer(mc.cores),
@@ -189,7 +190,7 @@ vpaws <- function(y,
   sigma2new <- if(is.null(invcov)) zobj$bi/sigma2 else
      sweep(invcov, 2, zobj$bi, "*")
 # this is the new inverse covariance
-  if(!compressed){
+  if(!condensed){
 #     expand results
      y0 <- y
      y <- array(0,c(nvec,prod(dy)))
@@ -224,10 +225,12 @@ vpaws <- function(y,
     lambda,
     ladjust,
     aws = TRUE,
+    nvec = as.integer(nvec),
     memory = FALSE,
     args,
     hseq = hseq,
     homogen = FALSE,
+    mask = mask,
     earlystop = FALSE,
     family = "Gaussian",
     wghts = wghts,

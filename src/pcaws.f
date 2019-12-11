@@ -116,6 +116,7 @@ C  first stochastic term
 C   rescale bi with 1/lambda
       DO iind=1,n1*n2*n3
           iindp=pos(iind)
+          if(iindp.eq.0) CYCLE
           bi(iindp) = bi(iindp)/lambda
       END DO
       call rchkusr()
@@ -304,6 +305,7 @@ C  first stochastic term
 C   rescale bi with 1/lambda
       DO iind=1,n1*n2*n3
           iindp=pos(iind)
+          if(iindp.eq.0) CYCLE
           bi(iindp) = bi(iindp)/lambda
       END DO
       call rchkusr()
@@ -369,7 +371,7 @@ C  first stochastic term
                            DO ip3=i3-nph3,i3+nph3
                               if(sij.gt.1.d0) CYCLE
                               if(ip3.le.0.or.ip3.gt.n3) CYCLE
-                              ipind=jp1+(jp2-1)*n1+(jp3-1)*n12
+                              ipind=ip1+(ip2-1)*n1+(ip3-1)*n12
                               ipindp=pos(ipind)
                               if(ipindp.eq.0) CYCLE
                               jp3=ip3+jw3
@@ -495,6 +497,7 @@ C  first stochastic term
 C   rescale bi with 1/lambda
       DO iind=1,n1*n2*n3
         iindp=pos(iind)
+        if(iindp.eq.0) CYCLE
         bi(iindp) = bi(iindp)/lambda
       END DO
       call rchkusr()

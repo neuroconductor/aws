@@ -4,6 +4,7 @@ setClass(
     .Data = "list",
     y = "array",
     dy = "numeric",
+    nvec = "integer",
     x = "matrix",
     ni = "array",
     mask = "logical",
@@ -212,9 +213,10 @@ awsobj <-  function(y,
            homogen = FALSE,
            earlystop = FALSE,
            family = "Gaussian",
+           nvec = 1L,
            degree = 0,
            x = matrix(0,1,1),
-           ni = as.integer(1),
+           ni = as.numeric(1),
            xmin = numeric(0),
            xmax = numeric(0),
            wghts = numeric(0),
@@ -230,6 +232,7 @@ awsobj <-  function(y,
       length(y)
     else
       dim(y)
+    dy0 <- if(nvec==1) dy else dy[-1]
     invisible(
       new(
         "aws",
@@ -237,8 +240,9 @@ awsobj <-  function(y,
         y = array(y, dy),
         dy = dy,
         x = x,
-        ni = array(ni, dy),
+        ni = array(ni, dy0),
         mask = as.logical(mask),
+        nvec = as.integer(nvec),
         theta = array(theta, if (degree == 0)
           dy
           else
