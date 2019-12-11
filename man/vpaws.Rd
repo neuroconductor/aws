@@ -14,6 +14,9 @@ discontinuities at the expense of increased computing time.
 \usage{
 vpaws(y, kstar = 16, sigma2 = 1, invcov = NULL, mask = NULL, scorr = 0, spmin = 0.25,
       ladjust = 1, wghts = NULL, u = NULL, patchsize = 1)
+vpawscov2(y, kstar = 16, invcov = NULL, mask = NULL, scorr = 0, spmin = 0.25,
+      lambda = NULL, ladjust = 1, wghts = NULL, patchsize = 1, data = NULL, verbose = TRUE)
+
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -57,14 +60,19 @@ a "true" value of the regression function, may be provided to
   \item{patchsize}{
 positive integer defining the size of patches. Number of grid points within the patch is \code{(2*patchsize+1)^d} with \code{d} denoting the dimensionality of the design.
 }
+  \item{lambda}{explicit value of lambda}
+  \item{data}{optional vector-valued images to be smoothed using the weighting scheme of the last step}
+  \item{verbose}{logical: provide information on progress.}
 }
 \details{see \code{\link{vaws}}.
    Parameter \code{y}
    The procedure is supposed to produce superior results if the assumption of a
    local constant image is violated or if smooothness of discontinuities is desired.
+
+   Function \code{vpawscov2} is intended for internal use in package \code{qMRI} only.
 }
-\value{
-returns anobject of class \code{aws} with slots
+\value{ function \code{vpaws} returns
+returns an object of class \code{aws} with slots
                         \item{y = "numeric"}{y}
                         \item{dy = "numeric"}{dim(y)}
                         \item{x = "numeric"}{numeric(0)}
@@ -96,9 +104,8 @@ returns anobject of class \code{aws} with slots
                         \item{varmodel = "character"}{"Constant"}
                         \item{vcoef = "numeric"}{numeric(0)}
                         \item{call = "function"}{the arguments of the call to \code{aws}}
-  If \code{y} contained only information for positions within a mask, then the returned object only contains
+  If \code{y} contained only information (condensed data) for positions within a mask, then the returned object only contains
   results for these positions.
-
 }
 \references{
 Joerg Polzehl, Vladimir Spokoiny,  Adaptive Weights Smoothing with applications to image restoration,  J. R. Stat. Soc. Ser. B Stat. Methodol.  62 ,  (2000)  , pp. 335--354
