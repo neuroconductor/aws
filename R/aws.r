@@ -895,23 +895,3 @@ awsfamily <- function(family,
     h0 = h0
   )
 }
-
-getvofh <- function(bw, lkern, wght) {
-  .Fortran(C_getvofh,
-    as.double(bw),
-    as.integer(lkern),
-    as.double(wght),
-    vol = double(1)
-  )$vol
-}
-gethani <- function(x, y, lkern, value, wght, eps = 1e-2) {
-  .Fortran(C_gethani,
-    as.double(x),
-    as.double(y),
-    as.integer(lkern),
-    as.double(value),
-    as.double(wght),
-    as.double(eps),
-    bw = double(1)
-  )$bw
-}
