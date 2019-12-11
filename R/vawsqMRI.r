@@ -105,7 +105,7 @@ vpawscov2 <- function(y,
                        as.integer(np3))[c("bi", "theta", "hakt","data")]
       dim(zobj$data) <- c(nsample, nvoxel)
     } else {#6
-      zobj <- .Fortran(C_pvawsm2,
+      zobj <- .Fortran(C_pvaws2,
                        as.double(y),
                        as.integer(position),
                        as.integer(nvec),

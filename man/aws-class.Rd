@@ -15,6 +15,7 @@ Objects are created by calls to functions \code{aws}, \code{lpaws}, \code{aws.ir
     \item{\code{.Data}:}{Object of class \code{"list"}, usually empty. }
     \item{\code{y}:}{Object of class \code{"array"} containing the original (response) data }
     \item{\code{dy}:}{Object of class \code{"numeric"} dimension attribute of \code{y} }
+		\item{\code{nvec}:}{Object of class \code{"integer"} leading dimension of \code{y} in vector valued data.}
     \item{\code{x}:}{Object of class \code{"numeric"} if provided the design points}
     \item{\code{ni}:}{Object of class \code{"numeric"} sum of weights used in final estimate }
     \item{\code{mask}:}{Object of class \code{"logical"} mask of design points where computations are performed }
