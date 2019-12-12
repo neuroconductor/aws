@@ -92,7 +92,7 @@ component \code{theta} and smoothed residuals in component \code{res}.
 }
 
 \author{ Joerg Polzehl \email{polzehl@wias-berlin.de},
-  Karsten Tabelow \email{tabelow@wias-berlin.de}  }
+  Karsten Tabelow \email{tabelow@wias-berlin.de}  
 }
 \note{
 Functions \code{awsmask*} are used intenally in package \code{fmri}. They refer to the
