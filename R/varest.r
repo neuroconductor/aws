@@ -111,49 +111,6 @@ estimateSigmaCompl <- function(magnitude,phase,mask,kstar=20,kmin=8,hsig=5,lambd
        protocol=protocol,args=args)
 }
 
-medianFilter3D <- function(sigma2, hsig=10, mask=NULL){
-  sdim <- dim(sigma2)
-  n <- prod(sdim)
-  if(length(sdim)!=3) stop("obj needs to be of class 'array' (3D) or 'sigmaEstSENSE'")
-  if(is.null(mask)) mask <- array(TRUE,sdim)
-  if(any(dim(mask)!=sdim)) stop("dimensions do not coinside")
-  parammd <- getparam3d(hsig,c(1,1))
-  nwmd <- length(parammd$w)
-  mc.cores <- setCores(, reprt = FALSE)
-  sigma2hat <- .Fortran(C_mediansm,
-                     as.double(sigma2),
-                     as.logical(mask),
-                     as.integer(sdim[1]),
-                     as.integer(sdim[2]),
-                     as.integer(sdim[3]),
-                     as.integer(parammd$ind),
-                     as.integer(nwmd),
-                     double(nwmd*mc.cores), # work(nw,nthreds)
-                     as.integer(mc.cores),
-                     sigma2n = double(n))$sigma2n/0.6931
-  dim(sigma2hat) <- sdim
-  sigma2hat
-}
-
-getparam3d <- function(hsig, vext){
-#
-#  compute coordinate indices of voxel in vicinity of radiaus hsig
-#  and corresponding location weights
-#
-  nwmd <- (2*as.integer(hsig/c(1,vext))+1)^3
-  parammd <- .Fortran(C_paramw3,
-                      as.double(hsig),
-                      as.double(vext),
-                      ind=integer(3*nwmd),
-                      w=double(nwmd),
-                      n=as.integer(nwmd))[c("ind","w","n")]
-  nwmd <- parammd$n
-  parammd$ind <- parammd$ind[1:(3*nwmd)]
-  parammd$w <- parammd$w[1:nwmd]
-  dim(parammd$ind) <- c(3,nwmd)
-  parammd
-}
-
 awsLocalSigma <- function(y, steps, mask, ncoils, vext=c(1,1),
       lambda = 5, minni=2, hsig=5, sigma=NULL, family=c("NCchi","Gauss"),
       verbose = NULL, trace = FALSE, u=NULL){

@@ -1,6 +1,6 @@
 #########################################################################
 #
-#   functions to determine bandwidths in aws iterations
+#   functions to determine bandwidths and location weights in aws iterations
 #
 #########################################################################
 getvofh <- function(bw, lkern, wght) {
@@ -22,6 +22,25 @@ gethani <- function(x, y, lkern, value, wght, eps = 1e-2) {
     bw = double(1)
   )$bw
 }
+getparam3d <- function(hsig, vext){
+#
+#  compute coordinate indices of voxel in vicinity of radiaus hsig
+#  and corresponding location weights
+#
+  nwmd <- (2*as.integer(hsig/c(1,vext))+1)^3
+  parammd <- .Fortran(C_paramw3,
+                      as.double(hsig),
+                      as.double(vext),
+                      ind=integer(3*nwmd),
+                      w=double(nwmd),
+                      n=as.integer(nwmd))[c("ind","w","n")]
+  nwmd <- parammd$n
+  parammd$ind <- parammd$ind[1:(3*nwmd)]
+  parammd$w <- parammd$w[1:nwmd]
+  dim(parammd$ind) <- c(3,nwmd)
+  parammd
+}
+
 #########################################################################
 #
 #   functions to handle the  noncentral chi case (mcode=6)
