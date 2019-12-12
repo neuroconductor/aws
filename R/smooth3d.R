@@ -36,7 +36,7 @@ smooth3D <- function(y,lkern="Gaussian",weighted=FALSE,sigma2=NULL,mask=NULL,h=N
                   1)
   if (lkern==3) {
     # assume  hmax was given in  FWHM  units (Gaussian kernel will be truncated at 4)
-    hmax <- fwhm2bw(hmax)*4
+    h <- fwhm2bw(h)*4
   }
   if (is.null(wghts)) wghts <- c(1,1,1)
   if(is.null(mask)) mask <- array(TRUE,dy[1:3])
@@ -61,6 +61,29 @@ smooth3D <- function(y,lkern="Gaussian",weighted=FALSE,sigma2=NULL,mask=NULL,h=N
                      as.double(wghts),
                      double(nv))$thnew
 array(ysmooth,dy)
+}
+medianFilter3D <- function(y, h=10, mask=NULL){
+  sdim <- dim(y)
+  n <- prod(sdim)
+  if(length(sdim)!=3) stop("y needs to be a 3D array")
+  if(is.null(mask)) mask <- array(TRUE,sdim)
+  if(any(dim(mask)!=sdim)) stop("dimensions do not coinside")
+  parammd <- getparam3d(h,c(1,1))
+  nwmd <- length(parammd$w)
+  mc.cores <- setCores(, reprt = FALSE)
+  yhat <- .Fortran(C_mediansm,
+                     as.double(y),
+                     as.logical(mask),
+                     as.integer(sdim[1]),
+                     as.integer(sdim[2]),
+                     as.integer(sdim[3]),
+                     as.integer(parammd$ind),
+                     as.integer(nwmd),
+                     double(nwmd*mc.cores), # work(nw,nthreds)
+                     as.integer(mc.cores),
+                     yhat = double(n))$yhat/0.6931
+  dim(yhat) <- sdim
+  yhat
 }
 ##
 ##   aws smoothing of y using a mask
