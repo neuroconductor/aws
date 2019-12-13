@@ -22,15 +22,15 @@ gethani <- function(x, y, lkern, value, wght, eps = 1e-2) {
     bw = double(1)
   )$bw
 }
-getparam3d <- function(hsig, vext){
+getparam3d <- function(hsig, wght){
 #
 #  compute coordinate indices of voxel in vicinity of radiaus hsig
 #  and corresponding location weights
 #
-  nwmd <- (2*as.integer(hsig/c(1,vext))+1)^3
+  nwmd <- (2*as.integer(hsig/c(1,wght))+1)^3
   parammd <- .Fortran(C_paramw3,
                       as.double(hsig),
-                      as.double(vext),
+                      as.double(wght),
                       ind=integer(3*nwmd),
                       w=double(nwmd),
                       n=as.integer(nwmd))[c("ind","w","n")]

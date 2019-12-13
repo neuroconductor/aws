@@ -439,13 +439,14 @@ AFLocalSigma <- function(y,ncoils,level=NULL,mask=NULL,h=2,hadj=1,vext = c( 1, 1
 }
 
 estGlobalSigma <- function(y, mask=NULL, ncoils=1, steps=16, vext=c(1,1),
-                  lambda=20, h0=2, hadj=1, q=.25, qni=.8, level=NULL,
+                  lambda=20, hinit=2, hadj=1, q=.25, level=NULL,
                   sequence=FALSE,method=c("awsVar","awsMAD",
                   "AFmodevn","AFmodem1chi","AFbkm2chi","AFbkm1chi")){
 ##
 ##  estimate global scale parameter sigma for NCchi distributed data
 ##
   method <- match.arg(method)
+    qni <- .8 
 ## methods using the propagation-separation (PS) approach
   if(method %in% c("awsVar","awsMAD")){
     varstats <- sofmchi(ncoils)
@@ -479,10 +480,10 @@ estGlobalSigma <- function(y, mask=NULL, ncoils=1, steps=16, vext=c(1,1),
     minlev <- sqrt(2)*gamma(ncoils+.5)/gamma(ncoils)
     if (sequence) sigmas <- lind <- minni <- numeric(steps)
     mc.cores <- setCores(,reprt=FALSE)
-    ## iterate PS starting with bandwidth h0
+    ## iterate PS starting with bandwidth hinit
     for (i in 1:steps) {
 
-      h <- h0 * 1.25^((i-1)/3)
+      h <- hinit * 1.25^((i-1)/3)
       param <- getparam3d(h,vext)
       nw <- length(param$w)
       fncchi <- fncchiv(th/sigma,varstats)

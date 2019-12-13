@@ -662,31 +662,31 @@ C
       RETURN
       END
 
-      subroutine paramw3(h,vext,ind,w,n)
+      subroutine paramw3(h,wght,ind,w,n)
 C  compute a description of local weights
 C  h    - bandwidth
-C  vext - vector (length 2) of relative voxel extensions
+C  wght - vector (length 2) of relative voxel extensions
 C  ind  - integer array dim (3,n) containing relative indices in xyz
 C  w    - vector of corresponding weights
 C  n    - number of positive weights (initial value
 C         (2 int(h)+1)*(2 int(h/vext(1))+1)*(2 int(h/vext(2))+1)
       integer n,ind(3,n)
-      double precision h,vext(2),w(n)
+      double precision h,wght(2),w(n)
       integer i,i1,i2,i3,ih1,ih2,ih3
       double precision hsq,z1,z2,z3
       hsq=h*h
       ih1 = int(h)
-      ih2 = int(h/vext(1))
-      ih3 = int(h/vext(2))
+      ih2 = int(h/wght(1))
+      ih3 = int(h/wght(2))
       i=1
       DO i1=-ih1,ih1
          z1=i1*i1
          DO i2=-ih2,ih2
-            z2=i2*vext(1)
+            z2=i2*wght(1)
             z2=z1+z2*z2
             IF(z2.ge.hsq) CYCLE
             DO i3=-ih3,ih3
-               z3=i3*vext(2)
+               z3=i3*wght(2)
                z3=z2+z3*z3
                IF(z3.ge.hsq) CYCLE
                ind(1,i)=i1
