@@ -3,14 +3,14 @@
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{ local constant AWS for irregular (1D/2D) design }
 \description{
-The function implements the propagation separation approach to 
-nonparametric smoothing (formerly introduced as Adaptive weights smoothing) 
-for varying coefficient Gaussian models on a 1D or 2D irregulat design. 
-The function allows for a paramertic (polynomial) mean-variance dependence. 
+The function implements the propagation separation approach to
+nonparametric smoothing (formerly introduced as Adaptive weights smoothing)
+for varying coefficient Gaussian models on a 1D or 2D irregulat design.
+The function allows for a paramertic (polynomial) mean-variance dependence.
 }
 \usage{
-aws.irreg(y, x, hmax = NULL, aws=TRUE, memory=FALSE, varmodel = "Constant", 
-          lkern = "Triangle", aggkern = "Uniform", sigma2 = NULL, nbins = 100, 
+aws.irreg(y, x, hmax = NULL, aws=TRUE, memory=FALSE, varmodel = "Constant",
+          lkern = "Triangle", aggkern = "Uniform", sigma2 = NULL, nbins = 100,
           hpre = NULL, henv = NULL, ladjust =1, varprop = 0.1, graph = FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -35,8 +35,8 @@ aws.irreg(y, x, hmax = NULL, aws=TRUE, memory=FALSE, varmodel = "Constant",
   \item{graph}{If  \code{graph=TRUE} intermediate results are illustrated after each iteration step. Defaults to \code{graph=FALSE}. }
 }
 \details{
-  Data are first binned (1D/2D), then aws is performed on all datapoints within 
-  distance <= henv of nonempty bins.  
+  Data are first binned (1D/2D), then aws is performed on all datapoints within
+  distance <= henv of nonempty bins.
 }
 \value{
 returns anobject of class \code{aws} with slots
@@ -69,7 +69,9 @@ returns anobject of class \code{aws} with slots
                         \item{vcoef = "numeric"}{estimated coefficients in variance model}
                         \item{call = "function"}{the arguments of the call to \code{aws}}
 }
-\references{ Joerg Polzehl, Vladimir Spokoiny, in V. Chen, C.; Haerdle, W. and Unwin, A. (ed.) Handbook of Data Visualization Structural adaptive smoothing by propagation-separation methods Springer-Verlag, 2008, 471-492
+\references{ J. Polzehl, V. Spokoiny, in V. Chen, C.; Haerdle, W. and Unwin, A. (ed.)
+Handbook of Data Visualization Structural adaptive smoothing by propagation-separation methods.
+ Springer-Verlag, 2008, 471-492. DOI:10.1007/978-3-540-33037-0_19.
  }
 \author{ Joerg Polzehl, \email{polzehl@wias-berlin.de} }
 \seealso{ See also  \code{\link{lpaws}}, \code{link{awsdata}}, \code{\link{lpaws}} }

@@ -52,7 +52,7 @@ A list of class \code{"nlmeans"} with components
 }
 \references{
 A. Buades, B. Coll and J. M. Morel (2006). A review of image denoising algorithms, with a new one.
-Simulation, 4, 490-530.
+Simulation, 4, 490-530. DOI:10.1137/040616024.
 
 \url{http://www.numerical-tours.com/matlab/denoisingadv_6_nl_means/#biblio}
 }

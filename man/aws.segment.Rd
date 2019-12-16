@@ -84,12 +84,14 @@ returns anobject of class \code{aws} with slots
                         \item{call = "function"}{the arguments of the call to \code{aws.gaussian}}
 }
 \note{ This function is still experimental and may be changes considerably in future.}
-\references{
+\references{J. Polzehl, H.U. Voss, K. Tabelow (2010). Structural adaptive segmentation for
+   statistical parametric mapping, NeuroImage, 52, pp. 515--523. DOI:10.1016/j.neuroimage.2010.04.241
+
   Duembgen, L. and Spokoiny, V. (2001). Multiscale testing of qualitative hypoteses. Ann. Stat. 29, 124--152.
 
   Polzehl, J. and Spokoiny, V. (2006). Propagation-Separation Approach for Local
   Likelihood Estimation. Probability Theory and Related Fields. 3 (135)
-  335 - 362.
+  335 - 362. DOI:10.1007/s00440-005-0464-1
 }
 \author{ Joerg Polzehl, \email{polzehl@wias-berlin.de},
 \url{http://www.wias-berlin.de/people/polzehl/}  }

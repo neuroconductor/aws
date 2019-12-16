@@ -69,7 +69,14 @@ lpaws(y, degree = 1, hmax = NULL, aws = TRUE, memory = FALSE, lkern = "Triangle"
                         \item{vcoef = "numeric"}{numeric(0)}
                         \item{call = "function"}{the arguments of the call to \code{lpaws}}
 }
-\references{Joerg Polzehl, Vladimir Spokoiny, in V. Chen, C.; Haerdle, W. and Unwin, A. (ed.) Handbook of Data Visualization Structural adaptive smoothing by propagation-separation methods Springer-Verlag, 2008, 471-492
+\references{  J. Polzehl, K. Papafitsoros, K. Tabelow. Patch-wise adaptive weights smoothing,
+             Preprint no. 2520, WIAS, Berlin, 2018, DOI 10.20347/WIAS.PREPRINT.2520.
+             (to appear in Journal of Statistical Software).
+
+             J. Polzehl, V. Spokoiny, in V. Chen, C.; Haerdle, W. and Unwin, A. (ed.)
+             Handbook of Data Visualization Structural adaptive smoothing by propagation-separation methods.
+              Springer-Verlag, 2008, 471-492. DOI:10.1007/978-3-540-33037-0_19.
+
 }
 \author{Joerg Polzehl \email{polzehl@wias-berlin.de} }
 \note{If you specify \code{graph=TRUE} for 2D problems

@@ -9,7 +9,12 @@
 3D variance estimation
 }
 \description{
-Functions for 3D variance estimation
+Functions for 3D variance estimation. \code{awsLocalSigma} implements the
+local adaptive variance estimation procedure introduced in Tabelow, Voss and Polzehl (2015).
+\code{awslinsd} uses a parametric model for varianc/mesn dependence. Functions
+\code{AFLocalSigma} and \code{estGlobalSigma} implement various proposals for local
+and global variance estimates from Aja-Fernandez (2009, 2013) and a global variant of the
+approach from Tabelow, Voss and Polzehl (2015).
 }
 \usage{
 awsLocalSigma(y, steps, mask, ncoils, vext = c(1, 1), lambda = 5,
@@ -38,8 +43,8 @@ number of steps in adapive weights smoothing, used to reveal the unerlying
 }
   \item{mask}{
 restrict computations to voxel in mask, if \code{is.null(mask)} all voxel are used.
-   In function \code{estGlobalSigma} mask should refer to background for \code{method \%in\% c("modem1chi","bkm2chi","bkm1chi")} and to voxel within the head for 
-   \code{method=="modevn"}. 
+   In function \code{estGlobalSigma} mask should refer to background for \code{method \%in\% c("modem1chi","bkm2chi","bkm1chi")} and to voxel within the head for
+   \code{method=="modevn"}.
 }
   \item{ncoils}{
 effective number of coils, or equivalently number of effective degrees of freedom of non-central chi distribution divided by 2.
@@ -51,7 +56,7 @@ effective number of coils, or equivalently number of effective degrees of freedo
    scale parameter in adaptive weights smoothing
 }
   \item{minni}{
-   minimal bandwidth for calculating local variance estimates 
+   minimal bandwidth for calculating local variance estimates
 }
   \item{hsig}{
   bandwwidth for median filter
@@ -63,7 +68,7 @@ effective number of coils, or equivalently number of effective degrees of freedo
   type of distribution, either noncentral Chi ("NCchi") or Gaussian ("Gauss")
 }
   \item{verbose}{
-   if \code{verbose==TRUE} density plots 
+   if \code{verbose==TRUE} density plots
    and quantiles of local estimates of \code{sigma} are provided.
 }
   \item{trace}{
@@ -134,15 +139,20 @@ number of steps in adapive weights smoothing, used to reveal the unerlying
     iteration to start adaptation
 }
 }
-\details{
-%%  ~~ If necessary, more details than the description above ~~
-}
 \value{
 all functions return lists with variance estimates in component \code{sigma}
 }
 \references{
-K. Tabelow, H.U. Voss, J. Polzehl, Local estimation of the noise level in MRI using structural adaptation, Medical Image Analysis, 20 (2015), pp. 76--86.
+K. Tabelow, H.U. Voss, J. Polzehl, Local estimation of the noise level in MRI using
+structural adaptation, Medical Image Analysis, 20 (2015), 76--86. DOI:10.1016/j.media.2014.10.008.
 
+S. Aja-Fernández, V. Brion, A. Tristán-Vega, Effective noise estimation and
+filtering from correlated multiple-coil MR data. Magn Reson Imaging, 31 (2013), 272-285.
+DOI:10.1016/j.mri.2012.07.006
+
+S. Aja-Fernandez, A. Tristan-Vega, C. Alberola-Lopez, Noise estimation in
+single- and multiple-coil magnetic resonance data based on statistical models.
+Magn Reson Imaging, 27 (2009), 1397-1409. DOI:10.1016/j.mri.2009.05.025.
 }
 \author{
 J\"org Polzehl \email{polzehl@wias-berlin.de}

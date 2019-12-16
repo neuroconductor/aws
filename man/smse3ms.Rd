@@ -96,6 +96,14 @@ The functions return lists with main results in components
 \references{
 Joerg Polzehl, Karsten Tabelow (2019). Magnetic Resonance Brain Imaging:
 Modeling and Data Analysis Using R. Springer, Use R! series. Doi:10.1007/978-3-030-29184-6.
+
+S. Becker, K. Tabelow, H.U. Voss, A. Anwander, R. Heidemann, J. Polzehl.
+Position-orientation adaptive smoothing of diffusion weighted magnetic resonance
+data (POAS). Medical Image Analysis, 2012, 16, 1142-1155. DOI:10.1016/j.media.2012.05.007.
+
+S. Becker, K. Tabelow, S. Mohammadi, N. Weiskopf, J. Polzehl. Adaptive smoothing
+of multi-shell diffusion-weighted magnetic resonance data by msPOAS.
+Neuroimage, 2014, 95, 90-105. DOI:10.1016/j.neuroimage.2014.03.053.
 }
 
 \author{
