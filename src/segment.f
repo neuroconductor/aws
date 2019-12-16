@@ -3,7 +3,7 @@ C
 C   Perform one iteration in local constant three-variate aws (gridded) with variance - mean model
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      subroutine segment(y,pos,level,delta,si2,n1,n2,n3,hakt,
+      subroutine segment(y,pos,fix,level,delta,si2,n1,n2,n3,hakt,
      1        lambda,theta,bi,bi2,bi0,gi,gi2,thetan,kern,spmin,lwght,
      2        wght,segm,segmn,beta,thresh,ext,fov,varest)
 C
@@ -21,7 +21,7 @@ C
       implicit none
       external lkern,fpchisq
       double precision lkern,fpchisq
-      integer n1,n2,n3,kern,segm(*),segmn(*),pos(*)
+      integer n1,n2,n3,kern,segm(*),segmn(*),pos(*),fix(*)
       logical aws
       double precision y(*),theta(*),bi(*),bi0(*),thetan(*),lambda,
      1       wght(2),bi2(*),hakt,lwght(*),si2(*),gi2(*),spmin,gi(*),
@@ -108,7 +108,7 @@ C  first stochastic term
       END IF
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(thetan,bi,bi0,bi2,si2,n1,n2,n3,theta,kern,hakt,
-C$OMP& lwght,y,gi2,gi,segm,segmn,varest,pos)
+C$OMP& lwght,y,gi2,gi,segm,segmn,varest,pos,fix)
 C$OMP& FIRSTPRIVATE(lambda,aws,beta,fov,a,b,hakt2,n12,wght1,wght2,
 C$OMP& spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,thresh,ih1,ih2)
 C$OMP& PRIVATE(iind,bii,bii0,swj,thi,cofh,segmi,iindp,jindp,
@@ -186,6 +186,7 @@ C
          cofh = sqrt(beta*log(si*si2(iindp)*fov))
 C    both are equivalent for  homogeneous si2
          si=sqrt(si)
+         If(fix(iind).eq.0) THEN
          IF((thi-a)/si+cofh.lt.-thresh) THEN
             segmn(iindp)=-1
          ELSE IF ((thi-b)/si-cofh.gt.thresh) THEN
@@ -193,6 +194,10 @@ C    both are equivalent for  homogeneous si2
          ELSE
             segmn(iindp)=0
          END IF
+      ELSE
+         IF(segmi.lt.0) thetan(iindp)=min(thetan(iindp),a)
+         IF(segmi.gt.0) thetan(iindp)=max(thetan(iindp),b)
+      END IF
          gi(iindp)=sv1
          gi2(iindp)=sv2
       END DO

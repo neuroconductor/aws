@@ -185,15 +185,18 @@ aws.segment <- function(y,
   #
   #    Initialize  for the iteration
   #
+  fix <- rep(FALSE, nvoxel)
   zobj <-
     list(
       ai = y,
       bi0 = rep(1, nvoxel),
       bi2 = rep(1, nvoxel),
       bi = rep(1, nvoxel),
-      theta = y / shape
+      theta = y / shape,
+      fix = fix
     )
   segment <- rep(0,nvoxel)
+  gi <- gi2 <- rep(1,nvoxel)
   mae <- NULL
   lambda0 <-
     1e50 # that removes the stochstic term for the first step, initialization by kernel estimates
@@ -245,6 +248,7 @@ aws.segment <- function(y,
     zobj <- .Fortran(C_segment,
       as.double(y),
       as.integer(position),
+      fix=as.integer(fix),
       as.double(level),
       as.double(delta),
       as.double(sigma2),
@@ -273,7 +277,8 @@ aws.segment <- function(y,
       as.double(ext),
       as.double(fov),
       varest = as.double(varest)
-    )[c("bi",
+    )[c("fix",
+        "bi",
         "bi0",
         "bi2",
         "gi2",
@@ -282,13 +287,16 @@ aws.segment <- function(y,
         "gi",
         "hakt",
         "varest")]
+    gi[!fix] <- zobj$gi[!fix]
+    gi2[!fix] <- zobj$gi2[!fix]
     if (hakt > n1 / 2)
       zobj$bi0 <- rep(max(zobj$bi), nvoxel)
     segment <- zobj$segment
     varest <- zobj$varest
+    fix <- as.logical(zobj$fix)
     if (graph) {
         dim(zobj$theta) <-
-        dim(zobj$gi) <- dim(segment) <- dim(zobj$bi) <- dmask
+        dim(gi) <- dim(segment) <- dim(zobj$bi) <- dmask
       #
       #     Display intermediate results if graph == TRUE
       #
@@ -447,11 +455,13 @@ aws.segment <- function(y,
     #
     #   Create new variance estimate
     #
+    if (sum(zobj$fix) < nvoxel / 4) {
       vobj <-
         awsgsigma2(y, hobj, zobj[c("theta", "gi", "gi2")], varmodel, varprop)
       sigma2 <- vobj$sigma2inv
       coef <- vobj$coef
       rm(vobj)
+    }
     x <- 1.25 ^ (k - 1)
     scorrfactor <- x / (3 ^ d * prod(scorr) * prod(h0) + x)
     lambda0 <- lambda * scorrfactor

@@ -450,7 +450,7 @@ awsgsigma2 <- function(y, hobj, tobj, varmodel, varprop) {
     d <- length(dy)
   ind <- tobj$gi > 1
   residsq <-
-    (y - tobj$theta)[ind]^2 * tobj$gi[ind]^2 / (tobj$gi[ind]^2 - tobj$gi2[ind])
+    ((y - tobj$theta)[ind] * tobj$gi[ind] / (tobj$gi[ind] - pmin(.95*tobj$gi[ind],1)))^2
   theta <- tobj$theta[ind]
   if (varmodel == "Quadratic")
     theta2 <- theta ^ 2

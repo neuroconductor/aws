@@ -173,7 +173,7 @@ void F77_NAME(pvawsme)(double* y, double* yd, int* pos, int* nv, int* nvd, int* 
   double* wght, double* swjy, double* swjd, int* np1, int* np2, int* np3);
 void F77_NAME(sector)(double* x1, int* n1, double* x2, int* n2,
   int* nsect, int* sect, int* symm, double* insect);
-void F77_NAME(segment)(double* y, int* pos, double* level,
+void F77_NAME(segment)(double* y, int* pos, int* fix, double* level,
   double* delta, double* si2, int* n1, int* n2, int* n3, double* hakt,
   double* lambda, double* theta, double* bi, double* bi2,
   double* bi0, double* gi, double* vred, double* thetan, int* kern,
@@ -346,7 +346,7 @@ static R_NativePrimitiveArgType pvawsme_t[]={REALSXP, REALSXP, INTSXP, INTSXP,
   REALSXP, REALSXP, INTSXP, INTSXP, INTSXP};
 static R_NativePrimitiveArgType sector_t[]={REALSXP, INTSXP, REALSXP, INTSXP,
   INTSXP, INTSXP, INTSXP, REALSXP};
-static R_NativePrimitiveArgType segment_t[]={REALSXP, INTSXP, REALSXP, REALSXP,
+static R_NativePrimitiveArgType segment_t[]={REALSXP, INTSXP, INTSXP, REALSXP, REALSXP,
   REALSXP, INTSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
   REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, REALSXP, REALSXP, REALSXP, INTSXP,
   INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP};
@@ -432,7 +432,7 @@ static const R_FortranMethodDef fmethods[] = {
             {"pvaws2", (DL_FUNC) &pvaws2_ ,22, pvaws2_t},
             {"pvawsme", (DL_FUNC) &pvawsme_ , 26, pvawsme_t},
             {"sector", (DL_FUNC) &sector_ ,8, sector_t},
-            {"segment", (DL_FUNC) &segment_ ,28, segment_t},
+            {"segment", (DL_FUNC) &segment_ ,29, segment_t},
 						{"smooth3d", (DL_FUNC) &smooth3d_ ,16, smooth3d_t},
             {"vaws", (DL_FUNC) &vaws_ ,17, vaws_t},
             {"vaws2cov", (DL_FUNC) &vaws2cov_ ,21, vaws2cov_t},

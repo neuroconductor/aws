@@ -489,7 +489,7 @@ aws <- function(y,
   }
   if(length(sigma2)==nvoxel){
      sigma20 <- sigma2
-     sigma2 <- array(0,dy)
+     sigma2 <- array(0,dmask)
      sigma2[mask] <- sigma20
      rm(sigma20)
   }
