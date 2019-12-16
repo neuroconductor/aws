@@ -8,3 +8,5 @@ irreg_ex2       2D Example with irregular design
 awssegm_ex1     1D Example for segmentation
 awssegm_ex2     2D Example for segmentation
 awssegm_ex3     3D Example for segmentation
+paws_ex1        2D Example with local constant regression function
+paws_ex2        2D Example with piecewise smooth regression function
