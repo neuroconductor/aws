@@ -45,8 +45,10 @@
       #   set appropriate defaults
       #
       if(is.null(mask)) mask <- array(TRUE,dy)
+      dmask <- dim(mask)
+      if(is.null(dmask)) dmask <- length(mask)
       nvoxel <- sum(mask)
-      position <- array(0,dy)
+      position <- array(0,dmask)
       position[mask] <- 1:nvoxel
     # contains index of active voxel within set of voxel in mask
       if (is.null(wghts))
@@ -388,10 +390,11 @@
       ###
       ###   component var contains an estimate of Var(tobj$theta) if aggkern="Uniform", or if !memory
       ###
-      theta <- bi <- bi2 <- array(0,dy)
+      y0 <- theta <- bi <- bi2 <- array(0,dmask)
       theta[mask] <- tobj$theta
       bi[mask] <- tobj$bi
       bi2[mask] <- tobj$bi2
+      y0[mask] <- y
       vartheta <- switch(
         family,
         Gaussian = sigma2,
@@ -419,7 +422,7 @@
                                                                                              0.42445 / 4, 1e-5, d)
       }
       awsobj(
-        y,
+        y0,
         theta,
         vartheta,
         hakt,
