@@ -1,4 +1,4 @@
-smooth3D <- function(y,lkern="Gaussian",weighted=FALSE,sigma2=NULL,mask=NULL,h=NULL,
+smooth3D <- function(y,h,mask,lkern="Gaussian",weighted=FALSE,sigma2=NULL,
                      wghts=NULL) {
   #
   #  3D nonadaptive smoothing using a mask
@@ -9,10 +9,10 @@ smooth3D <- function(y,lkern="Gaussian",weighted=FALSE,sigma2=NULL,mask=NULL,h=N
   nvoxel <- sum(mask)
   position <- array(0,dmask)
   position[mask] <- 1:nvoxel
-  dy <- dim(y)
   nv <- 1
+  dy <- dim(y)
   if(is.null(dy)){
-     ly <- length(y)
+     dy <- ly <- length(y)
    } else {
      ly <- dy[1]
      nv <- dy[2]
@@ -40,9 +40,9 @@ smooth3D <- function(y,lkern="Gaussian",weighted=FALSE,sigma2=NULL,mask=NULL,h=N
   }
   if (is.null(wghts)) wghts <- c(1,1,1)
   if(is.null(mask)) mask <- array(TRUE,dy[1:3])
-  hmax <- hmax/wghts[1]
+  h <- h/wghts[1]
   wghts <- (wghts[2:3]/wghts[1])
-  dlw <- (2*trunc(hmax/c(1,wghts))+1)[1:d]
+  dlw <- (2*trunc(h/c(1,wghts))+1)[1:d]
   ysmooth <- .Fortran(C_smooth3d,
                      as.double(y),
                      as.double(sigma2),
@@ -183,9 +183,9 @@ aws3Dmask <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
   if(h0[2]>0) scorr[2] <-  get.corr.gauss(h0[2],2)
   if(h0[3]>0) scorr[3] <-  get.corr.gauss(h0[3],2)
   total <- cumsum(1.25^(1:kstar))/sum(1.25^(1:kstar))
+  propagation <- NULL
   if(testprop) {
     if(is.null(u)) u <- 0
-    propagation <- NULL
   }
   mae <- NULL
 ##
@@ -278,7 +278,7 @@ aws3Dmask <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
     nres <- dim(res)[1]
     vartheta0 <- residualVariance(res, mask, resscale=1)
     residuals <- .Fortran(C_ihaws2,
-                     as.double(residuals),
+                     as.double(res),
                      as.double(sigma2),
                      as.integer(position),
                      as.integer(weighted),
@@ -394,9 +394,9 @@ aws3Dmaskfull <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
   lambda0 <- lambda
   if (hinit>1) lambda0 <- 1e50 # that removes the stochstic term for the first step
   total <- cumsum(1.25^(1:kstar))/sum(1.25^(1:kstar))
+  propagation <- NULL
   if(testprop) {
     if(is.null(u)) u <- 0
-    propagation <- NULL
   }
   mae <- NULL
 ##
@@ -423,7 +423,7 @@ aws3Dmaskfull <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
     #
     tobj <- .Fortran(C_chawsv,
                      as.double(y),
-                     as.double(residuals),
+                     as.double(res),
                      as.double(sigma2),
                      as.integer(position),
                      as.integer(weighted),

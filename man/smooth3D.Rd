@@ -21,8 +21,8 @@ They have been moved here because they share significant parts of the
 openMP parallelized Fortran code underlying function \code{aws}.
 }
 \usage{
-smooth3D(y, lkern = "Gaussian", weighted = FALSE, sigma2 = NULL, mask = NULL,
-         h = NULL, wghts = NULL)
+smooth3D(y, h, mask, lkern = "Gaussian", weighted = FALSE, sigma2 = NULL,
+         wghts = NULL)
 medianFilter3D(y, h = 10, mask = NULL)
 aws3Dmask(y, mask, lambda, hmax, res = NULL, sigma2 = NULL, lkern = "Gaussian",
    skern = "Plateau", weighted = TRUE, u = NULL, wghts = NULL,
@@ -92,7 +92,7 @@ component \code{theta} and smoothed residuals in component \code{res}.
 }
 
 \author{ Joerg Polzehl \email{polzehl@wias-berlin.de},
-  Karsten Tabelow \email{tabelow@wias-berlin.de}  
+  Karsten Tabelow \email{tabelow@wias-berlin.de}
 }
 \note{
 Functions \code{awsmask*} are used intenally in package \code{fmri}. They refer to the
