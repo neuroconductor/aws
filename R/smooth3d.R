@@ -121,7 +121,7 @@ aws3Dmask <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
                   Triangle=2,
                   Plateau=1,
                   Exponential=3,
-                  2)
+                  1)
   if(skern%in%c(1,2)) {
     # to have similar preformance compared to skern="Exp"
     lambda <- 4/3*lambda
@@ -302,15 +302,16 @@ aws3Dmask <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
     dim(residuals) <- c(nres,nvoxel)
     vartheta <- residualVariance(residuals, mask, resscale=1, compact=TRUE)
     vred <- vartheta/vartheta0
+    vred0 <- median(vred)
     vartheta <- vred/sigma2
     lags <- pmin(c(5,5,3),dmask-1)
     scorr <- residualSpatialCorr(residuals,mask,lags, compact=TRUE)
   } else {
     scorr <- NULL
-    vred <- NULL
+    vred0 <- vred <- NULL
     vartheta <- NULL
   }
-  list(theta=theta, ni=tobj$bi, var=vartheta, vred=vred, mae=mae,
+  list(theta=theta, ni=tobj$bi, var=vartheta, vred=vred, vred0=vred0, mae=mae,
        alpha=propagation, hmax=tobj$hakt*switch(lkern,1,1,bw2fwhm(1/4)),
        scorr=scorr, res=residuals, mask=mask)
 }
@@ -348,7 +349,7 @@ aws3Dmaskfull <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
                   Triangle=2,
                   Plateau=1,
                   Exponential=3,
-                  2)
+                  1)
   if(skern%in%c(1,2)) {
     # to have similar preformance compared to skern="Exp"
     lambda <- 4/3*lambda
@@ -409,6 +410,7 @@ aws3Dmaskfull <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
   sigma2 <- 1/sigma2
   if(length(sigma2)==1) sigma2<-rep(sigma2,nvoxel)
   tobj <- list(bi = sigma2)
+  bi0 <- sigma2
   # run single steps to display intermediate results
   while (k<=kstar) {
     hakt0 <- gethani(1,3,lkern,1.25^(k-1),wghts,1e-4)
@@ -478,6 +480,7 @@ aws3Dmaskfull <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
       cat(signif(total[k],2)*100,"%                 \r",sep="")
      }
      theta <- tobj$thnew
+     dim(tobj$resnew) <- c(nres,nvoxel)
      resvar <- residualVariance(tobj$resnew, mask, resscale=1, compact=TRUE)
  #  determine Ni/sigma  from variance reduction achieved in residuals
      bi0 <- resvar0/resvar*sigma2
@@ -488,11 +491,12 @@ aws3Dmaskfull <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
   residuals <- tobj$resnew
   dim(residuals) <- c(nres,nvoxel)
   vred <- resvar/resvar0
+  vred0 <- median(vred)
   vartheta <- vred/sigma2
   lags <- pmin(c(5,5,3),dmask-1)
   scorr <- residualSpatialCorr(residuals,mask,lags, compact=TRUE)
 
-  list(theta=theta, ni=tobj$bi, var=vartheta, vred=vred, mae=mae,
+  list(theta=theta, ni=tobj$bi, var=vartheta, vred=vred, vred0=vred0, mae=mae,
        alpha=propagation, hmax=tobj$hakt*switch(lkern,1,1,bw2fwhm(1/4)),
        scorr=scorr, res=residuals, mask=mask)
 }
