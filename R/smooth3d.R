@@ -276,7 +276,7 @@ aws3Dmask <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
   #   Now compute variance of theta and variance reduction factor (with respect to the spatially uncorrelated situation
   if(!is.null(res)){
     nres <- dim(res)[1]
-    vartheta0 <- residualVariance(res, mask, resscale=1)
+    vartheta0 <- residualVariance(res, mask, resscale=1, compact=TRUE)
     residuals <- .Fortran(C_ihaws2,
                      as.double(res),
                      as.double(sigma2),
@@ -406,7 +406,7 @@ aws3Dmaskfull <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
   mc.cores <- setCores(,reprt=FALSE)
 ## initialize bi to reflect variances
 
-  resvar0 <- residualVariance(res, mask, resscale=1)
+  resvar0 <- residualVariance(res, mask, resscale=1, compact=TRUE)
   sigma2 <- 1/sigma2
   if(length(sigma2)==1) sigma2<-rep(sigma2,nvoxel)
   tobj <- list(bi = sigma2)
