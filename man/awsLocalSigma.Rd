@@ -19,7 +19,7 @@ approach from Tabelow, Voss and Polzehl (2015).
 \usage{
 awsLocalSigma(y, steps, mask, ncoils, vext = c(1, 1), lambda = 5,
     minni = 2, hsig = 5, sigma = NULL, family = c("NCchi", "Gauss"),
-    verbose = NULL, trace = FALSE, u = NULL)
+    verbose = FALSE, trace = FALSE, u = NULL)
 awslinsd(y, hmax = NULL, hpre = NULL, h0 = NULL, mask = NULL,
     ladjust = 1, wghts = NULL, varprop = 0.1, A0, A1)
 AFLocalSigma(y, ncoils, level = NULL, mask = NULL, h = 2, hadj = 1,
@@ -146,7 +146,7 @@ all functions return lists with variance estimates in component \code{sigma}
 K. Tabelow, H.U. Voss, J. Polzehl, Local estimation of the noise level in MRI using
 structural adaptation, Medical Image Analysis, 20 (2015), 76--86. DOI:10.1016/j.media.2014.10.008.
 
-S. Aja-Fernández, V. Brion, A. Tristán-Vega, Effective noise estimation and
+S. Aja-Fernandez, V. Brion, A. Tristan-Vega, Effective noise estimation and
 filtering from correlated multiple-coil MR data. Magn Reson Imaging, 31 (2013), 272-285.
 DOI:10.1016/j.mri.2012.07.006
 

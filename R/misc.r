@@ -27,7 +27,7 @@ getparam3d <- function(hsig, wght){
 #  compute coordinate indices of voxel in vicinity of radiaus hsig
 #  and corresponding location weights
 #
-  nwmd <- (2*as.integer(hsig/c(1,wght))+1)^3
+  nwmd <- prod(2*as.integer(hsig/c(1,wght))+1)
   parammd <- .Fortran(C_paramw3,
                       as.double(hsig),
                       as.double(wght),

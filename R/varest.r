@@ -113,9 +113,9 @@ estimateSigmaCompl <- function(magnitude,phase,mask,kstar=20,kmin=8,hsig=5,lambd
 
 awsLocalSigma <- function(y, steps, mask, ncoils, vext=c(1,1),
       lambda = 5, minni=2, hsig=5, sigma=NULL, family=c("NCchi","Gauss"),
-      verbose = NULL, trace = FALSE, u=NULL){
+      verbose = FALSE, trace = FALSE, u=NULL){
 if(trace) tergs <- array(0,c(steps,4,sum(mask))) else tergs <- NULL
-family <- match.arg(family,c("NCchi","Gauss","Gaussian"))
+family <- match.arg(family[1],c("NCchi","Gauss","Gaussian"))
 
 if(family == "NCchi"){
   varstats <- sofmchi(ncoils)
@@ -446,7 +446,7 @@ estGlobalSigma <- function(y, mask=NULL, ncoils=1, steps=16, vext=c(1,1),
 ##  estimate global scale parameter sigma for NCchi distributed data
 ##
   method <- match.arg(method)
-    qni <- .8 
+    qni <- .8
 ## methods using the propagation-separation (PS) approach
   if(method %in% c("awsVar","awsMAD")){
     varstats <- sofmchi(ncoils)
