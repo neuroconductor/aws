@@ -826,8 +826,7 @@ C              ngrad*ncores in sw and swy
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ns,n1,n2,n3,ngrad,n,n0,ind,ind0,y,y0,nv,
 C$OMP&       th,ni,th0,ni0,w,w0,thn,th0n,nin,ni0n,thi,sw,swy,nii,
-C$OMP&       lambda,pos,ws0,fsi2,fsi02,fsi2i)
-C$OMP& FIRSTPRIVATE(n12)
+C$OMP&       lambda,pos,ws0,fsi2,fsi02,fsi2i,n12)
 C$OMP& PRIVATE(iind,iindp,i,i1,i2,i3,i4,j1,j2,j3,j4,thrednr,k,sz,z,
 C$OMP&       sw0,swy0,jind,jindp,iind4,jind4,sthrednr,gthrednr,i4gthnr)
 C$OMP DO SCHEDULE(GUIDED)
@@ -1063,10 +1062,10 @@ C
       maxswi=1.d0
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(n1,n2,n3,nn,ncoils,pos,nv,y,th,ni,thn,ind,ldf,n,nstarts,
-C$OMP& starts,w,swi,df)
+C$OMP& starts,w,swi,df,n12)
 C$OMP& FIRSTPRIVATE(model,lambda,maxswi)
 C$OMP& PRIVATE(sw0,swy0,i,i0,i1,i2,i3,j1,j2,j3,l1,l2,l3,z,lgfi,dgfi,
-C$OMP& ldfi,fici,sc,yj,iindp,jindp,jind,n12)
+C$OMP& ldfi,fici,sc,yj,iindp,jindp,jind)
 C$OMP DO SCHEDULE(GUIDED)
       DO i=1,nn
          iindp = pos(i)
