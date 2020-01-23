@@ -150,10 +150,9 @@ interpolatesphere <- function(theta,n3g){
   ##  dim(theta) = c(n1,n2,n3,ngrad)
   dtheta <- dim(theta)
   mstheta <- array(0,c(n3g$nbv,dtheta))
-  dim(theta) <- c(prod(dtheta[1:3]),dtheta[4])
   for(i in 1:n3g$nbv){
     for(j in 1:dim(theta)[2]){
-      mstheta[i,,,,j] <- theta[,n3g$ind[,i,j]]%*%n3g$w[,i,j]
+      mstheta[i,,j] <- theta[,n3g$ind[,i,j]]%*%n3g$w[,i,j]
     }
   }
   mstheta
@@ -383,8 +382,8 @@ interpolatesphere1 <- function(theta,th0,ni,ni0,n3g,mask){
   ubv <- n3g$ubv
   dtheta <- dim(theta)
   dth0 <- dim(th0)
-  ng <- dtheta[4]
-  n <- prod(dtheta[1:3])
+  ng <- dtheta[2]
+  n <- dtheta[1]
   #t1 <- Sys.time()
   z <- .Fortran(C_ipolsp1,
                 as.double(theta),
@@ -411,8 +410,8 @@ interpolatesphere1 <- function(theta,th0,ni,ni0,n3g,mask){
     indi <- (1:ng)[bv==ubv[i]]
     lindi <- length(indi)
     #   msth0[i+1,mask] <- theta[mask,indi]%*%rep(1/lindi,lindi)
-    msth0[i+1,mask] <- .Fortran(C_getmsth0,
-                                as.double(theta[mask,indi]),
+    msth0[i+1,] <- .Fortran(C_getmsth0,
+                                as.double(theta[,indi]),
                                 as.integer(nmask),
                                 as.integer(lindi),
                                 msth0=double(nmask))$msth0
@@ -420,13 +419,13 @@ interpolatesphere1 <- function(theta,th0,ni,ni0,n3g,mask){
     #  msni0[i+1,] <- 1/(1/(ni[,indi])%*%rep(1/lindi,lindi)^2)
     #  try to be less conservative by ignorin squares in w
     #   msni0[i+1,mask] <- 1/((1/ni[mask,indi])%*%rep(1/lindi,lindi))
-    msni0[i+1,mask] <- .Fortran(C_getmsni0,
-                                as.double(ni[mask,indi]),
+    msni0[i+1,] <- .Fortran(C_getmsni0,
+                                as.double(ni[,indi]),
                                 as.integer(nmask),
                                 as.integer(lindi),
                                 msni0=double(nmask))$msni0
   }
-  dim(msth0) <- dim(msni0) <- c(nbv+1,dth0)
+  dim(msth0) <- dim(msni0) <- c(nbv+1,n)
   dim(z$msth) <- dim(z$msni) <- c(nbv+1,dtheta)
   list(mstheta=z$msth,msni=z$msni,msth0=msth0,msni0=msni0)
 }

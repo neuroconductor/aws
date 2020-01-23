@@ -807,8 +807,8 @@ C   ind(.,i)[1:5] are j1-i1,j2-i2,j3-i3, i4 and j4 respectively
 C
       implicit none
       integer nv,ns,n1,n2,n3,ngrad,n,n0,ind(5,n),ind0(3,n0),pos(*)
-      double precision y(*),y0(nv),th(ns,nv),ni(ns,nv),th0(ns,nv),
-     1  ni0(ns,nv),fsi2(ns,nv),fsi02(ns,nv),thn(*),th0n(nv),nin(*),
+      double precision y(*),y0(nv),th(ns,*),ni(ns,*),th0(ns,nv),
+     1  ni0(ns,nv),fsi2(ns,*),fsi02(ns,nv),thn(*),th0n(nv),nin(*),
      2  ni0n(nv)
 C  * refers to n1*n2*n3*ngrad for y,th,ni,thn,fsi2,nin and to
 C              n1*n2*n3 for y0,th0,ni0,th0n,ni0n,fsi02,mask
@@ -997,6 +997,7 @@ C
             jind=j1+(j2-1)*n1+(j3-1)*n12
             jindp=pos(jind)
             if(jindp.eq.0) CYCLE
+            jindp=pos(jind)
             if(lambda.lt.1d10) THEN
                sz=0.d0
                DO k=1,ns
@@ -1012,7 +1013,7 @@ C  do not adapt on the sphere !!!
             z=w0(i)
             if(sz.gt.0.5d0) z=z*(2.d0-2.d0*sz)
             sw0=sw0+z
-            swy0=swy0+z*y0(jind)
+            swy0=swy0+z*y0(jindp)
          END DO
          th0n(iindp) = swy0/sw0
          ni0n(iindp) = sw0
