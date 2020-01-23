@@ -812,12 +812,12 @@ C
      2  ni0n(nv)
 C  * refers to n1*n2*n3*ngrad for y,th,ni,thn,fsi2,nin and to
 C              n1*n2*n3 for y0,th0,ni0,th0n,ni0n,fsi02,mask
-      double precision w(n),w0(n0),lambda,thi(*),ws0,fsi2i(*),sw(*),
-     1       swy(*),nii(*)
+      double precision w(n),w0(n0),lambda,thi(ns,*),ws0,fsi2i(ns,*),
+     1       sw(ngrad,*),swy(ngrad,*),nii(ns,*)
 C  * refers to ns*ncores in thi, fsi2i, nii and to
 C              ngrad*ncores in sw and swy
       integer iind,i,i1,i2,i3,i4,j1,j2,j3,j4,thrednr,k,jind,iind4,
-     1        jind4,n12,sthrednr,gthrednr,i4gthnr,iindp,jindp
+     1        jind4,n12,iindp,jindp
       double precision sz,z,sw0,swy0
 !$      integer omp_get_thread_num
 !$      external omp_get_thread_num
@@ -828,7 +828,7 @@ C$OMP& SHARED(ns,n1,n2,n3,ngrad,n,n0,ind,ind0,y,y0,nv,
 C$OMP&       th,ni,th0,ni0,w,w0,thn,th0n,nin,ni0n,thi,sw,swy,nii,
 C$OMP&       lambda,pos,ws0,fsi2,fsi02,fsi2i,n12)
 C$OMP& PRIVATE(iind,iindp,i,i1,i2,i3,i4,j1,j2,j3,j4,thrednr,k,sz,z,
-C$OMP&       sw0,swy0,jind,jindp,iind4,jind4,sthrednr,gthrednr,i4gthnr)
+C$OMP&       sw0,swy0,jind,jindp,iind4,jind4)
 C$OMP DO SCHEDULE(GUIDED)
 C  First si - images
       DO iind=1,n1*n2*n3
@@ -836,31 +836,27 @@ C  First si - images
          if(iindp.eq.0) CYCLE
 !$         thrednr = omp_get_thread_num()+1
 C returns value in 0:(ncores-1)
-         sthrednr = (thrednr-1)*ns
-         gthrednr = (thrednr-1)*ngrad
          i1=mod(iind,n1)
          if(i1.eq.0) i1=n1
          i2=mod((iind-i1)/n1+1,n2)
          if(i2.eq.0) i2=n2
          i3=(iind-i1-(i2-1)*n1)/n1/n2+1
          DO i4=1,ngrad
-            sw(i4+gthrednr)=0.d0
-            swy(i4+gthrednr)=0.d0
+            sw(i4,thrednr)=0.d0
+            swy(i4,thrednr)=0.d0
          END DO
          i4=0
-         i4gthnr=gthrednr
          DO i=1,n
             if(ind(4,i).ne.i4) THEN
 C   by construction ind(4,.) should have same values consequtively
                i4 = ind(4,i)
-               i4gthnr=i4+gthrednr
                iind4 = iindp+(i4-1)*nv
                DO k=1,ns
-                  fsi2i(k+sthrednr)=fsi2(k,iind4)
-                  thi(k+sthrednr) = th(k,iind4)
-                  nii(k+sthrednr) = ni(k,iind4)/lambda
+                  fsi2i(k,thrednr)=fsi2(k,iind4)
+                  thi(k,thrednr) = th(k,iind4)
+                  nii(k,thrednr) = ni(k,iind4)/lambda
                END DO
-               nii(1+sthrednr)=ws0*nii(1+sthrednr)
+               nii(1,thrednr)=ws0*nii(1,thrednr)
             END IF
             j1=i1+ind(1,i)
             if(j1.le.0.or.j1.gt.n1) CYCLE
@@ -877,9 +873,9 @@ C adaptation
             if(lambda.lt.1d10) THEN
                sz=0.d0
                DO k=1,ns
-                  z=(thi(k+sthrednr)-th(k,jind4))
-                  sz=sz+nii(k+sthrednr)*z*z/
-     1                        (fsi2(k,jind4)+fsi2i(k+sthrednr))
+                  z=(thi(k,thrednr)-th(k,jind4))
+                  sz=sz+nii(k,thrednr)*z*z/
+     1                        (fsi2(k,jind4)+fsi2i(k,thrednr))
                END DO
 C  do not adapt on the sphere !!!
             ELSE
@@ -888,8 +884,8 @@ C  do not adapt on the sphere !!!
             if(sz.ge.1.d0) CYCLE
             z=w(i)
             if(sz.gt.0.5d0) z=z*(2.d0-2.d0*sz)
-            sw(i4gthnr)=sw(i4gthnr)+z
-            swy(i4gthnr)=swy(i4gthnr)+z*y(jind4)
+            sw(i4,thrednr)=sw(i4,thrednr)+z
+            swy(i4,thrednr)=swy(i4,thrednr)+z*y(jind4)
          END DO
 C  now opposite directions
          DO i=1,n
@@ -897,14 +893,13 @@ C  now opposite directions
             if(ind(4,i).ne.i4) THEN
 C   by construction ind(4,.) should have same values consequtively
                i4 = ind(4,i)
-               i4gthnr=i4+gthrednr
                iind4 = iindp+(i4-1)*nv
                DO k=1,ns
-                  fsi2i(k+sthrednr)=fsi2(k,iind4)
-                  thi(k+sthrednr) = th(k,iind4)
-                  nii(k+sthrednr) = ni(k,iind4)/lambda
+                  fsi2i(k,thrednr)=fsi2(k,iind4)
+                  thi(k,thrednr) = th(k,iind4)
+                  nii(k,thrednr) = ni(k,iind4)/lambda
                END DO
-               nii(1+sthrednr)=ws0*nii(1+sthrednr)
+               nii(1,thrednr)=ws0*nii(1,thrednr)
 C  first component corresponds to S0 image, ws0 is used to downweight its influence
 C  when smoothing diffusion weighted data
             END IF
@@ -926,9 +921,9 @@ C
             if(lambda.lt.1d10) THEN
                sz=0.d0
                DO k=1,ns
-                  z=(thi(k+sthrednr)-th(k,jind4))
-                  sz=sz+nii(k+sthrednr)*z*z/
-     1                        (fsi2(k,jind4)+fsi2i(k+sthrednr))
+                  z=(thi(k,thrednr)-th(k,jind4))
+                  sz=sz+nii(k,thrednr)*z*z/
+     1                        (fsi2(k,jind4)+fsi2i(k,thrednr))
                END DO
 C  do not adapt on the sphere !!!
             ELSE
@@ -937,21 +932,21 @@ C  do not adapt on the sphere !!!
             if(sz.ge.1.d0) CYCLE
             z=w(i)
             if(sz.gt.0.5d0) z=z*(2.d0-2.d0*sz)
-            sw(i4gthnr)=sw(i4gthnr)+z
-            swy(i4gthnr)=swy(i4gthnr)+z*y(jind4)
+            sw(i4,thrednr)=sw(i4,thrednr)+z
+            swy(i4,thrednr)=swy(i4,thrednr)+z*y(jind4)
          END DO
          DO i4=1,ngrad
             iind4 = iindp+(i4-1)*nv
-            thn(iind4) = swy(i4+gthrednr)/sw(i4+gthrednr)
-            nin(iind4) = sw(i4+gthrednr)
+            thn(iind4) = swy(i4,thrednr)/sw(i4,thrednr)
+            nin(iind4) = sw(i4,thrednr)
          END DO
 C    now the s0 image in iind
          sw0=0.d0
          swy0=0.d0
          DO k=1,ns
-            thi(k+sthrednr) = th0(k,iindp)
-            nii(k+sthrednr) = ni0(k,iindp)/lambda
-            fsi2i(k+sthrednr)=fsi02(k,iindp)
+            thi(k,thrednr) = th0(k,iindp)
+            nii(k,thrednr) = ni0(k,iindp)/lambda
+            fsi2i(k,thrednr)=fsi02(k,iindp)
          END DO
          DO i=1,n0
             j1=i1+ind0(1,i)
@@ -967,9 +962,9 @@ C adaptation
             if(lambda.lt.1d10) THEN
                sz=0.d0
                DO k=1,ns
-                  z=(thi(k+sthrednr)-th0(k,jindp))
-                  sz=sz+nii(k+sthrednr)*z*z/
-     1                        (fsi02(k,jindp)+fsi2i(k+sthrednr))
+                  z=(thi(k,thrednr)-th0(k,jindp))
+                  sz=sz+nii(k,thrednr)*z*z/
+     1                        (fsi02(k,jindp)+fsi2i(k,thrednr))
                END DO
 C  do not adapt on the sphere !!!
             ELSE
@@ -1001,9 +996,9 @@ C
             if(lambda.lt.1d10) THEN
                sz=0.d0
                DO k=1,ns
-                  z=(thi(k+sthrednr)-th0(k,jindp))
-                  sz=sz+nii(k+sthrednr)*z*z/
-     1                        (fsi02(k,jindp)+fsi2i(k+sthrednr))
+                  z=(thi(k,thrednr)-th0(k,jindp))
+                  sz=sz+nii(k,thrednr)*z*z/
+     1                        (fsi02(k,jindp)+fsi2i(k,thrednr))
                END DO
 C  do not adapt on the sphere !!!
             ELSE

@@ -588,7 +588,7 @@ estGlobalSigma <- function(y, mask=NULL, ncoils=1, steps=16, vext=c(1,1),
                           as.integer(ddim[2]),
                           as.integer(ddim[3]),
                           as.integer(mask),
-                          as.double(h),
+                          as.double(hinit),
                           as.double(vext),
                           sigma = double(n))$sigma
         sigma <- sigma/2/(ncoils-gamma(ncoils+.5)^2/gamma(ncoils)^2)
@@ -601,7 +601,7 @@ estGlobalSigma <- function(y, mask=NULL, ncoils=1, steps=16, vext=c(1,1),
                           as.integer(ddim[2]),
                           as.integer(ddim[3]),
                           as.integer(mask),
-                          as.double(h),
+                          as.double(hinit),
                           as.double(vext),
                           sigma = double(n))$sigma
         sigma <- array( afactor*sigma, ddim)
