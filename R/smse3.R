@@ -170,7 +170,7 @@ smse3 <- function(sb, s0, bv, grad, mask, sigma, kstar, lambda, kappa0,
 }
 
 smse3ms <- function(sb, s0, bv, grad, kstar, lambda, kappa0,
-                  mask, sigma, ns0=1,
+                  mask, sigma, ns0=1, ws0=1,
                   vext = NULL,
                   ncoils = 1,
                   verbose = FALSE,
@@ -237,7 +237,7 @@ smse3ms <- function(sb, s0, bv, grad, kstar, lambda, kappa0,
     for(k in kinit:kstar){
       hakt <- hseq$h[,k+1]
       t0 <- Sys.time()
-      thnimsh <- interpolatesphere1(z$th,z$th0,z$ni,z$ni0,msstructure,mask)
+      thnimsh <- interpolatesphere1(z$th,z$th0,z$ni,z$ni0,msstructure)
       rm(z)
       gc()
       t1 <- Sys.time()
@@ -266,7 +266,7 @@ smse3ms <- function(sb, s0, bv, grad, kstar, lambda, kappa0,
                     as.integer(ddim[3]),#n3
                     as.integer(ngrad),#ngrad
                     as.double(lambda),#lambda
-                    as.double(ns0),# wghts0 rel. weight for s0 image
+                    as.double(ws0),# wghts0 rel. weight for s0 image
                     as.integer(param$ind),#ind
                     as.double(param$w),#w
                     as.integer(param$n),#n
@@ -291,26 +291,6 @@ smse3ms <- function(sb, s0, bv, grad, kstar, lambda, kappa0,
         ni0 <- z$ni0 <- if(usemaxni) pmax(ni0,z$ni0)
       }
       dim(z$ni) <- dim(z$th) <- c(nvoxel,nbv)
-#
-#   now rescale results with sigma
-#
-#  s0 was scaled differently
-      if(is.null(dsigma)){
-        z$th0 <- z$th0*sigma/sqrt(ns0)
-        z$th <- z$th*sigma
-      } else if(dsigma[2]==nshell+1){
-        for (shnr in 1:nshell) {
-          z$th0 <- z$th0*sigma[,1]/sqrt(ns0)
-          indbv <- (1:length(bv))[bv == ubv[shnr]]
-          z$th[, indbv] <- z$th[, indbv]* sigma[, shnr+1]
-        }
-      }
-      else if(dsigma[2]==nbv+1){
-        for (ibv in 1:nbv) {
-          z$th0 <- z$th0*sigma[,1]/sqrt(ns0)
-          z$th[, ibv] <- z$th[, ibv]* sigma[, ibv+1]
-        }
-      }
       if(verbose){
         cat("k:",k,"h_k:",signif(max(hakt),3)," quartiles of ni",signif(quantile(z$ni),3),
             "mean of ni",signif(mean(z$ni),3),
@@ -324,5 +304,25 @@ smse3ms <- function(sb, s0, bv, grad, kstar, lambda, kappa0,
         cat(".")
       }
     }
+    #
+    #   now rescale results with sigma
+    #
+    #  s0 was scaled differently
+          if(is.null(dsigma)){
+            z$th0 <- z$th0*sigma/sqrt(ns0)
+            z$th <- z$th*sigma
+          } else if(dsigma[2]==nshell+1){
+            for (shnr in 1:nshell) {
+              z$th0 <- z$th0*sigma[,1]/sqrt(ns0)
+              indbv <- (1:length(bv))[bv == ubv[shnr]]
+              z$th[, indbv] <- z$th[, indbv]* sigma[, shnr+1]
+            }
+          }
+          else if(dsigma[2]==nbv+1){
+            for (ibv in 1:nbv) {
+              z$th0 <- z$th0*sigma[,1]/sqrt(ns0)
+              z$th[, ibv] <- z$th[, ibv]* sigma[, ibv+1]
+            }
+          }
     list(th=z$th, th0=z$th0, ni=z$ni, ni0=z$ni0, hseq=hseq, kappa0=kappa0, lambda=lambda)
   }

@@ -1313,12 +1313,12 @@ C$OMP END PARALLEL
 C$OMP FLUSH(msth,msni)
       RETURN
       END
-      subroutine ipolsp1(theta,th0,ni,ni0,mask,n,ng,gind,gw,nbv,nbvp1,
+      subroutine ipolsp1(theta,th0,ni,ni0,n,ng,gind,gw,nbv,nbvp1,
      1                    msth,msni)
 C   interpolate values of theta on spheres where it was not observed
+C   this only gets voxel within mask
       implicit none
       integer n,ng,nbv,nbvp1,gind(3,nbv,ng)
-      integer mask(n)
       double precision theta(n,ng),th0(n),ni(n,ng),ni0(n),gw(3,nbv,ng),
      1       msth(nbvp1,n,ng),msni(nbvp1,n,ng)
       integer i,j,k,i1,i2,i3,ip1
@@ -1328,7 +1328,6 @@ C$OMP& PRIVATE(i,j,k,w1,w2,w3,i1,i2,i3,ip1)
 C$OMP DO SCHEDULE(GUIDED)
       DO j=1,ng
          DO k=1,n
-            if(mask(k).eq.0) CYCLE
             msth(1,k,j) = th0(k)
             msni(1,k,j) = ni0(k)
             DO i=1,nbv
