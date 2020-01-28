@@ -275,7 +275,7 @@ C   last three komponents already to large
                   DO j3 = -ih3,ih3
                      x3 = j3
                      z1 = x2+vd3*x3*x3
-                     if(z1.gt.h2) CYCLE
+                     if(z1.ge.h2) CYCLE
                      if(i.gt.n) THEN
                         call intpr("Exceeded max i",14,i,1)
                         call intpr("for i4",6,i4,1)
@@ -306,7 +306,7 @@ C dist=4
                      x3 = j3
                      z1 = x2+vd3*x3*x3
                      z1=z+sqrt(z1)
-                     if(z1.gt.h) CYCLE
+                     if(z1.ge.h) CYCLE
                      if(i.gt.n) THEN
                         call intpr("Exceeded max i",14,i,1)
                         call intpr("for i4",6,i4,1)
@@ -876,6 +876,7 @@ C adaptation
                   z=(thi(k,thrednr)-th(k,jind4))
                   sz=sz+nii(k,thrednr)*z*z/
      1                        (fsi2(k,jind4)+fsi2i(k,thrednr))
+                  if(sz.ge.1.d0) EXIT
                END DO
 C  do not adapt on the sphere !!!
             ELSE
@@ -924,6 +925,7 @@ C
                   z=(thi(k,thrednr)-th(k,jind4))
                   sz=sz+nii(k,thrednr)*z*z/
      1                        (fsi2(k,jind4)+fsi2i(k,thrednr))
+                  if(sz.ge.1.d0) EXIT
                END DO
 C  do not adapt on the sphere !!!
             ELSE
@@ -965,6 +967,7 @@ C adaptation
                   z=(thi(k,thrednr)-th0(k,jindp))
                   sz=sz+nii(k,thrednr)*z*z/
      1                        (fsi02(k,jindp)+fsi2i(k,thrednr))
+                  if(sz.ge.1.d0) EXIT
                END DO
 C  do not adapt on the sphere !!!
             ELSE
@@ -999,6 +1002,7 @@ C
                   z=(thi(k,thrednr)-th0(k,jindp))
                   sz=sz+nii(k,thrednr)*z*z/
      1                        (fsi02(k,jindp)+fsi2i(k,thrednr))
+                  if(sz.ge.1.d0) EXIT
                END DO
 C  do not adapt on the sphere !!!
             ELSE
@@ -1253,7 +1257,7 @@ C  just to prevent compiler warnings
             DO j3 = -ih3,ih3
                x3 = vd3*j3
                z1 = z+x1*x1+x2*x2+x3*x3
-               if(z1.gt.h2) CYCLE
+               if(z1.ge.h2) CYCLE
                if(i.gt.n) THEN
                   call intpr("Exceeded max i",14,i,1)
                   n = i-1
