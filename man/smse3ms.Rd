@@ -14,7 +14,7 @@ The data provided should only refer to voxel within mask.
 }
 \usage{
 smse3ms(sb, s0, bv, grad, kstar, lambda, kappa0, mask, sigma,
-    ns0 = 1, vext = NULL, ncoils = 1, verbose = FALSE, usemaxni = TRUE)
+    ns0 = 1, ws0 = 1, vext = NULL, ncoils = 1, verbose = FALSE, usemaxni = TRUE)
 smse3(sb, s0, bv, grad, mask, sigma, kstar, lambda, kappa0,
     ns0 = 1, vext = NULL, vred = 4, ncoils = 1, model = 0, dist = 1,
     verbose = FALSE)
@@ -55,6 +55,9 @@ with factor \code{vred} on the sphere.
 }
   \item{ns0}{
   Actual number of non-diffusion-weigthed images used to obtain \code{s0} by averaging.
+}
+  \item{ns0}{
+  Weight for non-diffusion-weigthed images in statistical penalty.
 }
   \item{vext}{
   Voxel extensions.
