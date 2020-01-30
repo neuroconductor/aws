@@ -73,11 +73,11 @@
       # adjusted using simulations such that for homogeneous structures
       # loss by adaptation < 1% in MAE and <.1 in PSNR
       if(length(dy)==1){
-         ladjust <- switch(patchsize,.75,.75,.7,.65)*ladjust
+         ladjust <- switch(patchsize+1,1,.75,.75,.7,.65)*ladjust
       } else if(length(dy)==2){
-         ladjust <- switch(patchsize,1.1,1.1,1.2)*ladjust
+         ladjust <- switch(patchsize+1,1,1.1,1.1,1.2)*ladjust
     } else {
-         ladjust <- switch(patchsize,1.44,1.6)*ladjust
+         ladjust <- switch(patchsize+1,1,1.44,1.6)*ladjust
     }
 
       cpar <-
