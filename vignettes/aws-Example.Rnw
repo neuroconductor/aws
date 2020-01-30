@@ -1,0 +1,316 @@
+\documentclass[a4paper]{article}
+
+\usepackage{filecontents}
+
+\begin{filecontents}{aws.bib}
+ @techreport{PoPaTa18,
+	Author = {J. Polzehl and K. Papafitsoros and K. Tabelow},
+	Doi = {10.20347/WIAS.PREPRINT.2520},
+	Institution = {WIAS},
+	Number = {2520},
+	Title = {Patch-wise adaptive weights smoothing},
+	Type = {Preprint}
+	}
+
+	@Book{MRBIbook2019,
+	  title =     {Magnetic Resonance Brain Imaging: Modeling and Data Analysis Using R},
+	  publisher = {Springer},
+	  year =      {2019},
+	  author =    {J\"org Polzehl and Karsten Tabelow},
+	  series =    {Use R!},
+	  doi =       {10.1007/978-3-030-29184-6}
+	}
+	
+	@Article{PoSp00,
+  author =        {Polzehl, J. and Spokoiny, V.},
+  title =         {Adaptive Weights Smoothing with Applications to Image Restoration},
+  journal =       {J. Royal Stat. Soc. B},
+  year =          {2000},
+  volume =        {62},
+  pages =         {335--354},
+  date-added =    {2019-01-04 16:30:08 +0100},
+  date-modified = {2019-07-02 14:31:06 +0200},
+  doi =           {10.1111/1467-9868.00235}
+}
+
+  @Article{PoSp05,
+  author =        {Polzehl, J. and Spokoiny, V.},
+  title =         {Propagation-separation approach for local likelihood estimation},
+  journal =       {Probab. Theory Relat. Fields},
+  year =          {2006},
+  volume =        {135},
+  pages =         {335-362},
+  doi =           {10.1007/s00440-005-0464-1}
+}
+
+ @Article{rudin1992nonlinear,
+  author =        {Rudin, L.I. and Osher, S. and Fatemi, E.},
+  title =         {Nonlinear Total Variation Based Noise Removal Algorithms},
+  journal =       {Phys. D},
+  year =          {1992},
+  volume =        {60},
+  number =        {1-4},
+  pages =         {259--268},
+  doi =           {10.1016/0167-2789(92)90242-F}
+}
+
+ @Article{TGV,
+  author =        {Bredies, K. and Kunisch, K. and Pock, T.},
+  title =         {Total Generalized Variation},
+  journal =       {SIAM Journal on Imaging Sciences},
+  year =          {2010},
+  volume =        {3},
+  number =        {3},
+  pages =         {492--526},
+  doi =           {10.1137/090769521},
+  publisher =     {SIAM}
+}
+
+ @Article{Coupe12,
+  author =        {P. Coup\'e and J. V Manjon and M. Robles and D. L. Collins},
+  title =         {Adaptive Multiresolution Non-Local Means Filter for Three-Dimensional Magnetic Resonance Image Denoising},
+  journal =       {IET Image Process.},
+  year =          {2012},
+  volume =        {6},
+  number =        {5},
+  pages =         {558-568},
+  doi =           {10.1049/iet-ipr.2011.0161}
+}
+
+ @Article{Coupe08,
+  author =        {P. Coup\'e and P. Yger and S. Prima and P. Hellier and C. Kervrann and C. Barillot},
+  title =         {An Optimized Blockwise Non-Local Means Denoising Filter for 3-D Magnetic Resonance Images},
+  journal =       {IEEE Trans. Med. Imaging},
+  year =          {2008},
+  volume =        {27},
+  number =        {4},
+  pages =         {425--441},
+  doi =           {10.1109/TMI.2007.906087}
+}
+
+ @Book{katkov06,
+  title =         {Local Approximation Techniques in Signal And Image Processing},
+  publisher =     {SPIE Society of Photo-Optical Instrumentation Engin.},
+  year =          {2006},
+  author =        {Vladimir Katkovnik and Karen Egiazarian and Jaakko Astola},
+  volume =        {PM157}
+}
+
+
+\end{filecontents}
+
+\usepackage[style=authoryear,backend=bibtex,url=false]{biblatex} %backend tells biblatex what you will be using to process the bibliography file
+\addbibresource{aws}
+
+\newcommand{\pkg}[1]{{\normalfont\fontseries{b}\selectfont #1}\index{Packages!#1}}
+\let\proglang=\textsf
+\let\code=\texttt
+%\VignetteIndexEntry{Analyzing MPM data with package qMRI}
+
+\title{A very short inroduction into the aws package}
+\author{J\"org Polzehl}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\maketitle
+
+\setkeys{Gin}{width=\textwidth}
+This document illustrates the capabilities of the \pkg{aws}. For a more comprehensive overview and
+more realistic examples we refer to \cite{PoPaTa18} and appendix A of \cite{MRBIbook2019}. 
+
+The package contains functions for adaptive smoothing (filtering) in various settings, including
+regular (and irregular) designs in 1D, 2D, 3D and SE(3), for univariate and vector valued observations.
+
+The code in this vignette is restricted to 1D and 2D examples due to limit computation time.
+
+\section{Some artificial data}
+<<0,echo=FALSE>>=
+options(digits=3)
+@
+First, we generate some artificial examples:
+
+The first example employs a local constant univariate regression function
+<<1a,echo=TRUE>>=
+library(aws)
+fofx1 <- c(rep(0,25),rep(-1,20),rep(1,20), rep(-2,10),rep(2,5), 
+           rep(-1,25),rep(-.5,30),rep(0,35)) 
+set.seed(1)
+y1 <- rnorm(fofx1,fofx1,.3)
+@
+
+The second example uses a local constant image
+<<1b,echo=TRUE>>=
+u1 <- matrix(0,64,64)
+ind0 <- seq(0,1,length=64)
+ind <- outer(ind0^2,ind0^2,"+")
+u1[ind  > .95] <- u1[ind >.95] + 2
+u1[ind < .6] <- u1[ind < .6] -2
+u1[ind < .35] <- u1[ind < .35] +3
+u1[ind < .15] <- u1[ind < .15] -2
+u1[ind < .05] <- u1[ind < .05] +3
+u1 <- u1*(1-2*outer(ind0,ind0,">"))
+z1 <- u1+rnorm(u1)
+@
+
+In the third example a smooth image is added leading to a locally smooth image
+<<1c,echo=TRUE>>=
+u2 <- u1+5*ind
+z2 <- u2+rnorm(u1)
+@
+
+\section{Nonparametric smoothing}
+
+Nonparametric smoothing using FFT is implemented in function \code{kernsm} for
+1D, 2D and 3D data.
+<<2a, echo=TRUE, result=FALSE>>=
+yhat0 <- kernsm(y1, h=10)
+@
+
+
+\section{Adaptive weights smoothing}
+
+Function \code{aws} implements the structural adaptive smoothing methods developed in
+\cite{PoSp00} and \cite{PoSp05}.
+<<2a, echo=TRUE, results=hide>>=
+yhat1 <- aws(y1, hmax=100)
+@
+
+<<2b, echo=TRUE, fig = TRUE, width = 15, height = 6.5>>=
+par(mfrow=c(1,3), mar=c(3,3,3,1), mgp=c(2,1,0))
+plot(y1)
+lines(yhat1@theta, col=2)
+lines(fofx1, col=3)
+title("AWS estimate")
+plot(yhat1@ni)
+title("Sum of weights")
+plot(y1)
+lines(kernsm(y1,.609)@yhat, col=2)
+lines(fofx1, col=3)
+title("MSE optimal kernel estimate")
+@
+
+The left Figure shows the the data, estimated regression function (red) in comparison to the true function (green). The central panel provides, for each design point, the sum of weights emploid in the last step of the AWS algorithm, while the right panel illustrates the behaviour of a kernel estimate with MSE optimal bandwidth.
+
+For the 2D examples we employ both the functions \code{aws} and \code{paws}.
+The latter function implements the patchwise adaptive weights algorithm described in
+\cite{PoPaTa18}. 
+
+<<2c, echo=TRUE, results=hide>>=
+setCores(4)
+zhat1a <- aws(z1, hmax=8)
+zhat1b <- paws(z1, hmax=10, patchsize=1)
+@
+
+<<2d, echo=TRUE, fig = TRUE, width = 15, height = 11>>=
+par(mfrow=c(2,3), mar=c(3,3,3,1), mgp=c(2,1,0))
+image(z1, col=grey(0:255/255))
+title("Noisy original")
+image(zhat1a@theta, col=grey(0:255/255))
+title("AWS reconstruction")
+image(zhat1a@ni, col=grey(0:255/255))
+title("AWS sum of weights")
+image(u1, col=grey(0:255/255))
+title("True image")
+image(zhat1b@theta, col=grey(0:255/255))
+title("PAWS reconstruction")
+image(zhat1b@ni, col=grey(0:255/255))
+title("PAWS sum of weights")
+@
+The Figure illustrates the results obtained using both methods in comparison with
+the noisy original and the true image.
+
+To illustrate the dependence of the obtained reconstruction quality we use the
+second, locally smooth, 2D example.
+
+<<2e, echo=TRUE, results=hide>>=
+zhat2a <- aws(z2, hmax=8)
+zhat2b <- paws(z2, hmax=10)
+@
+
+<<2f, echo=TRUE, fig = TRUE, width = 15, height = 11>>=
+par(mfrow=c(2,3), mar=c(3,3,3,1), mgp=c(2,1,0))
+image(z2, col=grey(0:255/255))
+title("Noisy original")
+image(zhat2a@theta, col=grey(0:255/255))
+title("AWS reconstruction")
+image(zhat2a@ni, col=grey(0:255/255))
+title("AWS sum of weights")
+image(u2, col=grey(0:255/255))
+title("True image")
+image(zhat2b@theta, col=grey(0:255/255))
+title("PAWS reconstruction")
+image(zhat2b@ni, col=grey(0:255/255))
+title("PAWS sum of weights")
+@
+Note that AWS enforces the structural assumption of a local constant image if large maximal bandwidths are used. This drawback is overcome in PAWS which allows for smooth image gradients and prefers smooth discontinuities. 
+
+Both functions handle 1D, 2D and 3D images.
+
+\section{Intersection of confidence intervals}
+
+The package also containes functions implementing the Intersection of confidence intervals approach from \cite{katkov06}. The approach is based on adaptation techniques
+that combine results obtained by kernel smoothing for a sequence of bandwidths and for
+orientation (sector) dependent support of the kernel.
+
+<<3a, echo=TRUE>>=
+zhat1c <- kernsm(z1,.9)@yhat
+zhat1d <- ICIsmooth(z1, hmax=8, thresh=.8, presmooth=TRUE)@yhat
+zhat1e <- ICIcombined(z1, hmax=8, nsector=8, thresh=.8, 
+                      presmooth=TRUE)@yhat
+@
+We here apply sets of parameters choosen to provide good MSE for reconstruction results. 
+
+<<3b, echo=TRUE, fig = TRUE, width = 15, height = 4.5>>=
+par(mfrow=c(1,4), mar=c(3,3,3,1), mgp=c(2,1,0))
+image(z1, col=grey(0:255/255))
+title("Noisy original")
+image(zhat1c, col=grey(0:255/255))
+title("optimal kernel estimate")
+image(zhat1d, col=grey(0:255/255))
+title("adaptation over h")
+image(zhat1e, col=grey(0:255/255))
+title("adaptation over h and sectorial")
+@
+
+
+
+\section{Non-local means filter}
+
+For comparisons the NL Means algorithm \parencite{Coupe08}, \parencite{Coupe12} in 1D, 2D and 3D is provided with function \code{nlmeans}.
+<<3a, echo=TRUE>>=
+zhat1f <- nlmeans(z1, .85, 1, searchhw=6)$theta 
+@
+
+
+\section{Total variation methods}
+
+Additionally functions \code{TV\_denoising} and \code{TGV\_denoising} implement
+ total variation \parencite{rudin1992nonlinear} and total generalized variation \parencite{TGV} methods for image denoising in 2D.
+
+<<4a, echo=TRUE>>=
+zhat1f <- TV_denoising(z1, .93)
+zhat1g <- TGV_denoising(z1, .92, 4)
+@
+
+<<3b, echo=TRUE, fig = TRUE, width = 15, height = 4.5>>=
+par(mfrow=c(1,4), mar=c(3,3,3,1), mgp=c(2,1,0))
+image(z1, col=grey(0:255/255))
+title("Noisy original")
+image(zhat1e, col=grey(0:255/255))
+title("NL-Means estimate")
+image(zhat1f, col=grey(0:255/255))
+title("Optimal TV reconstruction")
+image(zhat1g, col=grey(0:255/255))
+title("Optimal TGV reconstruction")
+@
+The figure provides reconstructions for the first (local constant) 
+2D example using NL Means, TV and TGV denoising. For all three methods parameters are optimized for the data at hand.
+
+\section{Other content}
+
+The package \pkg{aws} also contains functions for locally adaptive variance estimation,
+versions of AWS and PAWS for vector valued data (used e.g. in package \pkg{qMRI}) and AWS methods for data in SE(3) (these methods are used for smoothing of diffusion weighted data in package \pkg{dti}). Most of the computationally intensive code is parallelized using openMP.
+\printbibliography
+
+\end{document}
