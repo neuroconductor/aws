@@ -56,7 +56,7 @@ with factor \code{vred} on the sphere.
   \item{ns0}{
   Actual number of non-diffusion-weigthed images used to obtain \code{s0} by averaging.
 }
-  \item{ns0}{
+  \item{ws0}{
   Weight for non-diffusion-weigthed images in statistical penalty.
 }
   \item{vext}{

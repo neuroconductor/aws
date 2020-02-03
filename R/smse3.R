@@ -166,7 +166,7 @@ smse3 <- function(sb, s0, bv, grad, mask, sigma, kstar, lambda, kappa0,
           " time elapsed:",format(difftime(Sys.time(),prt0),digits=3),"\n")
     }
   }
-  list(th=z$th*sigma, th0=z$th0*sigma, ni=z$ni, ni0=z$ni0, hseq=hseq, kappa0=kappa0, lambda=lambda)
+  list(th=z$th*sigma, th0=th0*sigma, ni=z$ni, ni0=ni0, hseq=hseq, kappa0=kappa0, lambda=lambda)
 }
 
 smse3ms <- function(sb, s0, bv, grad, kstar, lambda, kappa0,
