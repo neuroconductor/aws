@@ -116,13 +116,13 @@
 \maketitle
 
 \setkeys{Gin}{width=\textwidth}
-This document illustrates the capabilities of the \pkg{aws}. For a more comprehensive overview and
+This document illustrates the capabilities of the \pkg{aws} package. For a more comprehensive overview and
 more realistic examples we refer to \cite{PoPaTa18} and appendix A of \cite{MRBIbook2019}. 
 
 The package contains functions for adaptive smoothing (filtering) in various settings, including
 regular (and irregular) designs in 1D, 2D, 3D and SE(3), for univariate and vector valued observations.
 
-The code in this vignette is restricted to 1D and 2D examples due to limit computation time.
+The code in this vignette is restricted to 1D and 2D examples due to limited computation time.
 
 \section{Some artificial data}
 <<0,echo=FALSE>>=
@@ -197,7 +197,7 @@ The latter function implements the patchwise adaptive weights algorithm describe
 \cite{PoPaTa18}. 
 
 <<2c, echo=TRUE, results=hide>>=
-setCores(4)
+setCores(2)
 zhat1a <- aws(z1, hmax=8)
 zhat1b <- paws(z1, hmax=10, patchsize=1)
 @
