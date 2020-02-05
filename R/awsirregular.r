@@ -79,7 +79,7 @@ aws.irreg <- function(y,
       mgp = c(2, 1, 0)
     )
     image(mask,
-          col = gray((0:255) / 255),
+          col = grey((0:255) / 255),
           xaxt = "n",
           yaxt = "n")
     title("compute estimates on mask ")
@@ -274,7 +274,7 @@ aws.irreg <- function(y,
           mgp = c(2, 1, 0)
         )
         image(yy,
-              col = gray((0:255) / 255),
+              col = grey((0:255) / 255),
               xaxt = "n",
               yaxt = "n")
         title(paste(
@@ -288,7 +288,7 @@ aws.irreg <- function(y,
           array(pmax(pmin(
             tobj$theta, zlim[2]
           ), zlim[1]), dy),
-          col = gray((0:255) / 255),
+          col = grey((0:255) / 255),
           xaxt = "n",
           yaxt = "n"
         )
@@ -302,7 +302,7 @@ aws.irreg <- function(y,
         ))
         image(
           tobj$bi,
-          col = gray((0:255) / 255),
+          col = grey((0:255) / 255),
           xaxt = "n",
           yaxt = "n"
         )

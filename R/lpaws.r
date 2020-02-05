@@ -558,12 +558,12 @@ lpaws <- function(y,
           image(y,
                 xaxt = "n",
                 yaxt = "n",
-                col = gray((0:255) / 255))
+                col = grey((0:255) / 255))
           title("Observed Image")
           image(theta[, , 1],
                 xaxt = "n",
                 yaxt = "n",
-                col = gray((0:255) / 255))
+                col = grey((0:255) / 255))
           title(paste(
             "Reconstruction  h=",
             signif(hakt, 3),
@@ -575,7 +575,7 @@ lpaws <- function(y,
           image(bi[, , 1],
                 xaxt = "n",
                 yaxt = "n",
-                col = gray((0:255) / 255))
+                col = grey((0:255) / 255))
           title(paste(
             "Sum of weights: min=",
             signif(min(bi[, , 1]), 3),

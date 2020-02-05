@@ -1,6 +1,6 @@
 Package: aws
 Version: 2.4-1
-Date: 2020-02-03
+Date: 2020-02-05
 Title: Adaptive Weights Smoothing
 Authors@R: c(person("Joerg","Polzehl",role=c("aut","cre"),email="joerg.polzehl@wias-berlin.de"),person("Felix","Anker",role=c("ctb")))
 Author: Joerg Polzehl [aut, cre],
@@ -9,8 +9,7 @@ Maintainer: Joerg Polzehl <joerg.polzehl@wias-berlin.de>
 Depends:
     R (>= 3.4.0), awsMethods (>= 1.1-1)
 Imports:
-    methods,
-    gsl
+    methods, gsl
 Description: We provide a collection of R-functions implementing
     adaptive smoothing procedures in 1D, 2D and 3D. This includes the
     Propagation-Separation Approach to adaptive smoothing as
@@ -24,7 +23,7 @@ Description: We provide a collection of R-functions implementing
    Magnetic Resonance Brain Imaging, Appendix A, Springer, Use R! Series.
    <doi:10.1007/978-3-030-29184-6_6>.
 License: GPL (>=2)
-Copyright: This package is Copyright (C) 2005-2019 Weierstrass Institute
+Copyright: This package is Copyright (C) 2005-2020 Weierstrass Institute
     for Applied Analysis and Stochastics.
 URL: http://www.wias-berlin.de/people/polzehl/
 RoxygenNote: 5.0.1

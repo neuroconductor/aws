@@ -327,7 +327,7 @@ aws.segment <- function(y,
           mgp = c(2, 1, 0)
         )
         image(array(y,dy),
-              col = gray((0:255) / 255),
+              col = grey((0:255) / 255),
               xaxt = "n",
               yaxt = "n")
         title(paste(
@@ -338,7 +338,7 @@ aws.segment <- function(y,
         ))
         image(
           array(zobj$theta,dy),
-          col = gray((0:255) / 255),
+          col = grey((0:255) / 255),
           xaxt = "n",
           yaxt = "n"
         )
@@ -352,7 +352,7 @@ aws.segment <- function(y,
         ))
         image(
           array(zobj$gi,dy),
-          col = gray((0:255) / 255),
+          col = grey((0:255) / 255),
           xaxt = "n",
           yaxt = "n"
         )
@@ -366,7 +366,7 @@ aws.segment <- function(y,
         ))
         image(
           array(segment,dy),
-          col = gray((0:255) / 255),
+          col = grey((0:255) / 255),
           xaxt = "n",
           yaxt = "n",
           zlim = c(-1, 1)
@@ -380,7 +380,7 @@ aws.segment <- function(y,
           mgp = c(2, 1, 0)
         )
         image(array(y,dy)[, , n3 %/% 2 + 1],
-              col = gray((0:255) / 255),
+              col = grey((0:255) / 255),
               xaxt = "n",
               yaxt = "n")
         title(paste(
@@ -391,7 +391,7 @@ aws.segment <- function(y,
         ))
         image(
           array(zobj$theta,dy)[, , n3 %/% 2 + 1],
-          col = gray((0:255) / 255),
+          col = grey((0:255) / 255),
           xaxt = "n",
           yaxt = "n"
         )
@@ -405,7 +405,7 @@ aws.segment <- function(y,
         ))
         image(
           array(zobj$bi,dy)[, , n3 %/% 2 + 1],
-          col = gray((0:255) / 255),
+          col = grey((0:255) / 255),
           xaxt = "n",
           yaxt = "n"
         )
@@ -419,7 +419,7 @@ aws.segment <- function(y,
         ))
         image(
           array(segment,dy)[, , n3 %/% 2 + 1],
-          col = gray((0:255) / 255),
+          col = grey((0:255) / 255),
           xaxt = "n",
           yaxt = "n",
           zlim = c(-1, 1)

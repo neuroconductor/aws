@@ -144,7 +144,7 @@ awstestprop <- function(dy,
   kldistnorm1 <- function(th1, y, df) {
     L <- df / 2
     m1 <-
-      sqrt(pi / 2) * gamma(L + 1 / 2) / gamma(1.5) / gamma(L) * hyperg_1F1(-0.5, L, -th1 ^
+      sqrt(pi / 2) * gamma(L + 1 / 2) / gamma(1.5) / gamma(L) * gsl::hyperg_1F1(-0.5, L, -th1 ^
                                                                              2 / 2, give = FALSE, strict = TRUE)
     (m1 - y) ^ 2 / 2 / (2 * L + th1 ^ 2 - m1 ^ 2)
   }
@@ -591,7 +591,7 @@ pawstestprop <- function(dy,
   kldistnorm1 <- function(th1, y, df) {
     L <- df / 2
     m1 <-
-      sqrt(pi / 2) * gamma(L + 1 / 2) / gamma(1.5) / gamma(L) * hyperg_1F1(-0.5, L, -th1 ^
+      sqrt(pi / 2) * gamma(L + 1 / 2) / gamma(1.5) / gamma(L) * gsl::hyperg_1F1(-0.5, L, -th1 ^
                                                                              2 / 2, give = FALSE, strict = TRUE)
     (m1 - y) ^ 2 / 2 / (2 * L + th1 ^ 2 - m1 ^ 2)
   }

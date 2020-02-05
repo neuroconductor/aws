@@ -244,7 +244,7 @@
               mgp = c(2, 1, 0)
             )
             image(y0,
-                  col = gray((0:255) / 255),
+                  col = grey((0:255) / 255),
                   xaxt = "n",
                   yaxt = "n")
             title(paste(
@@ -255,7 +255,7 @@
             ))
             image(
               theta,
-              col = gray((0:255) / 255),
+              col = grey((0:255) / 255),
               xaxt = "n",
               yaxt = "n"
             )
@@ -269,7 +269,7 @@
             ))
             image(
               bi,
-              col = gray((0:255) / 255),
+              col = grey((0:255) / 255),
               xaxt = "n",
               yaxt = "n"
             )
@@ -283,7 +283,7 @@
             ))
             if (!is.null(u)) {
               image(u,
-                    col = gray((0:255) / 255),
+                    col = grey((0:255) / 255),
                     xaxt = "n",
                     yaxt = "n")
               title("true original")
@@ -297,7 +297,7 @@
               mgp = c(2, 1, 0)
             )
             image(y0[, , n3 %/% 2 + 1],
-                  col = gray((0:255) / 255),
+                  col = grey((0:255) / 255),
                   xaxt = "n",
                   yaxt = "n")
             title(paste(
@@ -308,7 +308,7 @@
             ))
             image(
               theta[, , n3 %/% 2 + 1],
-              col = gray((0:255) / 255),
+              col = grey((0:255) / 255),
               xaxt = "n",
               yaxt = "n"
             )
@@ -322,7 +322,7 @@
             ))
             image(
               bi[, , n3 %/% 2 + 1],
-              col = gray((0:255) / 255),
+              col = grey((0:255) / 255),
               xaxt = "n",
               yaxt = "n"
             )
@@ -336,7 +336,7 @@
             ))
             if (!is.null(u)) {
               image(u[, , n3 %/% 2 + 1],
-                    col = gray((0:255) / 255),
+                    col = grey((0:255) / 255),
                     xaxt = "n",
                     yaxt = "n")
               title("true original")

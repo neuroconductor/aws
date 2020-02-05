@@ -308,7 +308,7 @@ aws <- function(y,
           mgp = c(2, 1, 0)
         )
         image(array(y,dy),
-              col = gray((0:255) / 255),
+              col = grey((0:255) / 255),
               xaxt = "n",
               yaxt = "n")
         title(paste(
@@ -319,7 +319,7 @@ aws <- function(y,
         ))
         image(
           array(tobj$theta,dy),
-          col = gray((0:255) / 255),
+          col = grey((0:255) / 255),
           xaxt = "n",
           yaxt = "n"
         )
@@ -333,7 +333,7 @@ aws <- function(y,
         ))
         image(
           array(tobj$bi,dy),
-          col = gray((0:255) / 255),
+          col = grey((0:255) / 255),
           xaxt = "n",
           yaxt = "n"
         )
@@ -347,7 +347,7 @@ aws <- function(y,
         ))
           if (!is.null(u)){
              image(u,
-                col = gray((0:255) / 255),
+                col = grey((0:255) / 255),
                 xaxt = "n",
                 yaxt = "n")
           title("true original")
@@ -360,7 +360,7 @@ aws <- function(y,
           mgp = c(2, 1, 0)
         )
         image(array(y,dy)[, , n3 %/% 2 + 1],
-              col = gray((0:255) / 255),
+              col = grey((0:255) / 255),
               xaxt = "n",
               yaxt = "n")
         title(paste(
@@ -371,7 +371,7 @@ aws <- function(y,
         ))
         image(
           array(tobj$theta,dy)[, , n3 %/% 2 + 1],
-          col = gray((0:255) / 255),
+          col = grey((0:255) / 255),
           xaxt = "n",
           yaxt = "n"
         )
@@ -385,7 +385,7 @@ aws <- function(y,
         ))
         image(
           array(tobj$bi,dy)[, , n3 %/% 2 + 1],
-          col = gray((0:255) / 255),
+          col = grey((0:255) / 255),
           xaxt = "n",
           yaxt = "n"
         )
@@ -399,7 +399,7 @@ aws <- function(y,
         ))
           if (!is.null(u)){
             image(u[, , n3 %/% 2 + 1],
-                col = gray((0:255) / 255),
+                col = grey((0:255) / 255),
                 xaxt = "n",
                 yaxt = "n")
           title("true original")
