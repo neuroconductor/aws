@@ -791,7 +791,7 @@ C   need both ipind and jpind in mask,
       END DO
 C$OMP END DO NOWAIT
 C$OMP END PARALLEL
-C$OMP FLUSH(thnew,bin)
+C$OMP FLUSH(ydnew,thnew,bin)
       RETURN
       END
 
