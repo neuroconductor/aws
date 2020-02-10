@@ -239,8 +239,7 @@ C
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12,k,thrednr,iindp,ipindp,jindp,jpindp
-      double precision biinv,sij,swj,z,z1,z2,z3,wj,hakt2,
-     1        w1,w2,spmb,sijp
+      double precision biinv,sij,swj,z,z1,z2,z3,wj,hakt2,w1,w2,sijp
       integer np1,np2,np3
       integer ip1,ip2,ip3,nph1,nph2,nph3,ipind,jp1,jp2,jp3,jpind
       external lkern
@@ -314,7 +313,7 @@ C$OMP& SHARED(thnew,bi,nv,n1,n2,n3,hakt2,theta,bin,
 C$OMP& ih3,lwght,wght,y,swjy,pos,nph1,nph2,nph3)
 C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
 C$OMP& spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
-C$OMP& PRIVATE(i1,i2,i3,iind,biinv,swj,spmb,iindp,jindp,ipindp,
+C$OMP& PRIVATE(i1,i2,i3,iind,biinv,swj,iindp,jindp,ipindp,
 C$OMP& jpindp,sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
 C$OMP& j1,jw1,jind,z1,z,thrednr,ip1,ip2,ip3,ipind,
 C$OMP& jp1,jp2,jp3,jpind,sijp)
@@ -431,9 +430,8 @@ C
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12,k,thrednr,iindp,jindp,ipindp,jpindp
-      double precision biinv,sij,swj,z,z1,z2,z3,wj,hakt2,
-     1        w1,w2,spmb,sijp
-      integer np1,np2,np3,l,m
+      double precision sij,swj,z,z1,z2,z3,wj,hakt2,w1,w2,sijp
+      integer np1,np2,np3
       integer ip1,ip2,ip3,nph1,nph2,nph3,ipind,jp1,jp2,jp3,jpind
       external lkern, KLdistsi
       double precision lkern, KLdistsi
@@ -503,13 +501,13 @@ C   rescale bi with 1/lambda
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(thnew,bi,nv,nvd,n1,n2,n3,hakt2,theta,invcov,
-C$OMP& ih3,lwght,wght,y,swjy,pos,nph1,nph2,nph3,bin)
-C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
-C$OMP& spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
-C$OMP& PRIVATE(i1,i2,i3,iind,biinv,swj,spmb,iindp,jindp,ipindp,
+C$OMP& ih3,lwght,wght,y,swjy,pos,nph1,nph2,nph3,bin,lambda,aws,
+C$OMP& dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,n12,spmin,spf,w1,w2)
+C$OMP& FIRSTPRIVATE(ih1,ih2)
+C$OMP& PRIVATE(i1,i2,i3,iind,swj,iindp,jindp,ipindp,
 C$OMP& jpindp,sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
 C$OMP& j1,jw1,jind,z1,z,thrednr,ip1,ip2,ip3,ipind,
-C$OMP& jp1,jp2,jp3,jpind,sijp,l,m)
+C$OMP& jp1,jp2,jp3,jpind,sijp,k)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n1*n2*n3
          iindp=pos(iind)
@@ -623,9 +621,8 @@ C
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12,k,iindp,jindp,ipindp,jpindp,thrednr
-      double precision biinv,sij,swj,z,z1,z2,z3,wj,hakt2,
-     1        w1,w2,spmb,sijp
-      integer np1,np2,np3,l,m
+      double precision biinv,sij,swj,z,z1,z2,z3,wj,hakt2,w1,w2,sijp
+      integer np1,np2,np3
       integer ip1,ip2,ip3,nph1,nph2,nph3,ipind,jp1,jp2,jp3,jpind
       external lkern, KLdistsr
       double precision lkern, KLdistsr
@@ -689,13 +686,14 @@ C  first stochastic term
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(thnew,bi,nv,nvd,nd,n1,n2,n3,hakt2,theta,invcov,
-C$OMP& ih3,lwght,wght,y,yd,swjy,swjd,pos,nph1,nph2,nph3,bin,ydnew)
-C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
-C$OMP& spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
-C$OMP& PRIVATE(i1,i2,i3,iind,biinv,swj,spmb,
+C$OMP& ih3,lwght,wght,y,yd,swjy,swjd,pos,nph1,nph2,nph3,bin,ydnew,
+C$OMP& lambda,aws,n12,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,
+C$OMP& dlw12,w1,w2)
+C$OMP& FIRSTPRIVATE(ih1,ih2)
+C$OMP& PRIVATE(i1,i2,i3,iind,biinv,swj,
 C$OMP& sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
-C$OMP& j1,jw1,jind,z1,z,thrednr,ip1,ip2,ip3,ipind,
-C$OMP& jp1,jp2,jp3,jpind,sijp,l,m,iindp,jindp,ipindp,jpindp)
+C$OMP& j1,jw1,jind,z1,z,thrednr,ip1,ip2,ip3,ipind,k,
+C$OMP& jp1,jp2,jp3,jpind,sijp,iindp,jindp,ipindp,jpindp)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n1*n2*n3
         iindp = pos(iind)
