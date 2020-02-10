@@ -310,12 +310,12 @@ C   rescale bi with 1/lambda
       call rchkusr()
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(thnew,bi,nv,n1,n2,n3,hakt2,theta,bin,
-C$OMP& ih3,lwght,wght,y,swjy,pos,nph1,nph2,nph3)
-C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
+C$OMP& ih3,lwght,wght,y,swjy,pos,nph1,nph2,nph3,lambda,aws,n12,
 C$OMP& spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
+C$OMP& FIRSTPRIVATE(ih1,ih2,thrednr)
 C$OMP& PRIVATE(i1,i2,i3,iind,biinv,swj,iindp,jindp,ipindp,
 C$OMP& jpindp,sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
-C$OMP& j1,jw1,jind,z1,z,thrednr,ip1,ip2,ip3,ipind,
+C$OMP& j1,jw1,jind,z1,z,ip1,ip2,ip3,ipind,
 C$OMP& jp1,jp2,jp3,jpind,sijp)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n1*n2*n3
@@ -503,10 +503,10 @@ C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(thnew,bi,nv,nvd,n1,n2,n3,hakt2,theta,invcov,
 C$OMP& ih3,lwght,wght,y,swjy,pos,nph1,nph2,nph3,bin,lambda,aws,
 C$OMP& dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,n12,spmin,spf,w1,w2)
-C$OMP& FIRSTPRIVATE(ih1,ih2)
+C$OMP& FIRSTPRIVATE(ih1,ih2,thrednr)
 C$OMP& PRIVATE(i1,i2,i3,iind,swj,iindp,jindp,ipindp,
 C$OMP& jpindp,sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
-C$OMP& j1,jw1,jind,z1,z,thrednr,ip1,ip2,ip3,ipind,
+C$OMP& j1,jw1,jind,z1,z,ip1,ip2,ip3,ipind,
 C$OMP& jp1,jp2,jp3,jpind,sijp,k)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n1*n2*n3
@@ -689,10 +689,10 @@ C$OMP& SHARED(thnew,bi,nv,nvd,nd,n1,n2,n3,hakt2,theta,invcov,
 C$OMP& ih3,lwght,wght,y,yd,swjy,swjd,pos,nph1,nph2,nph3,bin,ydnew,
 C$OMP& lambda,aws,n12,spmin,spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,
 C$OMP& dlw12,w1,w2)
-C$OMP& FIRSTPRIVATE(ih1,ih2)
+C$OMP& FIRSTPRIVATE(ih1,ih2,thrednr)
 C$OMP& PRIVATE(i1,i2,i3,iind,biinv,swj,
 C$OMP& sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
-C$OMP& j1,jw1,jind,z1,z,thrednr,ip1,ip2,ip3,ipind,k,
+C$OMP& j1,jw1,jind,z1,z,ip1,ip2,ip3,ipind,k,
 C$OMP& jp1,jp2,jp3,jpind,sijp,iindp,jindp,ipindp,jpindp)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n1*n2*n3
