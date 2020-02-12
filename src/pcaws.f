@@ -623,8 +623,8 @@ C
       double precision sij,swj,z1,z2,z3,wj,hakt2,w1,w2,sijp
       integer np1,np2,np3
       integer ip1,ip2,ip3,nph1,nph2,nph3,ipind,jp1,jp2,jp3,jpind
-      external lkern, KLdistsi
-      double precision lkern, KLdistsi
+      external lkern, KLdists2
+      double precision lkern, KLdists2
 !$      integer omp_get_thread_num
 !$      external omp_get_thread_num
       thrednr = 1
@@ -760,9 +760,9 @@ C  first stochastic term
                               jpindp=pos(jpind)
                               if(jpindp.eq.0) CYCLE
 C   need both ipind and jpind in mask,
-                              sijp=KLdistsi(theta(1,jpindp),
+                              sijp=KLdists2(theta(1,jpindp),
      1                                theta(1,ipindp),
-     2                                invcov(1,ipindp),nv)
+     2                                invcov(1,ipindp),nv,nvd)
                               sij=max(sij,bi(ipindp)*sijp)
                            END DO
                         END DO
@@ -1028,5 +1028,29 @@ C  compact version
          m=m+1
       END DO
       KLdistsi=z
+      RETURN
+      END
+
+      double precision function KLdists2(thi,thj,si2,nv,nvd)
+C  compact version
+      implicit logical (a-z)
+      integer nv,nvd
+      double precision thi(nv), thj(nv), si2(nvd)
+      integer k,l,m
+      double precision z,zdk
+      z=0.d0
+      m=1
+      DO k=1,nv
+         zdk=thi(k)-thj(k)
+         if(k.gt.1) THEN
+           DO l=1,k-1
+              z=z+2.d0*(thi(l)-thj(l))*zdk*si2(m)
+              m=m+1
+           END DO
+         ENDIF
+         z=z+zdk*zdk*si2(m)
+         m=m+1
+      END DO
+      KLdists2=z
       RETURN
       END
