@@ -22,7 +22,7 @@ C
      1       bi2(*),hakt,lwght(*)
       integer ih1,ih2,i1,i2,j1,j2,jw1,jw2,jwind2,
      1        iind,jind,jind2,clw1,clw2,dlw1,dlw2
-      double precision sij,swj,swj2,swjy,z1,z2,wj,hakt2
+      double precision swj,swj2,swjy,z1,z2,wj,hakt2
       hakt2=hakt*hakt
 C
 C   first calculate location weights
@@ -56,7 +56,7 @@ C  first stochastic term
 C$OMP PARALLEL DEFAULT(NONE)
 C$OMP& SHARED(ai,bi,bi0,bi2,n1,n2,hakt2,lwght,wght,y,fix,mask,ni)
 C$OMP& FIRSTPRIVATE(ih1,i2,dlw1,clw1,dlw2,clw2)
-C$OMP& PRIVATE(iind,swj,swj2,swjy,sij,i1,wj,j2,jw2,jind2,z2,jwind2,
+C$OMP& PRIVATE(iind,swj,swj2,swjy,i1,wj,j2,jw2,jind2,z2,jwind2,
 C$OMP& j1,jw1,jind)
 C$OMP DO SCHEDULE(GUIDED)
          DO i1=1,n1

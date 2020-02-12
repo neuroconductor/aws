@@ -29,7 +29,7 @@ C
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,jwind3,jwind2,
      1        iind,jind,jind3,jind2,clw1,clw2,clw3,dlw1,dlw2,dlw3,
      2        dlw12,n12,k,thrednr
-      double precision bii,biinv,sij,swj,swj2,z,z1,z2,z3,wj,hakt2,
+      double precision bii,biinv,sij,swj,swj2,z1,z2,z3,wj,hakt2,
      1       w1,w2,spmb,spf
       external lkern,KLdist2
       double precision lkern,KLdist2
@@ -95,7 +95,7 @@ C$OMP& FIRSTPRIVATE(ih1,ih2,lambda,aws,n12,
 C$OMP& spf,dlw1,clw1,dlw2,clw2,dlw3,clw3,dlw12,w1,w2)
 C$OMP& PRIVATE(i1,i2,i3,iind,bii,biinv,swj,spmb,
 C$OMP& sij,wj,j3,jw3,jind3,z3,jwind3,j2,jw2,jind2,z2,jwind2,
-C$OMP& j1,jw1,jind,z1,z,thrednr,swj2)
+C$OMP& j1,jw1,jind,z1,thrednr,swj2)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n1*n2*n3
          if(mask(iind).eq.0) CYCLE
