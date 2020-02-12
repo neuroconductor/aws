@@ -348,7 +348,7 @@ vpawscov2 <- function(y,
                        as.integer(np3))[c("bi", "theta", "hakt","data")]
       dim(zobj$data) <- c(nsample, nvoxel)
     } else {#6
-      zobj <- .Fortran(C_pvaws2,
+      zobj <- .Fortran(C_pvaws2b,
                        as.double(y),
                        as.integer(position),
                        as.integer(nvec),
@@ -370,7 +370,10 @@ vpawscov2 <- function(y,
                        double(nvec * mc.cores),
                        as.integer(np1),
                        as.integer(np2),
-                       as.integer(np3))[c("bi", "theta", "hakt")]
+                       as.integer(np3),
+                       as.integer(n1*n2*n3),
+                       as.integer(nvoxel),
+                       as.integer(prod(dlw)))[c("bi", "theta", "hakt")]
     }#6
     x <- 1.25 ^ k
     scorrfactor <- x / (3 ^ d * prod(scorr) * prod(h0) + x)
