@@ -847,7 +847,6 @@ C$OMP DO SCHEDULE(GUIDED)
 C    nothing to do, final estimate is already fixed by control
             zz(1)=1.d0
 !$            thrednr = omp_get_thread_num()
-C         call intpr("nr of core",10,thrednr,1)
             trl = thrednr*dlw2
             trs = thrednr*dsw*dsw
             hhomi=hhom(iind)
@@ -1314,15 +1313,7 @@ C     restricted to dp2<=20
 C     now calculate theta as B_i^{-1} A_i
          call dposv("U",dp1,1,dmat,dp1,aa,dp1,info)
 C    if info>0 just keep the old estimate
-         IF (info.gt.0) THEN
-            call intpr("i",1,i,1)
-            call dblepr("h",1,h,1)
-            call dblepr("cii",3,cii,dp2)
-            DO k=1,dp2
-               call dblepr("bi(i,k)",7,bi(i,k),1)
-            END DO
-            CYCLE
-         END IF
+         IF (info.gt.0) CYCLE
          DO j=1,dp1
             theta(i,j)=aa(j)/cii(j)
          END DO
