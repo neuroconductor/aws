@@ -189,7 +189,7 @@ C
      1       wght(2),si2(*),hakt,lwght(*),spmin
       integer ih1,ih2,ih3,i1,i2,i3,j1,j2,j3,jw1,jw2,jw3,clw1,
      1        clw2,clw3,dlw1,dlw2,dlw3,n,iind,jind,n12,jind2,jind3,
-     2        a1,e1,a2,e2,a3,e3,k,dlw12,iindp,jindp
+     2        a1,e1,a2,e2,a3,e3,dlw12,iindp,jindp
       double precision bii,swj,swjy,thi,wj,hakt2,spf,si2i,swjv
       hakt2=hakt*hakt
       spf=spmax/(spmax-spmin)
@@ -225,7 +225,7 @@ C$OMP& SHARED(n1,n2,n3,kern,skern,aws,wlse,pos,y,theta,bi,thn,
 C$OMP& lambda,spmax,wght,si2,hakt,lwght,spmin,spf,dlw12,
 C$OMP& ih1,ih2,ih3,clw1,clw2,clw3,dlw1,dlw2,dlw3,n,hakt2,n12)
 C$OMP& FIRSTPRIVATE(a1,e1,a2,e2,a3,e3)
-C$OMP& PRIVATE(iind,i1,i2,i3,k,si2i,bii,swjv,swj,thi,swjy,
+C$OMP& PRIVATE(iind,i1,i2,i3,si2i,bii,swjv,swj,thi,swjy,
 C$OMP& j1,j2,j3,jw1,jw2,jw3,jind,jind2,jind3,wj,iindp,jindp)
 C$OMP DO SCHEDULE(GUIDED)
       DO iind=1,n
