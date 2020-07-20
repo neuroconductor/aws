@@ -1,5 +1,6 @@
 \name{vpaws}
 \alias{vpaws}
+\alias{vpawscov}
 \alias{vpawscov2}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
@@ -14,6 +15,8 @@ discontinuities at the expense of increased computing time.
 \usage{
 vpaws(y, kstar = 16, sigma2 = 1, invcov = NULL, mask = NULL, scorr = 0, spmin = 0.25,
       ladjust = 1, wghts = NULL, u = NULL, patchsize = 1)
+vpawscov(y, kstar = 16, invcov = NULL, mask = NULL, scorr = 0, spmin = 0.25, ladjust = 1, 
+      wghts = NULL, u = NULL, maxni = FALSE, patchsize = 1)
 vpawscov2(y, kstar = 16, invcov = NULL, mask = NULL, scorr = 0, spmin = 0.25,
       lambda = NULL, ladjust = 1, wghts = NULL, patchsize = 1,
       data = NULL, verbose = TRUE)
@@ -60,6 +63,7 @@ a "true" value of the regression function, may be provided to
   \item{patchsize}{
 positive integer defining the size of patches. Number of grid points within the patch is \code{(2*patchsize+1)^d} with \code{d} denoting the dimensionality of the design.
 }
+\item{maxni}{require growing sum of weights}
   \item{lambda}{explicit value of lambda}
   \item{data}{optional vector-valued images to be smoothed using the weighting scheme of the last step}
   \item{verbose}{logical: provide information on progress.}

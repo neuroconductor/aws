@@ -236,7 +236,7 @@ vawscov <- function(y,
                                                                                   0.42445 / 4, 1e-5, d)
     zobj <- .Fortran(C_vaws2cov,
       as.double(y),
-      as.integer(mask),
+      as.integer(position),
       as.integer(nvec),
       as.integer(nvec * (nvec + 1) / 2),
       as.integer(n1),
@@ -264,9 +264,9 @@ vawscov <- function(y,
         "bandwidth: ",
         signif(hakt, 3),
         "   MSE: ",
-        signif(mean((zobj$theta - u) ^ 2), 3),
+        signif(mean((zobj$theta - u[mask]) ^ 2), 3),
         "   MAE: ",
-        signif(mean(abs(zobj$theta - u)), 3),
+        signif(mean(abs(zobj$theta - u[mask])), 3),
         " mean(bi)=",
         signif(mean(zobj$bi), 3),
         "\n"
@@ -283,8 +283,7 @@ vawscov <- function(y,
     gc()
   }
   cat("\n")
-  theta0 <- array(0,c(nvec,n))
-  dim(theta) <- c(nvec,n)
+  theta <- array(0,c(nvec,n))
   theta[,mask] <- zobj$theta
   dim(theta) <- c(nvec,dy)
   bi <- vred <- array(dy)
@@ -302,7 +301,7 @@ vawscov <- function(y,
   awsobj(
     y0,
     theta,
-    sweep(invcov, 2:(d + 1), vred, "*"),
+    sweep(invcov0, 2:(d + 1), vred, "*"),
     hakt,
     invcov0,
     lkern = 1L,

@@ -1069,7 +1069,7 @@ C  first stochastic term
                   j1=jw1+i1
                   if(j1.lt.1.or.j1.gt.n1) CYCLE
                   jind=j1+jind2
-                  jindp=pos(iindp)
+                  jindp=pos(jind)
                   if(jindp.eq.0) CYCLE
                   wj=lwght(jw1+clw1+1+jwind2)
                   IF (aws) THEN
