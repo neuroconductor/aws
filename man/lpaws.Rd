@@ -69,9 +69,9 @@ lpaws(y, degree = 1, hmax = NULL, aws = TRUE, memory = FALSE, lkern = "Triangle"
                         \item{vcoef = "numeric"}{numeric(0)}
                         \item{call = "function"}{the arguments of the call to \code{lpaws}}
 }
-\references{  J. Polzehl, K. Papafitsoros, K. Tabelow. Patch-wise adaptive weights smoothing,
-             Preprint no. 2520, WIAS, Berlin, 2018, DOI 10.20347/WIAS.PREPRINT.2520.
-             (to appear in Journal of Statistical Software).
+\references{
+             J. Polzehl, K. Papafitsoros, K. Tabelow (2020). Patch-Wise Adaptive Weights Smoothing in R, Journal of
+             Statistical Software, 95(6), 1-27. doi:10.18637/jss.v095.i06 (URL: http://doi.org/10.18637/jss.v095.i06).
 
              J. Polzehl, V. Spokoiny, in V. Chen, C.; Haerdle, W. and Unwin, A. (ed.)
              Handbook of Data Visualization Structural adaptive smoothing by propagation-separation methods.

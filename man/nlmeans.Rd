@@ -51,6 +51,9 @@ A list of class \code{"nlmeans"} with components
 \item{searchhw}{Half width of search area}
 }
 \references{
+J. Polzehl, K. Papafitsoros, K. Tabelow (2020). Patch-Wise Adaptive Weights Smoothing in R, Journal of
+Statistical Software, 95(6), 1-27. doi:10.18637/jss.v095.i06 (URL: http://doi.org/10.18637/jss.v095.i06).
+
 A. Buades, B. Coll and J. M. Morel (2006). A review of image denoising algorithms, with a new one.
 Simulation, 4, 490-530. DOI:10.1137/040616024.
 

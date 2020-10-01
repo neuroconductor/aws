@@ -66,6 +66,9 @@ This mainly follows Chapter 6.1 in Katkovnik et al (2006).
 An object of class \code{ICIsmooth}
 }
 \references{
+             J. Polzehl, K. Papafitsoros, K. Tabelow (2020). Patch-Wise Adaptive Weights Smoothing in R, Journal of
+             Statistical Software, 95(6), 1-27. doi:10.18637/jss.v095.i06 (URL: http://doi.org/10.18637/jss.v095.i06).
+
 V. Katkovnik, K. Egiazarian and J. Astola,
 \emph{Local Approximation Techniques in Signal And Image Processing},
  SPIE Society of Photo-Optical Instrumentation Engin., 2006, PM157
