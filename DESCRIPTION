@@ -1,6 +1,6 @@
 Package: aws
-Version: 2.4-3
-Date: 2020-07-20
+Version: 2.4-5
+Date: 2021-01-11
 Title: Adaptive Weights Smoothing
 Authors@R: c(person("Joerg","Polzehl",role=c("aut","cre"),email="joerg.polzehl@wias-berlin.de"),person("Felix","Anker",role=c("ctb")))
 Author: Joerg Polzehl [aut, cre],
@@ -18,10 +18,10 @@ Description: We provide a collection of R-functions implementing
    "J. Polzehl and V. Spokoiny (2004) <DOI:10.20347/WIAS.PREPRINT.998>"
    and "J. Polzehl, K. Papafitsoros, K. Tabelow (2018) <DOI:10.20347/WIAS.PREPRINT.2520>",
    the Intersecting Confidence Intervals (ICI), variational approaches and a non-local means filter.
-   Usage of the package is also described in
+   Usage of the package is described in detail in
    Polzehl and Tabelow (2019),
    Magnetic Resonance Brain Imaging, Appendix A, Springer, Use R! Series.
-   <doi:10.1007/978-3-030-29184-6_6>.
+   <doi:10.1007/978-3-030-29184-6_6> and Polzehl, Papafitsoros and Tabelow (2020) <doi:10.20347/wias.preprint.2520>.
 License: GPL (>=2)
 Copyright: This package is Copyright (C) 2005-2020 Weierstrass Institute
     for Applied Analysis and Stochastics.
