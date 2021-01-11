@@ -1,32 +1,22 @@
-citHeader("To cite aws in publications use:")
+bibentry(bibtype = "Article",
+  title        = "Patch-Wise Adaptive Weights Smoothing in {R}",
+  author       = c(person(given = "J\\\"org",
+                          family = "Polzehl",
+                          email = "joerg.polzehl@wias-berlin.de"),
+                   person(given = "Kostas",
+                          family = "Papafitsoros",
+                          email = "kostas.papafitsoros@wias-berlin.de"),
+                   person(given = "Karsten",
+                          family = "Tabelow",
+                          email = "karsten.tabelow@wias-berlin.de")),
+  journal      = "Journal of Statistical Software",
+  year         = "2020",
+  volume       = "95",
+  number       = "6",
+  pages        = "1--27",
+  doi          = "10.18637/jss.v095.i06",
 
-citEntry(entry = "Article",
-  title        = "Propagation-separation approach for local likelihood estimation",
-  author       = personList(as.person("J\\\"org Polzehl"),as.person("Vladimir Spokoiny")),
-  journal      = "Probab. Theory Related Fields",
-  year         = "2006",
-  volume       = "135",
-  number       = "3",
-  pages        = "335-362",
-
-  textVersion  =
-         paste("Joerg Polzehl, Vladimir Spokoiny (2006).",
-        "Propagation-separation approach for local likelihood estimation,",
-        "Probab. Theory Related Fields, 135(3), 335-362.")
-)
-
-citEntry(entry = "Techreport",
-  title        = "Patch-wise adaptive weights smoothing",
-	author = personList(as.person("J\\\"org Polzehl"),as.person("Kostas Papafitsoros"),as.person("Karsten Tabelow")),
-	year = "2018",
-	Doi = "10.20347/WIAS.PREPRINT.2520",
-	Institution = "WIAS Berlin",
-	Number = "2520",
-	
-	  textVersion  =
-         paste("Joerg Polzehl, Kostas Papafitsoros and Karsten Tabelow (2018).",
-        "Patch-wise adaptive weights smoothing,",
-        "WIAS Preprint 2520, DOI:10.20347/WIAS.PREPRINT.2520")
+  header       = "To cite aws in publications use:"
 )
 
 

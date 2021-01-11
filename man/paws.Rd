@@ -121,9 +121,8 @@ returns an object of class \code{aws} with slots
              Modeling and Data Analysis Using R. Springer, Use R! series. Appendix A.
              Doi:10.1007/978-3-030-29184-6.
 
-             J. Polzehl, K. Papafitsoros, K. Tabelow. Patch-wise adaptive weights smoothing,
-             Preprint no. 2520, WIAS, Berlin, 2018, DOI 10.20347/WIAS.PREPRINT.2520.
-             (to appear in Journal of Statistical Software).
+             J. Polzehl, K. Papafitsoros, K. Tabelow (2020). Patch-Wise Adaptive Weights Smoothing in R, Journal of
+             Statistical Software, 95(6), 1-27. doi:10.18637/jss.v095.i06 (URL: http://doi.org/10.18637/jss.v095.i06).
 }
 \author{
 Joerg Polzehl, \email{polzehl@wias-berlin.de},
