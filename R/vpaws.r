@@ -248,7 +248,6 @@ vpawscov <- function(y,
                      spmin = 0.25,
                      ladjust = 1,
                      wghts = NULL,
-                     u = NULL,
                      maxni = FALSE,
                      patchsize = 1) {
   ##
@@ -308,7 +307,6 @@ vpawscov <- function(y,
   k <- 1
   hmax <- 1.25 ^ (kstar / d)
   lambda0 <- lambda
-  mae <- NULL
   while (k <= kstar) {
     hakt0 <- gethani(1, 1.25 * hmax, 2, 1.25 ^ (k - 1), wghts, 1e-4)
     hakt <- gethani(1, 1.25 * hmax, 2, 1.25 ^ k, wghts, 1e-4)
@@ -342,24 +340,15 @@ vpawscov <- function(y,
                      as.integer(np1),
                      as.integer(np2),
                      as.integer(np3))[c("bi", "theta", "hakt")]
-    dim(zobj$theta) <- c(nvec, dy)
     if (maxni)
       bi <- zobj$bi <- pmax(bi, zobj$bi)
-    dim(zobj$bi) <- dy
-    if (!is.null(u)) {
       cat(
         "bandwidth: ",
         signif(hakt, 3),
-        "   MSE: ",
-        signif(mean((zobj$theta - u[mask]) ^ 2), 3),
-        "   MAE: ",
-        signif(mean(abs(zobj$theta - u[mask])), 3),
         " mean(bi)=",
         signif(mean(zobj$bi), 3),
         "\n"
       )
-      mae <- c(mae, signif(mean(abs(zobj$theta - u)), 3))
-    }
     x <- 1.25 ^ k
     scorrfactor <- x / (3 ^ d * prod(scorr) * prod(h0) + x)
     lambda0 <- lambda * scorrfactor
@@ -395,7 +384,7 @@ vpawscov <- function(y,
     earlystop = FALSE,
     family = "Gaussian",
     wghts = wghts,
-    mae = mae,
+    mae = NULL,
     psnr = NULL,
     ni = bi
   )
