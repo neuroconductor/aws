@@ -62,18 +62,26 @@ smooth3D <- function(y,h,mask,lkern="Gaussian",weighted=FALSE,sigma2=NULL,
                      double(nv))$thnew
 array(ysmooth,dy)
 }
+
+qselect <- function(x,k){
+# returns the k'th element of sort(x) in x[k]
+k <- pmax(1,pmin(length(x),k))
+.Fortran(C_qselect, x=as.double(x), as.integer(length(x)),as.integer(k))$x
+}
+
 medianFilter3D <- function(y, h=10, mask=NULL){
   sdim <- dim(y)
   n <- prod(sdim)
   if(length(sdim)!=3) stop("y needs to be a 3D array")
   if(is.null(mask)) mask <- array(TRUE,sdim)
   if(any(dim(mask)!=sdim)) stop("dimensions do not coinside")
+  if(!is.logical(mask)) mask <- mask>0
   parammd <- getparam3d(h,c(1,1))
   nwmd <- length(parammd$w)
   mc.cores <- setCores(, reprt = FALSE)
   yhat <- .Fortran(C_mediansm,
                      as.double(y),
-                     as.logical(mask),
+                     as.integer(mask),
                      as.integer(sdim[1]),
                      as.integer(sdim[2]),
                      as.integer(sdim[3]),
@@ -81,7 +89,7 @@ medianFilter3D <- function(y, h=10, mask=NULL){
                      as.integer(nwmd),
                      double(nwmd*mc.cores), # work(nw,nthreds)
                      as.integer(mc.cores),
-                     yhat = double(n))$yhat/0.6931
+                     yhat = double(n))$yhat
   dim(yhat) <- sdim
   yhat
 }

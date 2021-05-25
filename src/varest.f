@@ -97,19 +97,11 @@ C$OMP DO SCHEDULE(GUIDED)
                   j3=i3+ind(3,j)
                   if(j3.le.0.or.j3.gt.n3) CYCLE
                   if(mask(j1,j2,j3).eq.0) CYCLE
-                  if(y(j1,j2,j3).le.0.d0) CYCLE
                   k=k+1
                   work(k,thrednr)=y(j1,j2,j3)
                END DO
                IF(k.gt.1) THEN
                   yout(i1,i2,i3) = fmedian(work(1,thrednr),k)
-C                  call qsort3(work(1,thrednr),1,k)
-C                  IF (mod(k,2) == 0) THEN
-C                     yout(i1,i2,i3) =
-C     1               (work(k/2,thrednr)+work(k/2+1,thrednr))/2.d0
-C                  ELSE
-C                     yout(i1,i2,i3) = work(k/2+1,thrednr)
-C                  END IF
                ELSE
                   yout(i1,i2,i3) = y(i1,i2,i3)
                END IF
