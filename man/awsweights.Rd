@@ -40,6 +40,10 @@ Joerg Polzehl, Vladimir Spokoiny,  Adaptive Weights Smoothing with applications 
 
 Joerg Polzehl, Vladimir Spokoiny,  Propagation-separation approach for local likelihood estimation,  Probab. Theory Related Fields  135 (3),  (2006)  , pp. 335--362.
 
+Joerg Polzehl, Kostas Papafitsoros, Karsten Tabelow (2020). Patch-Wise Adaptive Weights Smoothing in R, Journal of
+             Statistical Software, 95(6), 1-27. doi:10.18637/jss.v095.i06.
+
+
 %% ~put references to the literature/web site here ~
 }
 \author{ Joerg Polzehl, \email{polzehl@wias-berlin.de}, 

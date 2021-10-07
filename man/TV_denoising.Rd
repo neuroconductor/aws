@@ -58,7 +58,7 @@ TGV_denoising_colour(datanoisy, alpha, beta, iter = 1000, tolmean = 1e-06,
 }
 \references{
              J. Polzehl, K. Papafitsoros, K. Tabelow (2020). Patch-Wise Adaptive Weights Smoothing in R, Journal of
-             Statistical Software, 95(6), 1-27. doi:10.18637/jss.v095.i06 (URL: http://doi.org/10.18637/jss.v095.i06).
+             Statistical Software, 95(6), 1-27. doi:10.18637/jss.v095.i06.
 
    Rudin, L.I., Osher, S. and Fatemi, E. (1992). Nonlinear total variation based
    noise removal algorithms. Phys. D, 60, 259-268. DOI: 10.1016/0167-2789(92)90242-F.
