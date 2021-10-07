@@ -16,7 +16,7 @@ discontinuities at the expense of increased computing time.
 vpaws(y, kstar = 16, sigma2 = 1, invcov = NULL, mask = NULL, scorr = 0, spmin = 0.25,
       ladjust = 1, wghts = NULL, u = NULL, patchsize = 1)
 vpawscov(y, kstar = 16, invcov = NULL, mask = NULL, scorr = 0, spmin = 0.25, ladjust = 1, 
-      wghts = NULL, u = NULL, maxni = FALSE, patchsize = 1)
+      wghts = NULL, maxni = FALSE, patchsize = 1)
 vpawscov2(y, kstar = 16, invcov = NULL, mask = NULL, scorr = 0, spmin = 0.25,
       lambda = NULL, ladjust = 1, wghts = NULL, patchsize = 1,
       data = NULL, verbose = TRUE)

@@ -105,7 +105,7 @@
 \newcommand{\pkg}[1]{{\normalfont\fontseries{b}\selectfont #1}\index{Packages!#1}}
 \let\proglang=\textsf
 \let\code=\texttt
-%\VignetteIndexEntry{Analyzing MPM data with package qMRI}
+%\VignetteIndexEntry{A very short inroduction into the aws package}
 
 \title{A very short inroduction into the aws package}
 \author{J\"org Polzehl}
