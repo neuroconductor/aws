@@ -3,7 +3,8 @@
 \usepackage{filecontents}
 
 \begin{filecontents}{aws.bib}
-@Article{PoPaTa20,
+
+  @Article{PoPaTa20,
     title = {Patch-Wise Adaptive Weights Smoothing in {R}},
     author = {J\"org Polzehl and Kostas Papafitsoros and Karsten
       Tabelow},
@@ -15,7 +16,7 @@
     doi = {10.18637/jss.v095.i06},
   }
   
-	@Book{MRBIbook2019,
+	@Book{MRIbook2019,
 	  title =     {Magnetic Resonance Brain Imaging: Modeling and Data Analysis Using R},
 	  publisher = {Springer},
 	  year =      {2019},
@@ -120,7 +121,7 @@
 
 \setkeys{Gin}{width=\textwidth}
 This document illustrates the capabilities of the \pkg{aws} package. For a more comprehensive overview and
-more realistic examples we refer to \cite{PoPaTa18} and appendix A of \cite{MRBIbook2019}. 
+more realistic examples we refer to \cite{PoPaTa20} and appendix A of \cite{MRIbook2019}. 
 
 The package contains functions for adaptive smoothing (filtering) in various settings, including
 regular (and irregular) designs in 1D, 2D, 3D and SE(3), for univariate and vector valued observations.
