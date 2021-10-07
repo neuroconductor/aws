@@ -3,15 +3,18 @@
 \usepackage{filecontents}
 
 \begin{filecontents}{aws.bib}
- @techreport{PoPaTa18,
-	Author = {J. Polzehl and K. Papafitsoros and K. Tabelow},
-	Doi = {10.20347/WIAS.PREPRINT.2520},
-	Institution = {WIAS},
-	Number = {2520},
-	Title = {Patch-wise adaptive weights smoothing},
-	Type = {Preprint}
-	}
-
+@Article{PoPaTa20,
+    title = {Patch-Wise Adaptive Weights Smoothing in {R}},
+    author = {J\"org Polzehl and Kostas Papafitsoros and Karsten
+      Tabelow},
+    journal = {Journal of Statistical Software},
+    year = {2020},
+    volume = {95},
+    number = {6},
+    pages = {1--27},
+    doi = {10.18637/jss.v095.i06},
+  }
+  
 	@Book{MRBIbook2019,
 	  title =     {Magnetic Resonance Brain Imaging: Modeling and Data Analysis Using R},
 	  publisher = {Springer},
