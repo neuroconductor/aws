@@ -122,7 +122,7 @@ returns an object of class \code{aws} with slots
              Doi:10.1007/978-3-030-29184-6.
 
              J. Polzehl, K. Papafitsoros, K. Tabelow (2020). Patch-Wise Adaptive Weights Smoothing in R, Journal of
-             Statistical Software, 95(6), 1-27. doi:10.18637/jss.v095.i06 (URL: http://doi.org/10.18637/jss.v095.i06).
+             Statistical Software, 95(6), 1-27. doi:10.18637/jss.v095.i06 .
 }
 \author{
 Joerg Polzehl, \email{polzehl@wias-berlin.de},

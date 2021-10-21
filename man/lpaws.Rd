@@ -71,7 +71,7 @@ lpaws(y, degree = 1, hmax = NULL, aws = TRUE, memory = FALSE, lkern = "Triangle"
 }
 \references{
              J. Polzehl, K. Papafitsoros, K. Tabelow (2020). Patch-Wise Adaptive Weights Smoothing in R, Journal of
-             Statistical Software, 95(6), 1-27. doi:10.18637/jss.v095.i06 (URL: http://doi.org/10.18637/jss.v095.i06).
+             Statistical Software, 95(6), 1-27. doi:10.18637/jss.v095.i06 .
 
              J. Polzehl, V. Spokoiny, in V. Chen, C.; Haerdle, W. and Unwin, A. (ed.)
              Handbook of Data Visualization Structural adaptive smoothing by propagation-separation methods.

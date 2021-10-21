@@ -19,5 +19,17 @@ bibentry(bibtype = "Article",
   header       = "To cite aws in publications use:"
 )
 
-
+bibentry(bibtype = "Book",
+  title =     "Magnetic Resonance Brain Imaging: Modeling and Data Analysis Using R.",
+  publisher = "Springer",
+  year =      "2019",
+  author       = c(person(given = "J\\\"org",
+                          family = "Polzehl",
+                          email = "joerg.polzehl@wias-berlin.de"),
+                   person(given = "Karsten",
+                          family = "Tabelow",
+                          email = "karsten.tabelow@wias-berlin.de")),
+  series =    "UseR!",
+  doi =       "10.1007/978-3-30-29184-6"
+)
 
