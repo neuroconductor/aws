@@ -122,9 +122,6 @@ void F77_NAME(ihaws2)(double* y, double* si2, int* pos, int* wlse, int* n1,
   int* n2, int* n3, int* dv, double* hakt, double* lambda, double* theta,
 	int* ncores, double* bi, double* thn, int* kern, int* skern, double* spmin,
 	double* spmax, double* lwght, double* wght, double* swjy);
-void F77_NAME(ipolsp)( double* theta, double* th0, double* ni, double* ni0,
-  int* n, int* ng, int* gind, double* gw, int* nbv, int* nbvp1, double* msth,
-  double* msni);
 void F77_NAME(imcorr)(double* res, int* mask, int* n1, int* n2, int* n3, int* nv,
 	double* scorr, int* l1, int* l2, int* l3);
 void F77_NAME(ipolsp1)( double* theta, double* th0, double* ni, double* ni0,
@@ -301,8 +298,6 @@ static R_NativePrimitiveArgType ihaws2_t[]={REALSXP, REALSXP, INTSXP, INTSXP,
 	REALSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP};
 static R_NativePrimitiveArgType imcorr_t[]={REALSXP, INTSXP, INTSXP, INTSXP,
 	INTSXP, INTSXP, REALSXP, INTSXP, INTSXP, INTSXP};
-static R_NativePrimitiveArgType ipolsp_t[]={REALSXP, REALSXP, REALSXP,
-  REALSXP, INTSXP, INTSXP, INTSXP, REALSXP, INTSXP, INTSXP, REALSXP, REALSXP};
 static R_NativePrimitiveArgType ipolsp1_t[]={REALSXP, REALSXP, REALSXP,
   REALSXP, INTSXP, INTSXP, INTSXP, REALSXP, INTSXP, INTSXP, REALSXP,
   REALSXP};
@@ -413,7 +408,6 @@ static const R_FortranMethodDef fmethods[] = {
 						{"hg1f1", (DL_FUNC) &hg1f1_ , 5, hg1f1_t},
 						{"ihaws2", (DL_FUNC) &ihaws2_ ,21, ihaws2_t},
 						{"imcorr", (DL_FUNC) &imcorr_ ,10, imcorr_t},
-						{"ipolsp", (DL_FUNC) &ipolsp_ , 12, ipolsp_t},
             {"ipolsp1", (DL_FUNC) &ipolsp1_ , 12, ipolsp1_t},
 						{"ivar", (DL_FUNC) &ivar_ ,5, ivar_t},
             {"k456krb", (DL_FUNC) &k456krb_ , 4, k456krb_t},

@@ -12,10 +12,14 @@ sphtrarea1 <- function(g1,g2,g3){
   a23 <- acos(c23)
   a13 <- acos(c13)
   ## observed b1, b2, b3 outside [-1,1] due to numerics
+  if(s12*s13*s23>1e-8){  
   b1 <- min(max(1+(c23-cos(a12-a13))/s12/s13,-1),1)
   b2 <- min(max(1+(c13-cos(a12-a23))/s12/s23,-1),1)
   b3 <- min(max(1+(c12-cos(a13-a23))/s13/s23,-1),1)
   acos(b1)+acos(b2)+acos(b3)-pi
+  } else {
+    0
+  }
 }
 
 

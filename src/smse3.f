@@ -1274,49 +1274,6 @@ C  just to prevent compiler warnings
       n = i-1
       RETURN
       END
-      subroutine ipolsp(theta,th0,ni,ni0,n,ng,gind,gw,nbv,nbvp1,
-     1                    msth,msni)
-C   interpolate values of theta on spheres where it was not observed
-      implicit none
-      integer n,ng,nbv,nbvp1,gind(3,nbv,ng)
-      double precision theta(n,ng),th0(n),ni(n,ng),ni0(n),gw(3,nbv,ng),
-     1       msth(nbvp1,n,ng),msni(nbvp1,n,ng)
-      integer i,j,k,i1,i2,i3,ip1
-      double precision w1,w2,w3
-C$OMP PARALLEL DEFAULT(SHARED)
-C$OMP& PRIVATE(i,j,k,w1,w2,w3,i1,i2,i3,ip1)
-C$OMP DO SCHEDULE(GUIDED)
-      DO j=1,ng
-         DO k=1,n
-            msth(1,k,j) = th0(k)
-            msni(1,k,j) = ni0(k)
-            DO i=1,nbv
-               ip1 = i+1
-               i1 = gind(1,i,j)
-               IF(i1.eq.j) THEN
-C  same shell just copy
-                  msth(ip1,k,j) = theta(k,j)
-                  msni(ip1,k,j) = ni(k,j)
-               ELSE
-C  different shell need to interpolate
-                  i2 = gind(2,i,j)
-                  i3 = gind(3,i,j)
-                  w1 = gw(1,i,j)
-                  w2 = gw(2,i,j)
-                  w3 = gw(3,i,j)
-                  msth(ip1,k,j) = theta(k,i1)*w1+theta(k,i2)*w2+
-     1                            theta(k,i3)*w3
-                  msni(ip1,k,j) = 1.d0/
-     1                           (w1/ni(k,i1)+w2/ni(k,i2)+w3/ni(k,i3))
-               END IF
-            END DO
-         END DO
-      END DO
-C$OMP END DO NOWAIT
-C$OMP END PARALLEL
-C$OMP FLUSH(msth,msni)
-      RETURN
-      END
       subroutine ipolsp1(theta,th0,ni,ni0,n,ng,gind,gw,nbv,nbvp1,
      1                    msth,msni)
 C   interpolate values of theta on spheres where it was not observed
