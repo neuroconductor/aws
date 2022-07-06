@@ -267,6 +267,7 @@ vpawscov <- function(y,
                                  qchisq(pchisq(9.72, 1), nvec),
                                  ## 2D
                                  qchisq(pchisq(8.82, 1), nvec))## 3D
+  lambda <- lambda * switch(patchsize+1,1,1.3,1.6)
   if (is.null(wghts))
     wghts <- c(1, 1, 1)
   wghts <-
@@ -423,6 +424,7 @@ vpawscov2 <- function(y,
     stop("need 3D mask")
   if(is.null(lambda)){#2
     lambda <- 2 * ladjust * qchisq(pchisq(8.82, 1), nvec)
+    lambda <- lambda * switch(patchsize+1,1,1.3,1.6)
   }#2
   if (is.null(wghts)) wghts <- c(1, 1, 1)
   wghts <- wghts[1] / wghts[2:3]
