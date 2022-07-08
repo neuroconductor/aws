@@ -321,7 +321,7 @@ aws3Dmask <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
   }
   list(theta=theta, ni=tobj$bi, var=vartheta, vred=vred, vred0=vred0, mae=mae,
        alpha=propagation, hmax=tobj$hakt*switch(lkern,1,1,bw2fwhm(1/4)),
-       scorr=scorr, res=residuals, mask=mask)
+       scorr=scorr, residuals=residuals, mask=mask)
 }
 
 ##
@@ -506,5 +506,5 @@ aws3Dmaskfull <- function(y, mask, lambda, hmax, res=NULL, sigma2=NULL,
 
   list(theta=theta, ni=tobj$bi, var=vartheta, vred=vred, vred0=vred0, mae=mae,
        alpha=propagation, hmax=tobj$hakt*switch(lkern,1,1,bw2fwhm(1/4)),
-       scorr=scorr, res=residuals, mask=mask)
+       scorr=scorr, residuals=residuals, mask=mask)
 }
